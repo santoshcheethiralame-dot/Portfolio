@@ -1,0 +1,186 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="404 — Story not found" description="This page was never filed.">
+  <main class="nf-wrap">
+    <section class="nf-sheet" aria-labelledby="nf-title">
+      <div class="nf-bar">
+        <span>THE DAILY CHEETHIRALA</span>
+        <span class="nf-bar-tag">CORRECTIONS &amp; RETRACTIONS</span>
+      </div>
+
+      <p class="nf-kicker">// filed under: pages that do not exist</p>
+      <h1 class="nf-code" id="nf-title"><span>4</span><span class="out">0</span><span>4</span></h1>
+      <p class="nf-head">STORY NOT FOUND</p>
+
+      <p class="nf-deck">
+        The page you&rsquo;re after was never filed, got spiked by the editor,
+        or the cat shredded it. <em>We regret the error.</em>
+      </p>
+
+      <ul class="nf-facts" aria-hidden="true">
+        <li><span>What you asked for</span><span class="dots"></span><span class="pg" id="nf-path">/…</span></li>
+        <li><span>What we have</span><span class="dots"></span><span class="pg">the front page</span></li>
+        <li><span>Cat&rsquo;s statement</span><span class="dots"></span><span class="pg">&gt; not my fault</span></li>
+      </ul>
+
+      <a class="nf-btn" href="/">&larr; BACK TO THE FRONT PAGE</a>
+
+      <svg class="nf-cat" viewBox="0 0 120 60" fill="currentColor" aria-hidden="true">
+        <rect x="24" y="30" width="80" height="26" />
+        <rect x="14" y="26" width="28" height="30" />
+        <polygon points="16,26 21,14 28,26" />
+        <polygon points="29,26 36,14 43,26" />
+        <rect x="20" y="38" width="11" height="3" fill="#f7f5f1" />
+        <rect x="100" y="20" width="8" height="22" />
+      </svg>
+      <span class="nf-cat-tag">// he sat on the archive. this is what's left.</span>
+    </section>
+  </main>
+</Base>
+
+<script>
+  const p = document.getElementById('nf-path');
+  if (p) p.textContent = window.location.pathname.slice(0, 42) || '/…';
+</script>
+
+<style>
+  .nf-wrap {
+    min-height: 100svh;
+    display: grid;
+    place-items: center;
+    padding: clamp(16px, 4vw, 48px);
+  }
+  .nf-sheet {
+    position: relative;
+    width: min(680px, 100%);
+    background: #f7f5f1;
+    color: #141414;
+    border: 4px solid #141414;
+    box-shadow: 12px 12px 0 #141414;
+    padding: 0 clamp(20px, 4vw, 44px) clamp(24px, 4vw, 40px);
+  }
+  .nf-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 0 calc(-1 * clamp(20px, 4vw, 44px)) 22px;
+    padding: 12px clamp(20px, 4vw, 44px);
+    background: #141414;
+    color: #f7f5f1;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+  }
+  .nf-bar-tag {
+    background: #ed1c24;
+    padding: 3px 8px;
+  }
+  .nf-kicker {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: #928b80;
+    margin-bottom: 6px;
+  }
+  .nf-code {
+    font-family: 'Anton', sans-serif;
+    font-weight: 500;
+    font-size: clamp(6rem, 22vw, 11rem);
+    line-height: 0.85;
+    letter-spacing: 0.01em;
+    color: #141414;
+  }
+  .nf-code .out {
+    color: transparent;
+    -webkit-text-stroke: 3px #ed1c24;
+  }
+  .nf-head {
+    font-family: 'Anton', sans-serif;
+    font-size: clamp(1.4rem, 4.5vw, 2.2rem);
+    letter-spacing: 0.02em;
+    margin-top: 4px;
+    color: #ed1c24;
+  }
+  .nf-deck {
+    font-family: var(--font-serif);
+    font-size: clamp(1rem, 2.4vw, 1.2rem);
+    line-height: 1.45;
+    margin-top: 14px;
+    max-width: 46ch;
+  }
+  .nf-facts {
+    list-style: none;
+    margin: 18px 0 24px;
+    padding-top: 12px;
+    border-top: 1.5px solid rgba(20, 20, 20, 0.3);
+  }
+  .nf-facts li {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-family: var(--font-serif);
+    font-size: 0.95rem;
+    padding: 2px 0;
+  }
+  .nf-facts .dots {
+    flex: 1;
+    border-bottom: 1.5px dotted rgba(20, 20, 20, 0.45);
+    transform: translateY(-3px);
+  }
+  .nf-facts .pg {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    max-width: 50%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nf-btn {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    background: #ed1c24;
+    color: #f7f5f1;
+    border: 3px solid #141414;
+    box-shadow: 5px 5px 0 #141414;
+    padding: 13px 18px;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .nf-btn:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 3px 3px 0 #141414;
+  }
+  .nf-btn:focus-visible {
+    outline: 3px solid #ed1c24;
+    outline-offset: 3px;
+  }
+  .nf-cat {
+    position: absolute;
+    right: clamp(16px, 4vw, 36px);
+    bottom: -4px;
+    width: clamp(80px, 14vw, 120px);
+    color: #141414;
+  }
+  .nf-cat-tag {
+    position: absolute;
+    right: clamp(16px, 4vw, 36px);
+    bottom: -34px;
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: rgba(247, 245, 241, 0.85);
+  }
+  @media (max-width: 560px) {
+    .nf-cat, .nf-cat-tag { display: none; }
+  }
+</style>

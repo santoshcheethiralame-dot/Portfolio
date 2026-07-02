@@ -1,0 +1,691 @@
+<!doctype html>
+<html lang="en" data-mock="broadsheet">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>THE DAILY CHEETHIRALA — Front Page</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --ink:#141414; --cream:#f7f5f1; --cream2:#efece4; --red:#ed1c24; --red-hot:#ff5247;
+  --lime:#b4ff2e;
+  --black:#0a0a0a; --gray:#928b80;
+  --fd:"Anton",sans-serif; --fm:"JetBrains Mono",monospace; --fi:"Instrument Serif",serif;
+}
+*{ box-sizing:border-box; margin:0; padding:0; }
+html{ -webkit-font-smoothing:antialiased; scroll-behavior:smooth; }
+body{
+  background:var(--cream); color:var(--ink);
+  font-family:var(--fi);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+}
+::selection{ background:var(--ink); color:var(--lime); }
+a{ color:inherit; text-decoration:none; }
+hr.rule{ border:none; border-top:1px solid var(--ink); margin:0; }
+hr.rule-heavy{ border:none; border-top:3px solid var(--ink); margin:0; }
+
+/* ============================================================ PAGE SHELL */
+.page{
+  max-width:1200px; margin:0 auto;
+  padding:14px clamp(12px,3vw,36px) 120px;
+}
+
+/* ============================================================ FOLIO LINE */
+.folio{
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap;
+  gap:4px 16px;
+  padding:6px 0 8px;
+  font-family:var(--fm); font-size:9.5px; font-weight:500; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--gray);
+}
+.folio-center{ text-align:center; flex:1; }
+.folio-right{ text-align:right; display:flex; align-items:center; gap:8px; }
+#clock{ font-weight:700; color:var(--ink); }
+
+/* ============================================================ MASTHEAD */
+.masthead{
+  text-align:center; position:relative;
+  padding:6px 0 0;
+}
+hr.mast-rule-top{ border:none; border-top:3px solid var(--ink); margin:0; }
+.masthead-inner{ position:relative; display:block; padding:clamp(14px,2.4vw,30px) 0 clamp(10px,1.6vw,18px); }
+.masthead-title{
+  font-family:var(--fd); font-weight:500;
+  font-size:clamp(2.7rem,9vw,7rem);
+  line-height:.84; letter-spacing:.01em;
+  text-transform:uppercase; color:var(--ink);
+  display:block;
+}
+.dateline-strip{
+  background:var(--ink); color:var(--cream);
+  padding:5px 12px;
+  font-family:var(--fm); font-size:9px; font-weight:700; letter-spacing:.18em;
+  text-transform:uppercase;
+  display:flex; align-items:center; justify-content:center; gap:14px;
+  flex-wrap:wrap;
+}
+hr.mast-rule-bot{ border:none; border-top:3px solid var(--ink); margin:0; }
+
+/* the LATE EDITION sticker — top-right corner, clear of the nameplate text */
+.sticker-late{
+  position:absolute; top:-4px; right:2px; z-index:12;
+  background:var(--lime); color:var(--ink);
+  border:2px solid var(--ink);
+  box-shadow:3px 3px 0 var(--ink);
+  font-family:var(--fm); font-size:8px; font-weight:700; letter-spacing:.14em;
+  text-transform:uppercase;
+  padding:4px 8px; white-space:nowrap;
+  transform:rotate(6deg);
+  line-height:1.5; text-align:center;
+}
+
+/* ============================================================ TICKER (breaking-news crawl) */
+.ticker{
+  display:flex; align-items:stretch;
+  border-top:1px solid rgba(247,245,241,.25);
+  background:var(--ink); color:var(--cream);
+  overflow:hidden;
+}
+.ticker-flag{
+  flex:none; display:flex; align-items:center; gap:6px;
+  background:var(--red); color:var(--cream);
+  font-family:var(--fm); font-size:9px; font-weight:700; letter-spacing:.16em;
+  text-transform:uppercase; padding:5px 10px; white-space:nowrap;
+  border-right:2px solid var(--cream);
+}
+.ticker-flag .blip{ width:7px; height:7px; border-radius:50%; background:var(--cream); animation:blip 1.3s steps(1) infinite; }
+@keyframes blip{ 50%{ opacity:.2; } }
+.ticker-viewport{ position:relative; flex:1; overflow:hidden; }
+.ticker-track{
+  display:inline-flex; white-space:nowrap; will-change:transform;
+  animation:ticker 38s linear infinite;
+  padding:5px 0;
+}
+.ticker:hover .ticker-track{ animation-play-state:paused; }
+.ticker-track .tk{
+  font-family:var(--fm); font-size:9.5px; font-weight:500; letter-spacing:.1em;
+  text-transform:uppercase; color:rgba(247,245,241,.9); padding:0 4px;
+}
+.ticker-track .tk .sep{ color:var(--red-hot); padding:0 14px; }
+.ticker-track .tk b{ color:var(--lime); font-weight:700; }
+@keyframes ticker{ to{ transform:translateX(-50%); } }
+
+/* ============================================================ LEAD ZONE */
+.lead-zone{
+  border-bottom:1px solid var(--ink);
+  padding:20px 0 0;
+}
+.lead-headline{
+  display:grid; grid-template-columns:minmax(0,1fr) clamp(190px,26%,280px);
+  gap:0 clamp(18px,2.6vw,42px); align-items:stretch;
+  border-bottom:1px solid var(--ink);
+  padding-bottom:12px; margin-bottom:12px;
+}
+.lead-main{ min-width:0; }
+.lead-refer{ border-left:1px solid var(--ink); padding-left:clamp(14px,1.6vw,22px); display:flex; flex-direction:column; align-self:stretch; }
+.refer-head{ font-family:var(--fm); font-size:9px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:var(--red); border-bottom:2px solid var(--ink); padding-bottom:6px; margin-bottom:8px; }
+.refer-list{ list-style:none; margin:0; padding:0; flex:1; font-family:var(--fm); font-size:10px; font-weight:500; letter-spacing:.02em; color:var(--ink); }
+.refer-list li{ display:flex; align-items:baseline; gap:6px; padding:5px 0; }
+.refer-list .dots{ flex:1; border-bottom:1px dotted rgba(20,20,20,.4); transform:translateY(-3px); min-width:14px; }
+.refer-list b{ color:var(--red); font-weight:700; white-space:nowrap; }
+.refer-list a{ display:flex; flex:1; align-items:baseline; gap:6px; color:inherit; cursor:pointer; }
+.refer-list a:hover b{ color:var(--ink); }
+.refer-foot{ font-family:var(--fm); font-size:8.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--gray); border-top:1px solid rgba(20,20,20,.2); padding-top:8px; margin-top:8px; line-height:1.55; }
+.deck-sub{ grid-column:1 / -1; }
+.byline{ grid-column:1 / -1; }
+.deck-kicker{
+  font-family:var(--fm); font-size:9px; font-weight:700; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--red);
+  margin-bottom:8px; display:block;
+}
+.deck-head{
+  font-family:var(--fd); font-weight:500;
+  font-size:clamp(2rem,6.5vw,5rem);
+  line-height:.88; letter-spacing:.01em;
+  text-transform:uppercase; color:var(--ink);
+  margin-bottom:14px;
+}
+.deck-sub{
+  font-family:var(--fi); font-style:italic;
+  font-size:clamp(1rem,1.8vw,1.35rem);
+  line-height:1.4; color:var(--ink);
+  max-width:68ch; margin-bottom:10px;
+}
+.byline{
+  font-family:var(--fm); font-size:9.5px; font-weight:700; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--gray);
+}
+.byline b{ color:var(--red); }
+
+/* ============================================================ MAIN BODY: 2-col article + sidebar */
+.body-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr minmax(220px,280px);
+  gap:0;
+  padding:16px 0 0;
+  border-bottom:3px solid var(--ink);
+  align-items:stretch;
+}
+/* article spans first 2 cols */
+.article-flow{
+  position:relative;
+  grid-column:1 / 3;
+  columns:2; column-gap:clamp(20px,2.6vw,36px);
+  column-rule:1px solid transparent;       /* real rule drawn by .col-rule for full height + lime tick */
+  hyphens:auto;
+  padding:0 clamp(18px,2.2vw,28px) 22px 0;
+  border-right:1px solid var(--ink);
+}
+.article-flow p{
+  font-family:var(--fi);
+  font-size:clamp(1rem,1.18vw,1.18rem);
+  line-height:1.82; text-align:justify;
+  margin-bottom:1em;
+  break-inside:avoid-column;
+}
+/* real drop cap as a span so it can be stamped in */
+.dropcap{
+  font-family:var(--fd); font-weight:500;
+  font-size:3.9em; line-height:.72;
+  float:left; margin:6px 8px -2px 0;
+  color:var(--ink);
+}
+.endmark{ display:inline-block; width:.62em; height:.62em; background:var(--ink); margin-left:6px; vertical-align:baseline; }
+
+/* full-height center column rule + lime press-position tick */
+.col-rule{
+  position:absolute; top:0; bottom:0; left:50%;
+  width:1px; background:var(--ink); transform:translateX(-50%);
+  pointer-events:none;
+}
+.press-tick{
+  position:absolute; left:50%; top:0;
+  width:9px; height:16px; background:var(--lime);
+  border:1.5px solid var(--ink); box-shadow:1px 1px 0 var(--ink);
+  transform:translateX(-50%);
+}
+
+/* pull-quote (spans both columns) */
+.pull{
+  column-span:all;
+  font-family:var(--fi); font-style:italic;
+  font-size:clamp(1.5rem,2.8vw,2.3rem);
+  line-height:1.18; text-align:left !important;
+  color:var(--ink); margin:6px 0 16px;
+  padding:12px 0 14px;
+  border-top:2px solid var(--ink); border-bottom:2px solid var(--ink);
+}
+.penned{ position:relative; white-space:normal; }
+.penned .pen{ position:absolute; left:-2px; right:-2px; bottom:-6px; width:calc(100% + 4px); height:.5em; overflow:visible; }
+.penned .pen path{ fill:none; stroke:var(--red); stroke-width:3; stroke-linecap:round; stroke-dasharray:100; stroke-dashoffset:100; }
+.penned.drawn .pen path{ stroke-dashoffset:0; transition:stroke-dashoffset .75s cubic-bezier(.6,0,.3,1); }
+
+/* the newspaper jump line that turns the page to projects */
+.continued{
+  column-span:all;
+  display:block; margin-top:14px; padding-top:10px;
+  border-top:1px solid var(--ink);
+  font-family:var(--fm); font-size:11px; font-weight:700; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--red); cursor:pointer;
+}
+.continued:hover{ color:var(--ink); }
+.continued .arr{ display:inline-block; transition:transform .15s ease; }
+.continued:hover .arr{ transform:translateX(4px); }
+
+/* ============================================================ CAT PHOTO (halftone → photo) */
+.cat-figure{
+  border:2px solid var(--ink);
+  box-shadow:5px 5px 0 var(--ink);
+  margin:0 0 14px 0;
+  break-inside:avoid;
+  display:block; width:100%;
+}
+.cat-img-wrap{ position:relative; overflow:hidden; display:block; }
+.cat-img-wrap img{
+  display:block; width:100%;
+  border-bottom:2px solid var(--ink);
+  filter:grayscale(1) contrast(1.4) brightness(1.05);
+  transition:filter .8s ease;
+  transform:scale(1.001);
+}
+.cat-img-wrap::after{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background-image:radial-gradient(var(--ink) 31%, transparent 33%);
+  background-size:4px 4px; mix-blend-mode:multiply; opacity:.6;
+  transition:opacity .8s ease;
+}
+.cat-figure.resolved .cat-img-wrap img,
+.cat-figure:hover .cat-img-wrap img{ filter:none; }
+.cat-figure.resolved .cat-img-wrap::after,
+.cat-figure:hover .cat-img-wrap::after{ opacity:0; }
+.cat-caption{
+  font-family:var(--fm); font-size:8.5px; font-weight:700; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--gray);
+  padding:5px 8px; line-height:1.5; background:var(--cream2);
+}
+.cat-caption b{ color:var(--ink); }
+
+/* ============================================================ SIDEBAR */
+.sidebar{
+  grid-column:3;
+  padding-left:clamp(14px,1.8vw,22px);
+  padding-top:2px;
+}
+.box{
+  border:2px solid var(--ink);
+  box-shadow:5px 5px 0 var(--ink);
+  background:var(--cream2);
+  margin-bottom:14px;
+}
+.box-head{
+  background:var(--ink); color:var(--cream);
+  font-family:var(--fm); font-size:9px; font-weight:700; letter-spacing:.18em;
+  text-transform:uppercase; padding:6px 10px;
+}
+
+/* status badge */
+.status-badge{
+  background:var(--lime); color:var(--ink);
+  border:2px solid var(--ink);
+  box-shadow:3px 3px 0 var(--ink);
+  font-family:var(--fm); font-size:8px; font-weight:700; letter-spacing:.14em;
+  text-transform:uppercase; padding:7px 10px;
+  line-height:1.55; margin-bottom:14px; display:block;
+}
+
+/* pull-quote stat box */
+.stat-pull{ padding:10px 10px 12px; font-family:var(--fm); }
+.stat-pull .stat-num{ font-size:2rem; font-weight:700; color:var(--red); line-height:1; display:block; margin-bottom:4px; }
+.stat-pull .stat-desc{ font-size:8.5px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; color:var(--ink); line-height:1.5; }
+
+/* house rules list */
+.rules-list{ list-style:none; padding:0; margin:0; font-family:var(--fm); font-size:9px; font-weight:500; letter-spacing:.04em; }
+.rules-list li{ padding:6px 10px; border-bottom:1px solid rgba(20,20,20,.18); line-height:1.55; color:var(--ink); }
+.rules-list li:last-child{ border-bottom:none; }
+.rules-list .rule-num{ color:var(--red); font-weight:700; margin-right:4px; }
+
+/* stderr live-edit box */
+.stderr-log{ padding:8px 10px; font-family:var(--fm); font-size:8.5px; font-weight:500; letter-spacing:.04em; color:var(--ink); line-height:1.65; min-height:74px; }
+.stderr-log .log-line{ display:block; color:var(--gray); border-bottom:1px solid rgba(20,20,20,.12); padding:3px 0; }
+.stderr-log .log-line:last-child{ border-bottom:none; padding-bottom:0; color:var(--ink); }
+.stderr-log .log-line b{ color:var(--red); }
+
+/* projects box */
+.proj-line{ padding:9px 10px; font-family:var(--fi); font-size:.92rem; line-height:1.4; color:var(--ink); }
+.proj-line a{ color:var(--red); font-family:var(--fm); font-size:.72rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
+.proj-line a:hover{ color:var(--ink); }
+
+/* ============================================================ CLASSIFIEDS */
+.classifieds{ padding:14px 0 0; border-bottom:1px solid var(--ink); }
+.classifieds-head{ font-family:var(--fd); font-weight:500; font-size:clamp(1.1rem,2.2vw,1.6rem); line-height:.9; letter-spacing:.04em; text-transform:uppercase; color:var(--ink); border-bottom:2px solid var(--ink); padding-bottom:7px; margin-bottom:10px; }
+.classified{ padding:10px 0; font-family:var(--fm); }
+.cl-type{ font-size:8px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:var(--red); margin-bottom:4px; display:block; }
+.cl-body{ font-size:9px; font-weight:500; line-height:1.65; color:var(--ink); letter-spacing:.02em; }
+
+/* ============================================================ PAGE-TURN OVERLAY */
+#pageturn{
+  position:fixed; inset:0; z-index:2000;
+  background:var(--cream); border-left:5px solid var(--ink);
+  box-shadow:-16px 0 40px rgba(10,10,10,.28);
+  transform:translateX(100%); will-change:transform;
+  display:grid; place-items:center;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+}
+#pageturn .pt-inner{ text-align:center; }
+#pageturn .pt-k{ font-family:var(--fm); font-size:11px; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:var(--red); display:block; margin-bottom:8px; }
+#pageturn .pt-h{ font-family:var(--fd); font-size:clamp(2rem,7vw,5rem); text-transform:uppercase; line-height:.9; color:var(--ink); }
+body.turning #pageturn{ transform:translateX(0); transition:transform .55s cubic-bezier(.66,0,.2,1); }
+body.turning .page{ transform:translateX(-7%); opacity:.5; transition:transform .55s cubic-bezier(.66,0,.2,1), opacity .55s ease; }
+
+/* ============================================================ FIXED FOOTER TAG */
+#tag{
+  position:fixed; left:50%; bottom:7px; transform:translateX(-50%);
+  z-index:1400; font-family:var(--fm); font-size:9.5px; letter-spacing:.14em;
+  text-transform:uppercase; color:rgba(20,20,20,.38); pointer-events:none;
+  background:rgba(247,245,241,.85); padding:2px 8px;
+}
+
+/* ============================================================ PRESS RUN (entrance) — only active when html.pressrun present */
+html.pressrun .mast-rule-top, html.pressrun .mast-rule-bot{ transform:scaleX(0); transform-origin:left center; }
+html.pressrun.go .mast-rule-top{ transform:scaleX(1); transition:transform .5s cubic-bezier(.7,0,.25,1); }
+html.pressrun.go .mast-rule-bot{ transform:scaleX(1); transition:transform .5s cubic-bezier(.7,0,.25,1) .14s; }
+html.pressrun .dateline-strip, html.pressrun .ticker{ opacity:0; }
+html.pressrun.go .dateline-strip{ opacity:1; transition:opacity .3s ease .26s; }
+html.pressrun.go .ticker{ opacity:1; transition:opacity .3s ease .34s; }
+html.pressrun .masthead-title{ opacity:0; transform:translateY(-28px) scale(1.06); }
+html.pressrun.go .masthead-title{ opacity:1; transform:none; transition:transform .5s cubic-bezier(.18,1.35,.3,1) .2s, opacity .32s ease .2s; }
+html.pressrun .sticker-late{ opacity:0; transform:rotate(6deg) scale(1.5); }
+html.pressrun.go .sticker-late{ opacity:1; transform:rotate(6deg) scale(1); transition:transform .35s cubic-bezier(.18,1.5,.3,1) .55s, opacity .2s ease .55s; }
+html.pressrun .deck-kicker, html.pressrun .deck-head, html.pressrun .deck-sub, html.pressrun .byline{ opacity:0; }
+html.pressrun.go .deck-kicker{ opacity:1; transition:opacity .3s ease .36s; }
+html.pressrun.go .deck-head{ opacity:1; transition:opacity .25s ease .4s; }
+html.pressrun.go .deck-sub{ opacity:1; transition:opacity .3s ease .58s; }
+html.pressrun.go .byline{ opacity:1; transition:opacity .3s ease .64s; }
+html.pressrun .dropcap{ opacity:0; transform:translateY(-10px) scale(1.5); display:inline-block; }
+html.pressrun.go .dropcap{ opacity:1; transform:none; transition:transform .4s cubic-bezier(.18,1.45,.3,1) .72s, opacity .25s ease .72s; }
+html.pressrun .article-flow, html.pressrun .sidebar, html.pressrun .classifieds{ opacity:0; transform:translateY(18px); }
+html.pressrun.go .article-flow{ opacity:1; transform:none; transition:opacity .4s ease .5s, transform .55s cubic-bezier(.2,.9,.25,1) .5s; }
+html.pressrun.go .sidebar{ opacity:1; transform:none; transition:opacity .4s ease .6s, transform .55s cubic-bezier(.2,.9,.25,1) .6s; }
+html.pressrun.go .classifieds{ opacity:1; transform:none; transition:opacity .4s ease .7s, transform .5s cubic-bezier(.2,.9,.25,1) .7s; }
+/* reveal lock — guarantees the page is never stuck hidden if transitions don't run */
+html.pr-done .masthead-title, html.pr-done .sticker-late, html.pr-done .dateline-strip, html.pr-done .ticker,
+html.pr-done .mast-rule-top, html.pr-done .mast-rule-bot,
+html.pr-done .deck-kicker, html.pr-done .deck-head, html.pr-done .deck-sub, html.pr-done .byline,
+html.pr-done .dropcap, html.pr-done .article-flow, html.pr-done .sidebar, html.pr-done .classifieds{
+  opacity:1 !important; transform:none !important;
+}
+
+/* ============================================================ RESPONSIVE */
+@media (max-width:900px){
+  .body-grid{ grid-template-columns:1fr 1fr; }
+  .article-flow{ grid-column:1 / 3; padding-right:0; border-right:none; border-bottom:1px solid var(--ink); padding-bottom:16px; margin-bottom:16px; }
+  .sidebar{ grid-column:1 / 3; padding-left:0; display:grid; grid-template-columns:1fr 1fr; gap:14px; align-items:start; }
+  .status-badge{ margin-bottom:0; }
+}
+@media (max-width:680px){
+  .lead-headline{ grid-template-columns:1fr; }
+  .lead-refer{ border-left:none; border-top:1px solid var(--ink); padding-left:0; padding-top:10px; margin-top:8px; }
+  .refer-list{ flex:none; }
+}
+@media (max-width:600px){
+  .body-grid{ grid-template-columns:1fr; }
+  .article-flow{ grid-column:1; columns:1; padding-right:0; border-right:none; }
+  .col-rule, .press-tick{ display:none; }
+  .sidebar{ grid-template-columns:1fr; }
+  .masthead-title{ font-size:clamp(2rem,11vw,3.4rem); }
+}
+@media (prefers-reduced-motion:reduce){
+  *{ transition:none !important; animation:none !important; }
+}
+</style>
+</head>
+<body>
+<script>/* press-run guard: finished page if no JS or reduced-motion; else stage + reveal.
+   reveal via rAF for smoothness, with a setTimeout fallback so it can never get stuck. */
+try{var _d=document.documentElement;if(!matchMedia('(prefers-reduced-motion: reduce)').matches){_d.classList.add('pressrun');var _go=function(){_d.classList.add('go');};if(window.requestAnimationFrame){requestAnimationFrame(function(){requestAnimationFrame(_go);});}setTimeout(_go,90);}}catch(e){}</script>
+
+<div class="page">
+
+  <!-- ============================================================ FOLIO LINE -->
+  <div class="folio">
+    <span class="folio-left">VOL. PES1UG24CS127 &middot; No. 4</span>
+    <span class="folio-center">PRICE: ONE FILTER COFFEE</span>
+    <span class="folio-right">BENGALURU &middot; 2026&nbsp;&nbsp;<span id="clock">--:--:-- IST</span></span>
+  </div>
+
+  <!-- ============================================================ MASTHEAD -->
+  <div class="masthead">
+    <span class="sticker-late">LATE EDITION<br>&#9658; BREAKING</span>
+    <hr class="mast-rule-top" />
+    <div class="masthead-inner">
+      <span class="masthead-title">THE DAILY<br>CHEETHIRALA</span>
+    </div>
+    <div class="dateline-strip">
+      <span>ESTABLISHED 2024</span><span>&middot;</span>
+      <span>CS EDITION</span><span>&middot;</span>
+      <span>&ldquo;ALL THE BUGS FIT TO PRINT&rdquo;</span>
+    </div>
+    <!-- breaking-news crawl -->
+    <div class="ticker" aria-hidden="true">
+      <span class="ticker-flag"><span class="blip"></span>BREAKING</span>
+      <div class="ticker-viewport">
+        <div class="ticker-track" id="tickerTrack">
+          <span class="tk">AREA MAN REBUILDS GIT FOR NO REASON<span class="sep">&#10022;</span>STDERR: &ldquo;&gt; approved. reluctantly.&rdquo;<span class="sep">&#10022;</span>NEURAL NET TRAINED IN BROWSER; SERVER NOT INVITED<span class="sep">&#10022;</span>GPT-2 SEEN THINKING; DETAILS INSIDE<span class="sep">&#10022;</span><b>OPEN TO SWE / ML INTERNSHIPS &middot; SUMMER 2026</b><span class="sep">&#10022;</span>WEATHER: FILTER COFFEE, HOT, CHANCE OF SEGFAULTS<span class="sep">&#10022;</span>NOODLE BAR COSTED OUT &ldquo;FOR FUN&rdquo;<span class="sep">&#10022;</span>STDERR: &ldquo;&gt; it compiles. doesn&rsquo;t mean it&rsquo;s good.&rdquo;<span class="sep">&#10022;</span></span>
+          <span class="tk" aria-hidden="true">AREA MAN REBUILDS GIT FOR NO REASON<span class="sep">&#10022;</span>STDERR: &ldquo;&gt; approved. reluctantly.&rdquo;<span class="sep">&#10022;</span>NEURAL NET TRAINED IN BROWSER; SERVER NOT INVITED<span class="sep">&#10022;</span>GPT-2 SEEN THINKING; DETAILS INSIDE<span class="sep">&#10022;</span><b>OPEN TO SWE / ML INTERNSHIPS &middot; SUMMER 2026</b><span class="sep">&#10022;</span>WEATHER: FILTER COFFEE, HOT, CHANCE OF SEGFAULTS<span class="sep">&#10022;</span>NOODLE BAR COSTED OUT &ldquo;FOR FUN&rdquo;<span class="sep">&#10022;</span>STDERR: &ldquo;&gt; it compiles. doesn&rsquo;t mean it&rsquo;s good.&rdquo;<span class="sep">&#10022;</span></span>
+        </div>
+      </div>
+    </div>
+    <hr class="mast-rule-bot" />
+  </div>
+
+  <!-- ============================================================ LEAD ZONE -->
+  <div class="lead-zone">
+    <div class="lead-headline">
+      <div class="lead-main">
+        <span class="deck-kicker">&#9654; FRONT PAGE &middot; BENGALURU BUREAU &middot; CS / ML / LOCAL-FIRST</span>
+        <h1 class="deck-head">THE INTERESTING WORK IS INSIDE THE BOX EVERYONE ELSE LEAVES SEALED</h1>
+      </div>
+      <aside class="lead-refer">
+        <div class="refer-head">// INSIDE TODAY</div>
+        <ul class="refer-list">
+          <li>The throughline<span class="dots"></span><b>p.1</b></li>
+          <li>House rules<span class="dots"></span><b>p.1</b></li>
+          <li>Stderr, live<span class="dots"></span><b>p.1</b></li>
+          <li>The personals<span class="dots"></span><b>p.1</b></li>
+          <li><a class="to-projects" href="../projects/">Projects desk<span class="dots"></span><b>&rarr;</b></a></li>
+        </ul>
+        <div class="refer-foot">~97% MNIST &middot; no framework &middot; no server</div>
+      </aside>
+      <p class="deck-sub">I open black boxes &mdash; neural nets, version control, whatever&rsquo;s opaque.</p>
+      <span class="byline">Santosh Cheethirala (he/him) &middot; Filed from Bengaluru, IST &nbsp;&nbsp;<b>&#9670; SUMMER 2026 EDITION</b></span>
+    </div>
+
+    <!-- Body grid: 2 article cols + sidebar -->
+    <div class="body-grid">
+
+      <!-- ARTICLE FLOW -->
+      <div class="article-flow">
+        <span class="col-rule" aria-hidden="true"><span class="press-tick" id="pressTick"></span></span>
+
+        <figure class="cat-figure" id="catFig">
+          <div class="cat-img-wrap"><img src="cat.jpg" alt="Stderr, the subject's self-appointed code reviewer" /></div>
+          <figcaption class="cat-caption"><b>ABOVE:</b> Stderr, the subject&rsquo;s self-appointed code reviewer. Declined to comment.</figcaption>
+        </figure>
+
+        <p data-quip="&gt; a planner. for the planning. sure."><span class="dropcap">I</span> spent more time planning to study than actually studying. orbit started as the fix &mdash; a planner that thinks in forgetting curves, not to-do lists. that turned out to be the pattern for everything since: when something annoys me, or i can&rsquo;t see how it works, i build my own until i can.</p>
+
+        <p data-quip="&gt; backprop by hand. nobody asked.">mostly that means going a layer deeper than i need to. i wrote a neural net by hand in the browser &mdash; backprop and all, no framework &mdash; just to see what <code>model.fit()</code> had been doing the whole time (gradient). i built a tool to watch GPT-2 think, because trusting outputs i couldn&rsquo;t see the reasons for had stopped feeling okay (glassbox).</p>
+
+        <p class="pull">&ldquo;a black box is just a system nobody&rsquo;s opened yet &mdash; <span class="penned" id="penned">i&rsquo;d rather open it than take its word.<svg class="pen" viewBox="0 0 100 12" preserveAspectRatio="none" aria-hidden="true"><path d="M1 8 Q 26 3 50 6 T 99 5" pathLength="100"/></svg></span>&rdquo;</p>
+
+        <p data-quip="&gt; 'why it fails.' deep.">i&rsquo;m a CS undergrad at PES University in bengaluru, heading into PESU&rsquo;s intelligence lab to work on interpretability and why models hallucinate &mdash; the same instinct, pointed at the systems that need it most. i care more about why something fails than whether it passed, i keep things local-first when i can (your data, your GPU, no server), and the one thing i won&rsquo;t ship is boring.</p>
+
+        <p data-quip="&gt; 10m. show-off.">away from the screen i shoot 10m air rifle, competitively, at national level &mdash; mostly an exercise in breathing slow and not flinching, which turns out to be the same skill as 3 a.m. with a stack trace. i run on filter coffee and once costed out an entire noodle bar for fun.</p>
+
+        <p data-quip="&gt; finally. the important part.">there&rsquo;s also a cat. it reviews my commits. it remains unimpressed.<span class="endmark"></span></p>
+
+        <a class="continued to-projects" id="continued" href="../projects/">Continued on the projects desk <span class="arr">&rarr;</span></a>
+      </div>
+
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
+
+        <span class="status-badge"><span class="status-arrow">&#9658;</span> OPEN &mdash; SWE / ML INTERNSHIPS &middot; SUMMER 2026</span>
+
+        <div class="box">
+          <div class="box-head">// THE ONLY NUMBER THAT MATTERS</div>
+          <div class="stat-pull">
+            <span class="stat-num">~97%</span>
+            <span class="stat-desc">on MNIST &mdash; neural net trained in the browser, backprop hand-written, no framework. (project: Gradient)</span>
+          </div>
+        </div>
+
+        <div class="box">
+          <div class="box-head">// HOUSE RULES</div>
+          <ul class="rules-list">
+            <li><span class="rule-num">1.</span>If I can&rsquo;t rebuild it, I don&rsquo;t understand it.</li>
+            <li><span class="rule-num">2.</span>Local-first by default &mdash; your data, your GPU, no server.</li>
+            <li><span class="rule-num">3.</span>Whether it works is easy; why it fails is the work.</li>
+            <li><span class="rule-num">4.</span>Boring is the only thing I refuse to ship.</li>
+          </ul>
+        </div>
+
+        <div class="box">
+          <div class="box-head">// STDERR (editor, unpaid) &mdash; live</div>
+          <div class="stderr-log" id="stderrLog">
+            <span class="log-line">&gt; tailing the reader&hellip;</span>
+          </div>
+        </div>
+
+        <div class="box">
+          <div class="box-head">// PROJECTS</div>
+          <div class="proj-line">GlassBox &middot; Gradient &middot; Orbit<br><a class="to-projects" href="../projects/">each one gets a proper page &rarr;</a></div>
+        </div>
+
+      </aside>
+    </div><!-- /body-grid -->
+  </div><!-- /lead-zone -->
+
+  <!-- ============================================================ CLASSIFIEDS -->
+  <div class="classifieds">
+    <div class="classifieds-head">CLASSIFIEDS &amp; PERSONALS</div>
+    <div class="classified">
+      <span class="cl-type">&#9654; PERSONALS &middot; FROM THE CAT</span>
+      <p class="cl-body">STDERR &mdash; wandered onto the PESU campus during a 3 a.m. debugging session. stayed. currently serving as unpaid, unqualified, deeply opinionated code reviewer.<br><br>&gt; reviews commits. remains unimpressed.<br>&gt; saw your TODO list. bold of you.<br>&gt; i was asleep for the tests. they still passed.<br><br>terms: one tin of food, one patch of sunlight, zero stand-up meetings. the segfaults are not my fault. that is my statement.</p>
+    </div>
+  </div>
+
+  <hr class="rule" style="margin:0;" />
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:7px 0 0;font-family:var(--fm);font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);">
+    <span>&#169; 2026 THE DAILY CHEETHIRALA &middot; ALL BUGS RESERVED</span>
+    <span>PES1UG24CS127</span>
+  </div>
+
+</div><!-- /page -->
+
+<!-- page-turn destination panel -->
+<div id="pageturn" aria-hidden="true">
+  <div class="pt-inner">
+    <span class="pt-k">&#9654; turn to</span>
+    <span class="pt-h">THE PROJECTS<br>DESK</span>
+  </div>
+</div>
+
+<div id="tag">01 &middot; the daily cheethirala &middot; about</div>
+
+<script>
+(function(){
+  'use strict';
+  var REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var $ = function(id){ return document.getElementById(id); };
+  var clamp = function(v,a,b){ return v<a?a:v>b?b:v; };
+  var GLYPHS = 'ABCDEFGHJKLMNPQRSTUVWXYZ#@/*0123456789'.split('');
+
+  /* ---------- live IST clock ---------- */
+  var clock = $('clock');
+  function tick(){
+    try{ clock.textContent = new Intl.DateTimeFormat('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false,timeZone:'Asia/Kolkata'}).format(new Date()) + ' IST'; }
+    catch(e){ clock.textContent='--:--:-- IST'; }
+  }
+  tick(); setInterval(tick,1000);
+
+  /* ---------- structure-preserving decode (linotype settle) ---------- */
+  function collectChars(ct){
+    if(ct._chars) return ct._chars;
+    var walker=document.createTreeWalker(ct, NodeFilter.SHOW_TEXT, null), n, nodes=[], total=0;
+    while(n=walker.nextNode()){ nodes.push({node:n, orig:n.nodeValue}); total+=n.nodeValue.length; }
+    ct._chars={nodes:nodes,total:total}; return ct._chars;
+  }
+  function render(ct, rev){
+    var info=collectChars(ct), seen=0;
+    info.nodes.forEach(function(it){ var o=it.orig, s='';
+      for(var i=0;i<o.length;i++){ var c=o[i];
+        s += ((seen+i)<rev || c===' '||c==='\n'||c==='—'||c==='·'||c===','||c==='.'||c==='’') ? c : GLYPHS[(Math.random()*GLYPHS.length)|0]; }
+      it.node.nodeValue=s; seen+=o.length; });
+  }
+  function decodeEl(ct, dur){
+    var info=collectChars(ct);
+    if(REDUCE){ render(ct, info.total); return; }
+    if(ct._raf) cancelAnimationFrame(ct._raf);
+    var start=null;
+    function f(now){ if(start===null) start=now; var k=clamp((now-start)/(dur||600),0,1);
+      render(ct, Math.floor(k*info.total));
+      if(k<1) ct._raf=requestAnimationFrame(f); else { render(ct, info.total); ct._raf=null; } }
+    ct._raf=requestAnimationFrame(f);
+  }
+
+  /* ---------- PRESS RUN: typeset the headline mid-entrance ---------- */
+  var deckHead = document.querySelector('.deck-head');
+  if(deckHead){
+    if(REDUCE){ /* leave as-is */ }
+    else { setTimeout(function(){ decodeEl(deckHead, 720); }, 430); }
+  }
+  /* safety: after the entrance window, lock everything visible even if transitions never ran */
+  if(!REDUCE){ setTimeout(function(){ document.documentElement.classList.add('pr-done'); }, 1500); }
+
+  /* ---------- LIME press-position tick on the column rule ---------- */
+  var tick$ = $('pressTick'), article = document.querySelector('.article-flow');
+  function placeTick(){
+    if(!tick$ || !article) return;
+    if(getComputedStyle(tick$).display === 'none') return;
+    var doc=document.documentElement;
+    var max=doc.scrollHeight-doc.clientHeight;
+    var p = max>0 ? clamp((window.pageYOffset||doc.scrollTop)/max,0,1) : 0;
+    var travel = article.clientHeight - tick$.offsetHeight;
+    tick$.style.top = (p*travel).toFixed(1) + 'px';
+  }
+
+  /* ---------- STDERR live-edits: a fresh log line as you pass key paragraphs ---------- */
+  var logBox = $('stderrLog');
+  function pushLog(text){
+    if(!logBox) return;
+    var el=document.createElement('span'); el.className='log-line'; logBox.appendChild(el);
+    while(logBox.children.length>4){ logBox.removeChild(logBox.firstChild); }
+    el._chars=null; el.textContent=text; decodeEl(el, 420);
+  }
+  if('IntersectionObserver' in window){
+    var quipObs = new IntersectionObserver(function(es){
+      es.forEach(function(e){
+        if(e.isIntersecting && !e.target._fired){
+          e.target._fired=true;
+          var q=e.target.getAttribute('data-quip'); if(q) pushLog(q);
+        }
+      });
+    }, { rootMargin:'0px 0px -45% 0px', threshold:0.01 });
+    [].forEach.call(document.querySelectorAll('p[data-quip]'), function(p){ quipObs.observe(p); });
+
+    /* halftone -> photo */
+    var catFig = $('catFig');
+    if(catFig){
+      var halfObs = new IntersectionObserver(function(es){
+        es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('resolved'); halfObs.unobserve(e.target); } });
+      }, { threshold:0.35 });
+      halfObs.observe(catFig);
+    }
+
+    /* editor's pen underline draws when the pull-quote arrives */
+    var penned = $('penned');
+    if(penned){
+      var penObs = new IntersectionObserver(function(es){
+        es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('drawn'); penObs.unobserve(e.target); } });
+      }, { threshold:0.6 });
+      penObs.observe(penned);
+    }
+  } else {
+    var cf=$('catFig'); if(cf) cf.classList.add('resolved');
+    var pn=$('penned'); if(pn) pn.classList.add('drawn');
+  }
+
+  /* ---------- STDERR watches the cursor (gentle figure tilt, no fake pupils) ---------- */
+  var catWrap = document.querySelector('#catFig .cat-img-wrap');
+  if(catWrap && !REDUCE){
+    window.addEventListener('pointermove', function(ev){
+      var r=catWrap.getBoundingClientRect(); if(!r.width) return;
+      var dx=clamp(((ev.clientX-(r.left+r.width/2))/window.innerWidth)*2,-1,1);
+      var dy=clamp(((ev.clientY-(r.top+r.height/2))/window.innerHeight)*2,-1,1);
+      catWrap.style.transform='translate('+(dx*5).toFixed(1)+'px,'+(dy*4).toFixed(1)+'px) rotate('+(dx*1.1).toFixed(2)+'deg)';
+    }, {passive:true});
+  }
+
+  /* ---------- scroll loop ---------- */
+  var ticking=false;
+  function onScroll(){ if(ticking) return; ticking=true; requestAnimationFrame(function(){ placeTick(); ticking=false; }); }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  window.addEventListener('resize', placeTick);
+  placeTick();
+
+  /* ---------- page-turn → projects desk ---------- */
+  function turn(href){
+    if(REDUCE){ window.location.href=href; return; }
+    document.body.classList.add('turning');
+    setTimeout(function(){ window.location.href=href; }, 560);
+  }
+  [].forEach.call(document.querySelectorAll('.to-projects'), function(a){
+    a.addEventListener('click', function(ev){ ev.preventDefault(); turn(a.getAttribute('href')||'../projects/'); });
+  });
+})();
+</script>
+</body>
+</html>

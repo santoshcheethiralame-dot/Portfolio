@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CONTACT SECTION — MOCKUPS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --red:#ed1c24; --ink:#ffffff; --black:#0a0a0a; --paper:#eceae4;
+    --font-display:"Anton",sans-serif; --font-mono:"JetBrains Mono",monospace;
+    --ease:cubic-bezier(.2,.9,.2,1);
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{
+    background:var(--paper); color:var(--black); font-family:var(--font-mono);
+    -webkit-font-smoothing:antialiased; min-height:100vh;
+    padding:clamp(28px,6vw,80px); overflow-x:hidden;
+  }
+  .kicker{ font-size:12px; letter-spacing:.16em; color:var(--red); }
+  .kicker::before{ content:"// "; color:#999; }
+  h1{
+    font-family:var(--font-display); font-weight:400; text-transform:uppercase;
+    line-height:.82; letter-spacing:.01em; font-size:clamp(2.6rem,11vw,9rem); margin:14px 0 0;
+  }
+  h1 em{ font-style:normal; color:var(--red); }
+  .sub{ max-width:64ch; margin-top:22px; font-size:13px; line-height:1.65; color:#2a2a2a; }
+  .sub b{ color:var(--black); font-weight:700; }
+  .rule{ height:2px; background:var(--black); margin:34px 0 40px; }
+
+  .grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:clamp(18px,2.4vw,28px); }
+  @media (max-width:820px){ .grid{ grid-template-columns:1fr; } }
+
+  .card{
+    position:relative; display:flex; flex-direction:column; gap:14px;
+    background:var(--ink); border:2.5px solid var(--black);
+    box-shadow:6px 6px 0 var(--red), 12px 12px 0 var(--black);
+    padding:clamp(22px,2.6vw,32px); color:var(--black); text-decoration:none;
+    transition:transform .14s var(--ease), box-shadow .14s var(--ease); min-height:230px;
+  }
+  .card:hover,.card:focus-visible{
+    transform:translate(-6px,-6px);
+    box-shadow:12px 12px 0 var(--red), 24px 24px 0 var(--black); outline:none;
+  }
+  .card-top{ display:flex; align-items:baseline; justify-content:space-between; gap:16px; }
+  .num{ font-family:var(--font-display); font-size:clamp(2.4rem,5vw,3.6rem); line-height:.8; }
+  .open{
+    font-size:11px; letter-spacing:.14em; font-weight:700; border:2px solid var(--black);
+    padding:8px 12px; white-space:nowrap; transition:background .12s,color .12s;
+  }
+  .card:hover .open{ background:var(--red); color:var(--ink); border-color:var(--red); }
+  .name{ font-family:var(--font-display); font-size:clamp(1.6rem,2.6vw,2.3rem); text-transform:uppercase; line-height:.95; }
+  .blurb{ font-size:12.5px; line-height:1.6; color:#2c2c2c; max-width:48ch; }
+  .tags{ display:flex; flex-wrap:wrap; gap:8px; margin-top:auto; }
+  .tag{ font-size:10px; letter-spacing:.1em; text-transform:uppercase; border:1.5px solid var(--black); padding:5px 10px; }
+
+  .foot{ margin-top:48px; display:flex; flex-wrap:wrap; gap:10px 22px; font-size:11px; letter-spacing:.08em; color:#666; }
+  .foot b{ color:var(--black); font-weight:700; }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">contact · mockups</p>
+    <h1>Let's <em>Talk</em><br />— Mockups</h1>
+    <p class="sub">
+      The contact section isn't a footer — it's the <b>climax of a running metaphor</b>.
+      The experience roster was a phone; here you place the call back. One neo-brutalist language —
+      <b>red, cream, ink</b>, hard stacked shadows, mono type, no soft edges. Press <b>LET'S TALK</b> and it
+      <b>dials out</b> — DIALING SANTOSH… — connects, and resolves into a brutalist <b>leave-a-voicemail</b>
+      composer that actually sends. The pixel cat that opened the hero comes back to <b>close the page</b>.
+      Open a card for the full self-contained mockup.
+    </p>
+  </header>
+
+  <div class="rule"></div>
+
+  <main class="grid">
+    <a class="card" href="01-the-callback.html">
+      <div class="card-top">
+        <span class="num">01</span>
+        <span class="open">OPEN &rarr;</span>
+      </div>
+      <div class="name">The Callback</div>
+      <p class="blurb">
+        <b>LET'S TALK actually places the call.</b> Click it and the screen dials out — DIALING SANTOSH…,
+        rings, connects — and lands on a brutalist <b>voicemail composer</b> that sends for real (mailto, or
+        Formspree for a live inbox). The socials become <b>magnetic speed-dial</b> discs that lean toward the
+        cursor, fill-invert, ring-pulse and spin like the Saturn monogram. The email <b>decodes in</b> and clicking
+        it punches a hard COPIED ✓ with a clack and a red invert. A <b>time-aware line</b> reads your live clock,
+        the empty red <b>grid lights up</b> under the cursor, a <b>guestbook</b> lets visitors stamp the wall, and a
+        sleepy <b>pixel cat</b> dozes in the corner — z z z — until you reach for LET'S TALK, then perks up.
+        It ends on a stamped <b>EOF</b> and one last Saturn spin.
+      </p>
+      <div class="tags">
+        <span class="tag">places the call</span>
+        <span class="tag">dialing screen</span>
+        <span class="tag">voicemail composer</span>
+        <span class="tag">mailto / formspree</span>
+        <span class="tag">speed-dial socials</span>
+        <span class="tag">magnetic lean</span>
+        <span class="tag">decode + copy stamp</span>
+        <span class="tag">reactive grid</span>
+        <span class="tag">time-aware clock</span>
+        <span class="tag">guestbook</span>
+        <span class="tag">sleeping cat</span>
+        <span class="tag">EOF + Saturn spin</span>
+      </div>
+    </a>
+
+    <a class="card" href="02-slide-to-send.html">
+      <div class="card-top">
+        <span class="num">02</span>
+        <span class="open">OPEN &rarr;</span>
+      </div>
+      <div class="name">Slide to Send</div>
+      <p class="blurb">
+        <b>Blow up the headline and make the arrow do something.</b> LET'S TALK fills the band — TALK in a huge
+        hollow outline that <b>inks in</b> as you slide. The → is a physical <b>slide-to-unlock</b>: grab it, shove it
+        across the width, and at the wall it <b>fires the call</b> — slide-to-unlock energy, hard and mechanical, with
+        ticking detents. Release short and it snaps back with a thunk. Keyboard and tap fallbacks fire the same
+        dial-out → voicemail flow. The slider is "call me direct"; the empty right column becomes a
+        <b>speed-dial rack</b> — numbered 01–04 like the Experience switchboard, with <b>GitHub + LinkedIn pinned</b>
+        on top (★, live ● dot, GitHub pulling a real repo count from the public API), Email (tap-to-copy) and
+        Résumé beneath. Icons spin like the Saturn monogram, labels decode-in. Same world — reactive grid, live
+        clock, sleeping cat, stamped EOF and a final Saturn spin — but the <b>gesture is the signature</b> nobody forgets.
+      </p>
+      <div class="tags">
+        <span class="tag">giant headline</span>
+        <span class="tag">slide-to-unlock</span>
+        <span class="tag">ink-in fill</span>
+        <span class="tag">mechanical detents</span>
+        <span class="tag">snap-back thunk</span>
+        <span class="tag">speed-dial rack</span>
+        <span class="tag">★ pinned gh + li</span>
+        <span class="tag">live github stat</span>
+        <span class="tag">copy email</span>
+        <span class="tag">dial-out → voicemail</span>
+        <span class="tag">reactive grid</span>
+        <span class="tag">sleeping cat</span>
+        <span class="tag">EOF + Saturn spin</span>
+      </div>
+    </a>
+  </main>
+
+  <div class="foot">
+    <span><b>palette</b> #ED1C24 · #F7F5F1 · #141414</span>
+    <span><b>type</b> Anton + JetBrains Mono</span>
+    <span><b>style</b> neo-brutalism</span>
+    <span><b>closes</b> the running phone metaphor</span>
+  </div>
+</body>
+</html>

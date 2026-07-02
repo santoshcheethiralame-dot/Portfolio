@@ -1,0 +1,17 @@
+---
+// Section seam — the press-sheet cut line. The hairline draws in (GSAP via
+// [data-divider]); crop marks sit at the ends; an optional slug announces the
+// next page like a newspaper jump line ("NEXT ▸ P.3 — THE SWITCHBOARD").
+interface Props {
+  next?: string;
+}
+const { next } = Astro.props;
+---
+
+<div class="divider" aria-hidden="true">
+  <span class="divider-crop divider-crop--l"></span>
+  <div class="divider-line" data-divider></div>
+  <span class="divider-crop divider-crop--r"></span>
+  <span class="divider-blade"></span>
+  {next && <span class="divider-slug">NEXT&nbsp;&#9656;&nbsp;{next}</span>}
+</div>

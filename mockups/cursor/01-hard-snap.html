@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en" data-mock="hard-snap">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>HARD-SNAP CELL — selection box on a terminal grid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --red:#ed1c24; --red-hot:#ff5247; --red-deep:#a8001a;
+    --ink:#0d0d0d; --paper:#f7f5f1; --lime:#c8e620;
+    --line:rgba(255,255,255,.14);
+    --fd:"Anton",sans-serif; --fm:"JetBrains Mono",monospace;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  html{ -webkit-font-smoothing:antialiased; }
+  body{ background:var(--red); color:var(--paper); font-family:var(--fm); overflow:hidden;
+    cursor:none; }
+  ::selection{ background:var(--ink); color:var(--lime); }
+
+  /* ── the field ── */
+  #stage{ position:fixed; inset:0; }
+  #field{ position:absolute; inset:0; display:block; }       /* static faint glyph + grid canvas */
+  /* the snapped invert cell + cross arms (DOM, hard-positioned) */
+  .cell{ position:absolute; display:grid; place-items:center; font-family:var(--fm); font-weight:700;
+    line-height:1; will-change:transform; pointer-events:none; }
+  #snap{ background:var(--ink); color:var(--lime); z-index:6; box-shadow:inset 0 0 0 1px rgba(255,255,255,.08); }
+  .arm{ background:var(--red-hot); color:var(--ink); z-index:5; }
+  #stage.single .arm{ display:none; }
+
+  /* ── chrome (corners, non-interactive) ── */
+  .chrome{ position:fixed; z-index:20; pointer-events:none; }
+  .tl{ top:clamp(16px,2.4vw,30px); left:clamp(16px,2.4vw,30px); }
+  .kicker{ font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:rgba(255,255,255,.8); }
+  .kicker::before{ content:"// "; color:#fff; }
+  h1{ font-family:var(--fd); font-weight:400; text-transform:uppercase; line-height:.84;
+    font-size:clamp(2.2rem,6vw,4.6rem); margin-top:8px; letter-spacing:.01em;
+    -webkit-text-stroke:1px var(--paper); color:transparent; }
+  .deck{ margin-top:12px; max-width:40ch; font-size:12.5px; line-height:1.6; color:rgba(255,255,255,.9); }
+  .deck b{ color:#fff; }
+
+  .br{ bottom:clamp(16px,2.4vw,30px); right:clamp(16px,2.4vw,30px); text-align:right; }
+  .read{ display:inline-flex; gap:8px; align-items:center; background:var(--ink); color:var(--paper);
+    border:2px solid var(--ink); padding:7px 11px; font-size:11px; font-weight:700; letter-spacing:.1em; }
+  .read b{ color:var(--lime); }
+
+  .controls{ position:fixed; z-index:30; bottom:clamp(16px,2.4vw,30px); left:clamp(16px,2.4vw,30px);
+    display:flex; gap:10px; align-items:center; }
+  .seg{ display:inline-flex; border:2px solid var(--paper); }
+  .seg button{ font:inherit; font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+    background:transparent; color:var(--paper); border:none; padding:8px 13px; cursor:pointer; }
+  .seg button + button{ border-left:2px solid var(--paper); }
+  .seg button[aria-pressed="true"]{ background:var(--paper); color:var(--red); }
+  .hint{ font-size:10.5px; letter-spacing:.08em; color:rgba(255,255,255,.7); }
+  .hint kbd{ font-family:var(--fm); border:1px solid rgba(255,255,255,.5); padding:1px 5px; border-radius:3px; }
+
+  #tag{ position:fixed; left:50%; bottom:7px; transform:translateX(-50%); z-index:40; font-size:9.5px;
+    letter-spacing:.14em; text-transform:uppercase; color:rgba(255,255,255,.55); pointer-events:none; }
+
+  @media (max-width:720px){ .deck{ display:none; } .hint{ display:none; } }
+</style>
+</head>
+<body>
+  <div id="stage" class="single">
+    <canvas id="field"></canvas>
+    <div class="cell" id="snap"></div>
+    <div class="cell arm" id="armN"></div>
+    <div class="cell arm" id="armS"></div>
+    <div class="cell arm" id="armE"></div>
+    <div class="cell arm" id="armW"></div>
+  </div>
+
+  <header class="chrome tl">
+    <p class="kicker">cursor study · 01</p>
+    <h1>Hard-Snap<br />Cell</h1>
+    <p class="deck">No gradient, no falloff. One cell — or a tight cross — flips to a
+      <b>solid invert</b>, snapping cell-to-cell like a selection box on a terminal grid.</p>
+  </header>
+
+  <div class="chrome br">
+    <span class="read">CELL <b id="coord">G7</b></span>
+  </div>
+
+  <div class="controls">
+    <div class="seg" role="group" aria-label="snap shape">
+      <button id="mSingle" aria-pressed="true">Single</button>
+      <button id="mCross" aria-pressed="false">Cross</button>
+    </div>
+    <span class="hint">toggle with <kbd>X</kbd></span>
+  </div>
+
+  <div id="tag">01 · hard-snap cell · ink-on-red, no falloff</div>
+
+<script>
+(function(){
+  'use strict';
+  var REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var $ = function(id){ return document.getElementById(id); };
+  var stage=$('stage'), cv=$('field'), ctx=cv.getContext('2d');
+  var snap=$('snap'), armN=$('armN'), armS=$('armS'), armE=$('armE'), armW=$('armW');
+  var coord=$('coord');
+  var dpr=Math.min(2, window.devicePixelRatio||1);
+  var GLYPHS='ABCDEFGHJKLMNPQRSTUVWXYZ0123456789#/<>[]{}*+=·.'.split('');
+
+  var CELL=48, cols=0, rows=0, chars=[];
+  function colName(c){ // spreadsheet-style A..Z, AA.. for the column letter
+    var s=''; c=c+1; while(c>0){ var m=(c-1)%26; s=String.fromCharCode(65+m)+s; c=(c-(m+1))/26|0; } return s;
+  }
+  function build(){
+    var w=innerWidth, h=innerHeight;
+    CELL=Math.max(40, Math.min(60, Math.round(w/26)));
+    cols=Math.ceil(w/CELL); rows=Math.ceil(h/CELL);
+    cv.width=Math.round(w*dpr); cv.height=Math.round(h*dpr);
+    cv.style.width=w+'px'; cv.style.height=h+'px'; ctx.setTransform(dpr,0,0,dpr,0,0);
+    // size the cell DOM nodes
+    [snap,armN,armS,armE,armW].forEach(function(el){ el.style.width=CELL+'px'; el.style.height=CELL+'px';
+      el.style.fontSize=Math.round(CELL*0.42)+'px'; });
+    // generate a sparse faint glyph field (deterministic-ish, ~26% filled)
+    chars=[];
+    for(var r=0;r<rows;r++){ chars[r]=[];
+      for(var c=0;c<cols;c++){ chars[r][c] = ((r*31+c*17)%23<6) ? GLYPHS[(r*7+c*13)%GLYPHS.length] : ''; } }
+    draw();
+  }
+  function draw(){
+    var w=innerWidth, h=innerHeight;
+    ctx.clearRect(0,0,w,h);
+    // grid lines
+    ctx.strokeStyle='rgba(255,255,255,.12)'; ctx.lineWidth=1;
+    ctx.beginPath();
+    for(var x=0;x<=cols;x++){ var px=Math.round(x*CELL)+.5; ctx.moveTo(px,0); ctx.lineTo(px,h); }
+    for(var y=0;y<=rows;y++){ var py=Math.round(y*CELL)+.5; ctx.moveTo(0,py); ctx.lineTo(w,py); }
+    ctx.stroke();
+    // faint glyphs
+    ctx.font='700 '+Math.round(CELL*0.42)+'px '+'"JetBrains Mono",monospace';
+    ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle='rgba(255,255,255,.16)';
+    for(var r=0;r<rows;r++) for(var c=0;c<cols;c++){ var g=chars[r][c];
+      if(g) ctx.fillText(g, c*CELL+CELL/2, r*CELL+CELL/2+1); }
+  }
+
+  var curC=-1, curR=-1, inside=false;
+  function place(el, c, r, on){
+    if(!on || c<0 || r<0 || c>=cols || r>=rows){ el.style.display='none'; return; }
+    el.style.display='grid';
+    el.style.transform='translate('+(c*CELL)+'px,'+(r*CELL)+'px)';
+    el.textContent = chars[r] && chars[r][c] ? chars[r][c] : '';
+  }
+  function paint(){
+    place(snap, curC, curR, inside);
+    var cross = !stage.classList.contains('single');
+    place(armN, curC, curR-1, inside && cross);
+    place(armS, curC, curR+1, inside && cross);
+    place(armE, curC+1, curR, inside && cross);
+    place(armW, curC-1, curR, inside && cross);
+    if(inside && curC>=0 && curR>=0) coord.textContent = colName(curC)+(curR+1);
+  }
+
+  window.addEventListener('pointermove', function(e){
+    inside=true;
+    var c=Math.floor(e.clientX/CELL), r=Math.floor(e.clientY/CELL);
+    if(c!==curC || r!==curR){ curC=c; curR=r; paint(); }
+  }, {passive:true});
+  window.addEventListener('pointerleave', function(){ inside=false; paint(); });
+  document.addEventListener('mouseleave', function(){ inside=false; paint(); });
+
+  // mode toggle
+  function setMode(single){
+    stage.classList.toggle('single', single);
+    $('mSingle').setAttribute('aria-pressed', single?'true':'false');
+    $('mCross').setAttribute('aria-pressed', single?'false':'true');
+    paint();
+  }
+  $('mSingle').addEventListener('click', function(){ setMode(true); });
+  $('mCross').addEventListener('click', function(){ setMode(false); });
+  addEventListener('keydown', function(e){ if(e.key==='x'||e.key==='X') setMode(stage.classList.contains('single')?false:true); });
+
+  addEventListener('resize', build);
+  if(document.fonts && document.fonts.ready){ document.fonts.ready.then(build); }
+  build();
+})();
+</script>
+</body>
+</html>

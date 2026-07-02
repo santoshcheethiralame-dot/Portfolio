@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SCHOOL / 04 — ACHIEVEMENT STAMPS + LIVE TIMELINE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --red:#ed1c24;
+    --red-deep:#b3001b;
+    --red-dark:#7a0014;
+    --ink:#ffffff;
+    --black:#0a0a0a;
+    --line:rgba(255,255,255,0.26);
+    --muted:rgba(255,255,255,0.72);
+    --font-display:"Anton",sans-serif;
+    --font-mono:"JetBrains Mono",monospace;
+    --bar-h:64px;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+
+  body{
+    background:var(--red);
+    color:var(--ink);
+    font-family:var(--font-mono);
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    overflow-x:hidden;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:48px 48px;
+    background-position:-1px -1px;
+  }
+
+  /* screen-shake hook on impact */
+  body.shake{ animation:scrShake 140ms steps(2,end) 1; }
+  @keyframes scrShake{
+    0%{ transform:translate(0,0); }
+    25%{ transform:translate(-3px,2px); }
+    50%{ transform:translate(3px,-2px); }
+    75%{ transform:translate(-2px,-1px); }
+    100%{ transform:translate(0,0); }
+  }
+
+  /* ---------- TOP BAR ---------- */
+  .topbar{
+    position:fixed; top:0; left:0; right:0; height:var(--bar-h);
+    z-index:200;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 clamp(14px,4vw,40px);
+    background:var(--red);
+    border-bottom:2px solid var(--ink);
+  }
+  .index-btn{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--font-mono); font-weight:700;
+    font-size:12px; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--ink); text-decoration:none;
+    padding:9px 16px;
+    border:2px solid var(--ink);
+    background:transparent;
+    box-shadow:4px 4px 0 var(--black);
+    transition:transform 120ms cubic-bezier(.2,.9,.2,1),
+               box-shadow 120ms cubic-bezier(.2,.9,.2,1),
+               background 120ms steps(1,end),
+               color 120ms steps(1,end);
+  }
+  .index-btn:hover,.index-btn:focus-visible{
+    background:var(--ink); color:var(--red);
+    transform:translate(2px,2px);
+    box-shadow:2px 2px 0 var(--black);
+    outline:none;
+  }
+  .caption{ text-align:right; line-height:1.35; }
+  .caption .c-style{
+    font-weight:700; font-size:12px; letter-spacing:.12em; text-transform:uppercase;
+  }
+  .caption .c-hint{
+    font-weight:400; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--muted);
+  }
+
+  /* ---------- SECTION ---------- */
+  .section{
+    padding:calc(var(--bar-h) + clamp(22px,4vw,46px)) clamp(20px,6vw,90px) clamp(40px,7vw,90px);
+    max-width:1500px; margin:0 auto;
+  }
+  .kicker{
+    font-size:13px; font-weight:500; letter-spacing:.18em;
+    color:rgba(255,255,255,.82);
+    margin-bottom:10px; text-transform:uppercase;
+  }
+  .kicker::before{ content:"// "; }
+  .title{
+    font-family:var(--font-display);
+    text-transform:uppercase;
+    color:var(--ink);
+    line-height:.82;
+    font-size:clamp(2.8rem,12vw,9rem);
+    letter-spacing:.005em;
+    margin-bottom:10px;
+  }
+  .subline{
+    font-size:12px; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:clamp(20px,3vw,34px);
+    max-width:66ch;
+  }
+
+  /* ---------- CONTROLS ---------- */
+  .controls{
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+    margin-bottom:clamp(20px,3vw,28px);
+  }
+  .btn{
+    font-family:var(--font-mono); font-weight:700;
+    font-size:13px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--black); background:var(--ink);
+    border:2px solid var(--black);
+    padding:11px 22px;
+    cursor:pointer;
+    box-shadow:5px 5px 0 var(--black);
+    transition:transform 110ms cubic-bezier(.2,.9,.2,1),
+               box-shadow 110ms cubic-bezier(.2,.9,.2,1),
+               background 110ms steps(1,end),
+               color 110ms steps(1,end);
+    user-select:none;
+  }
+  .btn:hover,.btn:focus-visible{ background:var(--black); color:var(--ink); outline:none; }
+  .btn:active{ transform:translate(5px,5px); box-shadow:0 0 0 var(--black); }
+
+  .hint-inline{
+    font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+    color:rgba(255,255,255,.6);
+  }
+
+  /* live pulsing dot readout (in controls) */
+  .live{
+    display:inline-flex; align-items:center; gap:9px;
+    font-weight:700; font-size:11px; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--ink);
+    border:2px solid var(--ink);
+    padding:8px 14px;
+    background:transparent;
+  }
+  .live .pdot{
+    width:10px; height:10px; background:var(--ink); display:block;
+    animation:pulse 1.1s steps(2,end) infinite;
+  }
+  @keyframes pulse{ 0%,49%{ opacity:1; } 50%,100%{ opacity:.25; } }
+
+  /* ===================== EDUCATION CARD ===================== */
+  .card{
+    background:var(--red);
+    border:2px solid var(--ink);
+    box-shadow:8px 8px 0 var(--black);
+    padding:clamp(18px,3vw,34px);
+    transition:transform .12s cubic-bezier(.2,.9,.2,1), box-shadow .12s cubic-bezier(.2,.9,.2,1);
+  }
+  .card:hover{ transform:translate(-4px,-4px); box-shadow:14px 14px 0 var(--black); }
+  .card:active{ transform:translate(2px,2px); box-shadow:4px 4px 0 var(--black); }
+
+  .card-head{
+    display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between;
+    gap:18px;
+    padding-bottom:18px;
+    border-bottom:2px solid var(--ink);
+    margin-bottom:clamp(18px,2.6vw,28px);
+  }
+  .school-block{ min-width:0; }
+  .wordmark{
+    font-family:var(--font-display);
+    font-size:clamp(1.7rem,4.4vw,3.1rem);
+    line-height:.9; text-transform:uppercase; letter-spacing:.01em;
+    cursor:default; user-select:none;
+    display:inline-block;
+  }
+  .school-meta{
+    margin-top:8px;
+    font-size:12px; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--ink); line-height:1.5;
+  }
+  .school-meta .dim{ color:var(--muted); }
+
+  /* CGPA badge */
+  .cgpa{
+    display:flex; flex-direction:column; align-items:flex-end; gap:2px;
+    border:2px solid var(--ink);
+    background:var(--ink);
+    color:var(--red);
+    padding:8px 14px 9px;
+    box-shadow:5px 5px 0 var(--black);
+    flex:none;
+  }
+  .cgpa .lab{ font-size:9px; font-weight:700; letter-spacing:.18em; }
+  .cgpa .val{ font-family:var(--font-display); font-size:clamp(1.6rem,3vw,2.3rem); line-height:.9; }
+  .cgpa .scale{ font-size:9px; letter-spacing:.1em; color:var(--red-deep); }
+
+  /* ===================== LIVE DEGREE TIMELINE (ported from STYLE 01) ===================== */
+  .timeline-label{
+    font-size:10px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--muted); margin-bottom:13px;
+  }
+  .readout{
+    display:flex; flex-wrap:wrap; align-items:stretch; gap:14px;
+  }
+  .readout-block{
+    border:2px solid var(--ink);
+    background:rgba(0,0,0,0.12);
+    box-shadow:6px 6px 0 var(--black);
+    padding:14px 18px;
+    display:flex; flex-direction:column; gap:7px; justify-content:center;
+  }
+  .ro-label{
+    font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted);
+  }
+  .ro-blocks{
+    font-size:clamp(15px,2.4vw,24px); font-weight:700; letter-spacing:.14em;
+    color:var(--ink); white-space:nowrap; line-height:1;
+  }
+  .ro-counter{
+    font-family:var(--font-display);
+    font-size:clamp(34px,6vw,58px);
+    line-height:.82;
+    color:var(--ink);
+  }
+  .ro-counter small{
+    font-family:var(--font-mono); font-size:13px; letter-spacing:.1em; color:var(--muted);
+    font-weight:400;
+  }
+
+  .track-wrap{
+    position:relative;
+    margin-top:clamp(30px,4.5vw,56px);
+    padding:0 6px;
+  }
+  .track{
+    position:relative;
+    height:210px;
+  }
+  .rail{
+    position:absolute; left:0; right:0; top:118px;
+    height:14px;
+    border:2px solid var(--ink);
+    background:rgba(0,0,0,0.22);
+    overflow:hidden;
+  }
+  .rail-fill{
+    position:absolute; left:0; top:0; bottom:0;
+    width:0;
+    background:var(--ink);
+    transition:width 700ms cubic-bezier(.2,.9,.2,1);
+  }
+
+  .tick{
+    position:absolute; top:0; bottom:0;
+    width:0;
+    transform:translateX(-50%);
+  }
+  .tick .notch{
+    position:absolute; top:110px; height:30px; left:-1px; width:2px;
+    background:var(--ink);
+  }
+  .tick .node{
+    position:absolute; top:114px; left:-9px;
+    width:18px; height:18px;
+    border:2px solid var(--ink);
+    background:var(--red);
+    z-index:4;
+    transition:transform 120ms cubic-bezier(.2,.9,.2,1), background 120ms steps(1,end);
+  }
+  .tick.done .node{ background:var(--ink); }
+  .tick.upcoming .node{ background:var(--red); border-style:dashed; }
+  .tick .hot{
+    position:absolute; top:96px; left:-26px; width:52px; height:64px;
+    background:transparent; border:0; cursor:pointer; z-index:6; padding:0;
+  }
+  .tick .hot:focus-visible{ outline:2px solid var(--ink); outline-offset:-2px; }
+  .tick:hover .node, .tick.show .node{ transform:scale(1.42) rotate(45deg); }
+
+  .tick .lab{
+    position:absolute; top:150px; left:50%; transform:translateX(-50%);
+    text-align:center; white-space:nowrap; pointer-events:none;
+  }
+  .tick .lab .s{
+    font-weight:700; font-size:13px; letter-spacing:.1em; color:var(--ink);
+  }
+  .tick.upcoming .lab .s{ color:var(--muted); }
+  .tick .lab .rng{
+    font-size:8.5px; letter-spacing:.06em; color:var(--muted); margin-top:3px; text-transform:uppercase;
+  }
+
+  /* achievement star pinned above a tick */
+  .tick .star{
+    position:absolute; top:60px; left:50%; transform:translateX(-50%);
+    font-size:22px; line-height:1; color:var(--ink); pointer-events:none;
+    text-shadow:2px 2px 0 var(--black);
+  }
+  .tick .star::after{
+    content:""; position:absolute; left:50%; top:26px; transform:translateX(-50%);
+    width:2px; height:48px; background:var(--line);
+  }
+
+  /* TODAY marker — solid block, pulses */
+  .marker{
+    position:absolute; top:0; bottom:0;
+    width:0; transform:translateX(-50%); z-index:8;
+  }
+  .marker .stem{
+    position:absolute; top:80px; left:-2px; width:4px; height:74px; background:var(--ink);
+  }
+  .marker .blk{
+    position:absolute; top:96px; left:-13px;
+    width:26px; height:26px;
+    background:var(--ink);
+    border:2px solid var(--black);
+    box-shadow:4px 4px 0 var(--black);
+    z-index:9;
+  }
+  .marker .blk.beat{ animation:beat 1.15s steps(3,end) infinite; }
+  @keyframes beat{ 0%,60%{ transform:scale(1); } 61%,100%{ transform:scale(1.28); } }
+  .marker .flag{
+    position:absolute; top:36px; left:50%; transform:translateX(-50%);
+    background:var(--ink); color:var(--red);
+    font-weight:700; font-size:9.5px; letter-spacing:.12em; text-transform:uppercase;
+    padding:4px 8px; white-space:nowrap;
+    border:2px solid var(--black);
+    box-shadow:3px 3px 0 var(--black);
+  }
+
+  /* hover popover */
+  .pop{
+    position:absolute; z-index:60;
+    min-width:184px; max-width:240px;
+    background:var(--black); color:var(--ink);
+    border:2px solid var(--ink);
+    box-shadow:6px 6px 0 var(--black);
+    padding:11px 13px;
+    transform:translateX(-50%);
+    pointer-events:none;
+    opacity:0;
+    transition:opacity 1ms steps(1,end);
+  }
+  .pop.on{ opacity:1; }
+  .pop .pterm{ font-weight:700; font-size:13px; letter-spacing:.08em; text-transform:uppercase; }
+  .pop .prng{ font-size:9.5px; letter-spacing:.06em; color:var(--muted); margin-top:3px; text-transform:uppercase; }
+  .pop .prow{
+    display:flex; justify-content:space-between; gap:12px; align-items:baseline;
+    margin-top:9px; padding-top:9px; border-top:2px solid var(--line);
+    font-size:10.5px; letter-spacing:.06em; text-transform:uppercase;
+  }
+  .pop .prow b{ font-family:var(--font-display); font-size:20px; letter-spacing:.02em; color:var(--ink); }
+  .pop .pach{
+    margin-top:8px; font-size:9.5px; letter-spacing:.05em; text-transform:uppercase;
+    color:var(--ink); line-height:1.4;
+  }
+  .pop .pach .st{ color:var(--ink); margin-right:5px; }
+  .pop .pstatus{
+    margin-top:7px; font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);
+  }
+  .track-note{
+    margin-top:18px;
+    font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.5);
+  }
+
+  /* divider between timeline and stamps */
+  .card-rule{
+    height:0; border:0; border-top:2px solid var(--line);
+    margin:clamp(26px,4vw,42px) 0 0;
+  }
+
+  /* ===================== STAMP RAIL ===================== */
+  .stamp-rail{
+    display:flex; flex-wrap:wrap; gap:clamp(18px,3vw,40px);
+    align-items:flex-start;
+    padding:clamp(14px,2.4vw,26px) 6px clamp(22px,3vw,34px);
+    margin-bottom:clamp(18px,2.6vw,28px);
+    border-top:2px dashed var(--line);
+    border-bottom:2px dashed var(--line);
+  }
+
+  .stamp{
+    position:relative;
+    flex:1 1 220px; max-width:320px; min-width:200px;
+    padding:18px 18px 16px;
+    background:var(--ink);
+    color:var(--red-deep);
+    border:3px double var(--red-deep);
+    outline:2px solid var(--red-deep);
+    outline-offset:3px;
+    cursor:pointer;
+    transform-origin:center center;
+    background-image:
+      radial-gradient(circle at 18% 30%, rgba(122,0,20,0.12) 0 1px, transparent 1.4px),
+      radial-gradient(circle at 62% 70%, rgba(122,0,20,0.10) 0 1px, transparent 1.4px),
+      radial-gradient(circle at 84% 22%, rgba(122,0,20,0.10) 0 1px, transparent 1.4px),
+      radial-gradient(circle at 40% 86%, rgba(122,0,20,0.10) 0 1px, transparent 1.4px);
+    background-size:7px 7px, 9px 9px, 11px 11px, 8px 8px;
+    will-change:transform;
+    transition:transform 130ms cubic-bezier(.2,.9,.2,1), box-shadow 130ms cubic-bezier(.2,.9,.2,1);
+  }
+  .stamp::before{
+    content:""; position:absolute; inset:5px;
+    border:1.5px solid rgba(122,0,20,0.55);
+    pointer-events:none;
+  }
+  .stamp::after{
+    content:attr(data-overprint);
+    position:absolute; right:8px; bottom:7px;
+    font-family:var(--font-mono); font-weight:700;
+    font-size:8px; letter-spacing:.16em;
+    color:rgba(122,0,20,0.34);
+    transform:rotate(-6deg);
+    pointer-events:none;
+  }
+  .stamp.landed{ transform:rotate(var(--rot)); }
+  .stamp:hover{
+    transform:translateY(-4px) rotate(var(--rot-hover));
+    box-shadow:6px 8px 0 var(--black);
+  }
+
+  .stamp .star{
+    font-family:var(--font-display);
+    font-size:34px; line-height:1; color:var(--red);
+    display:block; margin-bottom:8px;
+    text-shadow:2px 2px 0 rgba(122,0,20,0.35);
+  }
+  .stamp .award{
+    font-family:var(--font-display);
+    font-size:clamp(1rem,1.9vw,1.4rem);
+    line-height:.96; text-transform:uppercase; letter-spacing:.01em;
+    color:var(--red-deep);
+  }
+  .stamp .sub{
+    font-size:9.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--red-dark); margin-top:6px;
+  }
+  .stamp .semtag{
+    display:inline-block; margin-top:11px;
+    font-family:var(--font-mono); font-weight:700;
+    font-size:10px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--ink); background:var(--red-deep);
+    border:2px solid var(--red-deep);
+    padding:3px 9px;
+  }
+
+  .stamp.armed{ opacity:0; transform:scale(2.2) rotate(var(--rot-in)); }
+  .stamp.punch{ animation:punchIn 240ms cubic-bezier(.18,1.5,.3,1) 1 forwards; }
+  @keyframes punchIn{
+    0%{ opacity:0; transform:scale(2.2) rotate(var(--rot-in)); }
+    1%{ opacity:1; }
+    55%{ transform:scale(.86) rotate(var(--rot)); box-shadow:0 0 0 var(--black); }
+    72%{ transform:scale(1.07) rotate(var(--rot)); }
+    86%{ transform:scale(.97) rotate(var(--rot)); }
+    100%{ opacity:1; transform:scale(1) rotate(var(--rot)); }
+  }
+  .stamp.thunk{ box-shadow:6px 8px 0 var(--black); }
+
+  /* ===================== COURSEWORK CHIPS ===================== */
+  .course-head{
+    font-size:10px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--muted); margin-bottom:12px;
+  }
+  .chips{ display:flex; flex-wrap:wrap; gap:9px; }
+  .chip{
+    position:relative; overflow:hidden;
+    border:1.5px solid var(--ink); border-radius:100px;
+    padding:5px 11px;
+    font-family:var(--font-mono); font-size:10px;
+    text-transform:uppercase; letter-spacing:.12em;
+    color:#fff; background:transparent;
+    cursor:pointer;
+    transition:transform 110ms cubic-bezier(.2,.9,.2,1);
+  }
+  .chip:active{ transform:scale(.96); }
+  .chip .wipe{
+    position:absolute; inset:0; z-index:0;
+    background:var(--ink);
+    clip-path:inset(0 100% 0 0);
+    transition:clip-path 180ms steps(6,end);
+  }
+  .chip label{ position:relative; z-index:1; display:block; pointer-events:none; }
+  .chip.inv .wipe{ clip-path:inset(0 0 0 0); }
+  .chip.inv label{ color:var(--red); }
+  .chip:focus-visible{ outline:none; box-shadow:0 0 0 2px var(--black); }
+
+  /* ---------- FOOTER ---------- */
+  .foot{
+    margin-top:clamp(26px,4vw,46px);
+    padding-top:18px;
+    border-top:2px solid var(--line);
+    display:flex; flex-wrap:wrap; gap:18px 30px;
+    font-size:10.5px; letter-spacing:.08em; text-transform:uppercase;
+    color:rgba(255,255,255,.62);
+  }
+  .foot b{ color:var(--ink); font-weight:700; }
+
+  .placeholder-note{
+    margin-top:10px;
+    font-size:9.5px; letter-spacing:.1em; text-transform:uppercase;
+    color:rgba(255,255,255,.5);
+  }
+
+  @media (max-width:760px){
+    .caption .c-hint{ display:none; }
+    .tick .lab .rng{ display:none; }
+    .tick .star::after{ height:36px; top:24px; }
+  }
+  @media (max-width:640px){
+    .card-head{ flex-direction:column; }
+    .cgpa{ align-self:flex-start; align-items:flex-start; }
+  }
+  @media (max-width:560px){
+    .track{ height:190px; }
+    .tick .lab .s{ font-size:11px; }
+  }
+
+  /* ===================== REDUCED MOTION ===================== */
+  @media (prefers-reduced-motion: reduce){
+    body.shake{ animation:none; }
+    .live .pdot{ animation:none; opacity:1; }
+    .marker .blk.beat{ animation:none; }
+    .rail-fill{ transition:none; }
+    .pop{ transition:none; }
+    .stamp.armed{ opacity:1; transform:rotate(var(--rot)); }
+    .stamp.punch{ animation:none; opacity:1; transform:rotate(var(--rot)); }
+    .chip .wipe{ transition:none; }
+    .card, .stamp, .btn, .index-btn{ transition:none; }
+  }
+</style>
+</head>
+<body>
+
+  <header class="topbar">
+    <a class="index-btn" href="index.html">&larr; Index</a>
+    <div class="caption">
+      <div class="c-style">Style 04 / Achievement Stamps</div>
+      <div class="c-hint">hover a semester &middot; awards punch in &middot; click RE-STAMP</div>
+    </div>
+  </header>
+
+  <main class="section">
+    <p class="kicker">education &middot; school</p>
+    <h1 class="title">School</h1>
+    <p class="subline">Honors land like inked rubber stamps &mdash; and a live degree timeline tracks the run, its today-marker computed from the real date.</p>
+
+    <div class="controls">
+      <button class="btn" id="restampBtn" type="button">Re-Stamp</button>
+      <span class="live" id="liveRead"><span class="pdot" aria-hidden="true"></span><span id="liveText">&#9679; Currently: Semester &mdash;</span></span>
+      <span class="hint-inline">awards stamp on scroll-in &middot; hover a tick &middot; chips click to invert</span>
+    </div>
+
+    <section class="card" id="card">
+      <div class="card-head">
+        <div class="school-block">
+          <span class="wordmark" id="wordmark" data-text="PES UNIVERSITY" tabindex="0">PES UNIVERSITY</span>
+          <div class="school-meta">
+            B.Tech in Computer Science Engineering<br>
+            <span class="dim">Bengaluru, India &middot; Sep 2024 &ndash; May 2028 &middot; 8 Semesters</span>
+          </div>
+        </div>
+        <div class="cgpa" aria-label="CGPA 7.95 out of 10">
+          <span class="lab">CGPA</span>
+          <span class="val">7.95</span>
+          <span class="scale">/ 10.00</span>
+        </div>
+      </div>
+
+      <!-- ===== LIVE DEGREE TIMELINE ===== -->
+      <div class="timeline-label">// degree timeline &middot; computed live</div>
+      <div class="readout">
+        <div class="readout-block">
+          <div class="ro-label">Degree progress // computed live</div>
+          <div class="ro-blocks" id="blockReadout">&#9632;&#9632;&#9632;&#9632;&#9633;&#9633;&#9633;&#9633;&nbsp;&nbsp;0% &middot; SEMESTER 1</div>
+        </div>
+        <div class="readout-block">
+          <div class="ro-label">Complete</div>
+          <div class="ro-counter"><span id="pctCounter">0</span><small>%</small></div>
+        </div>
+      </div>
+
+      <div class="track-wrap">
+        <div class="track" id="track" aria-label="Degree timeline Sep 2024 to May 2028">
+          <div class="rail"><div class="rail-fill" id="railFill"></div></div>
+          <!-- ticks + marker injected by JS -->
+        </div>
+        <div class="pop" id="pop" role="status" aria-live="polite"></div>
+        <div class="track-note">// sep 2024 &rarr; may 2028 &middot; 8 semesters &middot; sgpa values are illustrative placeholders</div>
+      </div>
+
+      <hr class="card-rule" />
+
+      <!-- ===== ACHIEVEMENT STAMPS ===== -->
+      <div class="stamp-rail" id="stampRail">
+        <!-- stamps injected by JS -->
+      </div>
+
+      <div class="course-head">Selected Coursework</div>
+      <div class="chips" id="chips"><!-- chips injected by JS --></div>
+
+      <div class="placeholder-note">* per-semester SGPA figures shown in the timeline/stamps are illustrative placeholder values</div>
+    </section>
+
+    <div class="foot">
+      <span>palette <b>#ED1C24 &middot; #FFFFFF &middot; #0A0A0A</b></span>
+      <span>type <b>Anton + JetBrains Mono</b></span>
+      <span>style <b>neo-brutalism</b></span>
+      <span>technique <b>achievement stamps + live date-math timeline</b></span>
+    </div>
+  </main>
+
+  <script>
+  (function(){
+    "use strict";
+
+    var REDUCE = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    /* ============================ DATA ============================ */
+    var STAMPS = [
+      { award:"CNR Merit Scholarship", sub:"", sem:"Sem 1", rot:-4, rotIn:-22, rotHover:-2, over:"INK • 2024" },
+      { award:"Academic Distinction", sub:"SGPA 7.75+", sem:"Sem 2", rot:3, rotIn:18, rotHover:1.5, over:"INK • 2025" },
+      { award:"Academic Distinction", sub:"SGPA 7.75+", sem:"Sem 4", rot:-2, rotIn:-16, rotHover:-1, over:"INK • 2026" }
+    ];
+
+    var COURSES = [
+      "DSA","Design & Analysis of Algorithms","Operating Systems","Computer Networks",
+      "DBMS","Linear Algebra","Math for ML","Data Science"
+    ];
+
+    /* ===================================================================
+       LIVE DEGREE TIMELINE  (ported from STYLE 01)
+       8 semester ticks, pinned achievement stars, hover popovers,
+       block marker computed from the real date.
+       =================================================================== */
+    var DEGREE_START = new Date(2024, 8, 1);    // Sep 1 2024
+    var DEGREE_END   = new Date(2028, 4, 31);   // May 31 2028
+
+    // semester windows + illustrative SGPA + achievement
+    var SEMS = [
+      { id:1, term:"S1", name:"SEM 1 / FALL 2024",   start:new Date(2024,8,1),  end:new Date(2024,11,31), sgpa:7.55, ach:"CNR Merit Scholarship" },
+      { id:2, term:"S2", name:"SEM 2 / SPRING 2025", start:new Date(2025,0,1),  end:new Date(2025,4,31),  sgpa:8.30, ach:"Academic Distinction — SGPA 7.75+" },
+      { id:3, term:"S3", name:"SEM 3 / FALL 2025",   start:new Date(2025,8,1),  end:new Date(2025,11,31), sgpa:7.62, ach:null },
+      { id:4, term:"S4", name:"SEM 4 / SPRING 2026", start:new Date(2026,0,1),  end:new Date(2026,4,31),  sgpa:8.33, ach:"Academic Distinction — SGPA 7.75+" },
+      { id:5, term:"S5", name:"SEM 5 / FALL 2026",   start:new Date(2026,8,1),  end:new Date(2026,11,31), sgpa:null, ach:null },
+      { id:6, term:"S6", name:"SEM 6 / SPRING 2027", start:new Date(2027,0,1),  end:new Date(2027,4,31),  sgpa:null, ach:null },
+      { id:7, term:"S7", name:"SEM 7 / FALL 2027",   start:new Date(2027,8,1),  end:new Date(2027,11,31), sgpa:null, ach:null },
+      { id:8, term:"S8", name:"SEM 8 / SPRING 2028", start:new Date(2028,0,1),  end:new Date(2028,4,31),  sgpa:null, ach:null }
+    ];
+
+    var MON = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+    function rangeLabel(s){
+      var a = MON[s.start.getMonth()] + " " + s.start.getFullYear();
+      var b = MON[s.end.getMonth()]   + " " + s.end.getFullYear();
+      return a + " – " + b;
+    }
+    function clamp(v,lo,hi){ return Math.max(lo, Math.min(hi, v)); }
+    function repeat(ch,n){ var s=""; for(var k=0;k<n;k++) s+=ch; return s; }
+
+    function computeState(){
+      var now = new Date(); // FRESH each call -> advances over real time
+      var pct = clamp((now - DEGREE_START) / (DEGREE_END - DEGREE_START) * 100, 0, 100);
+
+      var completed = 0;
+      for(var i=0;i<SEMS.length;i++){ if(SEMS[i].end < now) completed++; }
+
+      var current = 0;
+      for(var j=0;j<SEMS.length;j++){
+        if(now >= SEMS[j].start && now <= SEMS[j].end){ current = SEMS[j].id; break; }
+      }
+      if(current === 0){ current = completed > 0 ? completed : 1; }
+
+      var block = repeat("■", completed) + repeat("□", 8 - completed)
+                + "  " + Math.round(pct) + "% · SEMESTER " + current;
+
+      return { now:now, pct:pct, completed:completed, current:current, block:block };
+    }
+
+    // position 0..100 of a semester's MIDPOINT along the START->END span
+    function semPct(s){
+      var mid = (s.start.getTime() + s.end.getTime())/2;
+      return clamp((mid - DEGREE_START) / (DEGREE_END - DEGREE_START) * 100, 0, 100);
+    }
+
+    var track = document.getElementById("track");
+    var railFill = document.getElementById("railFill");
+    var pop = document.getElementById("pop");
+    var state = computeState();
+
+    // ticks
+    SEMS.forEach(function(s){
+      var done = s.end < state.now;
+      var isCurrent = (s.id === state.current);
+      var tick = document.createElement("div");
+      tick.className = "tick " + (done ? "done" : "upcoming") + (isCurrent ? " current" : "");
+      tick.style.left = semPct(s) + "%";
+
+      var starHTML = s.ach ? '<div class="star" aria-hidden="true">★</div>' : "";
+      tick.innerHTML =
+        starHTML +
+        '<div class="notch"></div>' +
+        '<div class="node"></div>' +
+        '<div class="lab"><div class="s">'+s.term+'</div><div class="rng">'+rangeLabel(s)+'</div></div>' +
+        '<button class="hot" type="button" aria-label="'+s.name+'"></button>';
+
+      track.appendChild(tick);
+
+      var hot = tick.querySelector(".hot");
+      function show(){ openPop(s, tick); tick.classList.add("show"); }
+      function hide(){ closePop(); tick.classList.remove("show"); }
+      hot.addEventListener("mouseenter", show);
+      hot.addEventListener("mouseleave", hide);
+      hot.addEventListener("focus", show);
+      hot.addEventListener("blur", hide);
+    });
+
+    // marker (today)
+    var marker = document.createElement("div");
+    marker.className = "marker";
+    marker.style.left = state.pct + "%";
+    marker.innerHTML =
+      '<div class="flag">TODAY</div>' +
+      '<div class="stem"></div>' +
+      '<div class="blk'+(REDUCE?"":" beat")+'" id="markerBlk"></div>';
+    track.appendChild(marker);
+
+    var mblk = marker.querySelector(".blk");
+    marker.style.pointerEvents = "none";
+    mblk.style.pointerEvents = "auto";
+    mblk.style.cursor = "pointer";
+    mblk.setAttribute("tabindex","0");
+    mblk.setAttribute("role","button");
+    mblk.setAttribute("aria-label","Today, semester " + state.current);
+    function semById(id){ for(var i=0;i<SEMS.length;i++){ if(SEMS[i].id===id) return SEMS[i]; } return SEMS[0]; }
+    function showMarker(){ openPop(semById(state.current), marker, true); }
+    mblk.addEventListener("mouseenter", showMarker);
+    mblk.addEventListener("mouseleave", closePop);
+    mblk.addEventListener("focus", showMarker);
+    mblk.addEventListener("blur", closePop);
+
+    function paintFill(){
+      if(REDUCE){ railFill.style.transition = "none"; }
+      railFill.style.width = state.pct + "%";
+    }
+
+    function openPop(s, anchorEl, isToday){
+      var sgpa = (s.sgpa == null) ? "—" : s.sgpa.toFixed(2);
+      var statusTxt;
+      if(s.end < state.now) statusTxt = "COMPLETED";
+      else if(s.id === state.current) statusTxt = "IN PROGRESS";
+      else statusTxt = "UPCOMING · NOT YET GRADED";
+
+      var achHTML = s.ach ? '<div class="pach"><span class="st">★</span>'+s.ach+'</div>' : "";
+      var todayHTML = isToday ? '<div class="pstatus">● TODAY-MARKER · COMPUTED FROM LIVE DATE</div>' : "";
+
+      pop.innerHTML =
+        '<div class="pterm">'+s.name+'</div>' +
+        '<div class="prng">'+rangeLabel(s)+'</div>' +
+        '<div class="prow"><span>SGPA</span><b>'+sgpa+'</b></div>' +
+        achHTML +
+        '<div class="pstatus">'+statusTxt+'</div>' +
+        todayHTML;
+
+      var wrap = track.parentNode; // .track-wrap (positioned)
+      var aRect = anchorEl.getBoundingClientRect();
+      var wRect = wrap.getBoundingClientRect();
+      var cx = aRect.left + aRect.width/2 - wRect.left;
+
+      pop.style.display = "block";
+      pop.classList.add("on");
+      var pw = pop.offsetWidth;
+      var minX = pw/2 + 4, maxX = wRect.width - pw/2 - 4;
+      cx = clamp(cx, minX, maxX);
+      pop.style.left = cx + "px";
+      pop.style.top = "-2px";
+      pop.style.transform = "translate(-50%, -100%)";
+    }
+    function closePop(){
+      pop.classList.remove("on");
+      pop.style.display = "none";
+    }
+    closePop();
+
+    /* readout */
+    var blockReadout = document.getElementById("blockReadout");
+    var pctCounter = document.getElementById("pctCounter");
+    var liveText = document.getElementById("liveText");
+
+    function setReadoutFinal(){
+      blockReadout.textContent = state.block;
+      pctCounter.textContent = Math.round(state.pct);
+      liveText.textContent = "● CURRENTLY: SEMESTER " + state.current;
+    }
+    function countUp(target){
+      if(REDUCE){ pctCounter.textContent = target; return; }
+      var dur = 700, t0 = performance.now();
+      function step(t){
+        var k = clamp((t - t0)/dur, 0, 1);
+        var e = 1 - Math.pow(1-k, 3);
+        pctCounter.textContent = Math.round(target * e);
+        if(k < 1) requestAnimationFrame(step);
+        else pctCounter.textContent = target;
+      }
+      requestAnimationFrame(step);
+    }
+    function refreshLive(){
+      var s = computeState();
+      state = s;
+      blockReadout.textContent = s.block;
+      pctCounter.textContent = Math.round(s.pct);
+      liveText.textContent = "● CURRENTLY: SEMESTER " + s.current;
+      railFill.style.width = s.pct + "%";
+      marker.style.left = s.pct + "%";
+    }
+    function reposition(){
+      var s = computeState();
+      state = s;
+      var ticks = track.querySelectorAll(".tick");
+      ticks.forEach(function(t, i){ t.style.left = semPct(SEMS[i]) + "%"; });
+      marker.style.left = s.pct + "%";
+    }
+
+    // init timeline
+    paintFill();
+    setReadoutFinal();
+    if(!REDUCE){
+      pctCounter.textContent = "0";
+      requestAnimationFrame(function(){ countUp(Math.round(state.pct)); });
+    }
+    var rTO = null;
+    window.addEventListener("resize", function(){ clearTimeout(rTO); rTO = setTimeout(reposition, 120); });
+    // advance live values as real time passes (marker creeps over months)
+    setInterval(refreshLive, 30000);
+
+    /* ===================== BUILD STAMPS ===================== */
+    var rail = document.getElementById("stampRail");
+    var stampEls = [];
+
+    STAMPS.forEach(function(s){
+      var el = document.createElement("div");
+      el.className = "stamp armed";
+      el.style.setProperty("--rot", s.rot + "deg");
+      el.style.setProperty("--rot-in", s.rotIn + "deg");
+      el.style.setProperty("--rot-hover", s.rotHover + "deg");
+      el.setAttribute("data-overprint", s.over);
+
+      var sub = s.sub ? '<div class="sub">' + s.sub + '</div>' : '';
+      el.innerHTML =
+        '<span class="star" aria-hidden="true">★</span>' +
+        '<div class="award">' + s.award + '</div>' +
+        sub +
+        '<span class="semtag">' + s.sem + '</span>';
+
+      rail.appendChild(el);
+      bindLanding(el);
+      stampEls.push(el);
+    });
+
+    function fireShake(){
+      if(REDUCE) return;
+      document.body.classList.remove("shake");
+      void document.body.offsetWidth;
+      document.body.classList.add("shake");
+    }
+
+    function punchStamp(el, delay){
+      if(REDUCE){
+        el.classList.remove("armed","punch");
+        el.classList.add("punch","landed");
+        return;
+      }
+      el.classList.remove("punch","landed");
+      el.classList.add("armed");
+      void el.offsetWidth;
+      setTimeout(function(){
+        el.classList.remove("armed");
+        el.classList.add("punch");
+        setTimeout(function(){
+          el.classList.add("thunk");
+          fireShake();
+          setTimeout(function(){ el.classList.remove("thunk"); }, 140);
+        }, 130);
+      }, delay);
+    }
+
+    function bindLanding(el){
+      el.addEventListener("animationend", function(ev){
+        if(ev.animationName !== "punchIn") return;
+        el.classList.remove("punch");
+        el.classList.add("landed");
+      });
+    }
+
+    function stampSequence(){
+      if(REDUCE){
+        stampEls.forEach(function(el){ punchStamp(el, 0); });
+        return;
+      }
+      stampEls.forEach(function(el, i){ punchStamp(el, i * 150); });
+    }
+
+    document.getElementById("restampBtn").addEventListener("click", function(){
+      stampSequence();
+    });
+
+    /* IntersectionObserver: stamp on scroll-in */
+    if(REDUCE){
+      stampEls.forEach(function(el){
+        el.classList.remove("armed");
+        el.classList.add("punch");
+      });
+    } else if("IntersectionObserver" in window){
+      var fired = false;
+      function fireStamps(){ if(fired) return; fired = true; stampSequence(); if(io) io.disconnect(); }
+      var io = new IntersectionObserver(function(entries){
+        entries.forEach(function(en){ if(en.isIntersecting) fireStamps(); });
+      }, { threshold:0.3 });
+      io.observe(rail);
+      setTimeout(function(){
+        var r = rail.getBoundingClientRect();
+        if(r.top < window.innerHeight && r.bottom > 0) fireStamps();
+      }, 60);
+      setTimeout(fireStamps, 2500);
+    } else {
+      stampSequence();
+    }
+
+    /* ===================== COURSEWORK CHIPS ===================== */
+    var CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/#*<>";
+    var chipsWrap = document.getElementById("chips");
+    var chipObjs = [];
+
+    COURSES.forEach(function(text){
+      var chip = document.createElement("button");
+      chip.className = "chip";
+      chip.type = "button";
+      chip.setAttribute("aria-pressed", "false");
+
+      var wipe = document.createElement("span");
+      wipe.className = "wipe";
+      chip.appendChild(wipe);
+
+      var label = document.createElement("label");
+      label.textContent = REDUCE ? text : "";
+      chip.appendChild(label);
+
+      chip.addEventListener("click", function(){
+        var inv = chip.classList.toggle("inv");
+        chip.setAttribute("aria-pressed", inv ? "true" : "false");
+      });
+
+      chipsWrap.appendChild(chip);
+      chipObjs.push({ chip:chip, label:label, text:text });
+    });
+
+    function rnd(){ return CHARSET[(Math.random()*CHARSET.length)|0]; }
+
+    function decodeChip(obj, startDelay){
+      var text = obj.text;
+      var len = text.length;
+      var DURATION = 450;
+      var STEP = 30;
+      var startTime = null;
+
+      setTimeout(function(){
+        function frame(){
+          var now = (typeof performance !== "undefined" ? performance.now() : Date.now());
+          if(startTime === null) startTime = now;
+          var t = (now - startTime) / DURATION;
+          if(t > 1) t = 1;
+          var resolved = Math.floor(t * len);
+          var out = "";
+          for(var i=0;i<len;i++){
+            var c = text.charAt(i);
+            if(i < resolved || c === " "){
+              out += c;
+            } else {
+              out += rnd();
+            }
+          }
+          obj.label.textContent = out;
+          if(t < 1){
+            setTimeout(frame, STEP);
+          } else {
+            obj.label.textContent = text;
+          }
+        }
+        frame();
+      }, startDelay);
+    }
+
+    function decodeAll(){
+      if(REDUCE){
+        chipObjs.forEach(function(o){ o.label.textContent = o.text; });
+        return;
+      }
+      chipObjs.forEach(function(o, i){ decodeChip(o, i * 45); });
+    }
+
+    if(REDUCE){
+      chipObjs.forEach(function(o){ o.label.textContent = o.text; });
+    } else if("IntersectionObserver" in window){
+      var chFired = false;
+      function fireChips(){ if(chFired) return; chFired = true; decodeAll(); if(cio) cio.disconnect(); }
+      var cio = new IntersectionObserver(function(entries){
+        entries.forEach(function(en){ if(en.isIntersecting) fireChips(); });
+      }, { threshold:0.25 });
+      cio.observe(chipsWrap);
+      setTimeout(function(){
+        var r = chipsWrap.getBoundingClientRect();
+        if(r.top < window.innerHeight && r.bottom > 0) fireChips();
+      }, 60);
+      setTimeout(fireChips, 2500);
+    } else {
+      decodeAll();
+    }
+
+    /* ===================== WORDMARK DECODE-ON-HOVER ===================== */
+    var wordmark = document.getElementById("wordmark");
+    var WM_TEXT = wordmark.getAttribute("data-text");
+    var wmRaf = null;
+    function decodeWordmark(){
+      if(REDUCE){ wordmark.textContent = WM_TEXT; return; }
+      if(wmRaf) cancelAnimationFrame(wmRaf);
+      var len = WM_TEXT.length;
+      var DUR = 420; var start = null;
+      function frame(ts){
+        if(start === null) start = ts;
+        var t = (ts - start) / DUR; if(t > 1) t = 1;
+        var resolved = Math.floor(t * len);
+        var out = "";
+        for(var i=0;i<len;i++){
+          var c = WM_TEXT.charAt(i);
+          if(i < resolved || c === " "){ out += c; }
+          else { out += rnd(); }
+        }
+        wordmark.textContent = out;
+        if(t < 1){ wmRaf = requestAnimationFrame(frame); }
+        else { wordmark.textContent = WM_TEXT; wmRaf = null; }
+      }
+      wmRaf = requestAnimationFrame(frame);
+    }
+    wordmark.addEventListener("pointerenter", decodeWordmark);
+    wordmark.addEventListener("focus", decodeWordmark);
+
+    /* ===================== CARD TILT-PRESS ===================== */
+    var card = document.getElementById("card");
+    (function(){
+      if(REDUCE) return;
+      var pressed = false;
+      var raf = null, tx = 0, ty = 0, tScale = 1;   // targets
+      var cx = 0, cy = 0, cScale = 1;               // current
+      var CAP = 5; // deg (kept tight; the card holds a big timeline)
+
+      function loop(){
+        cx += (tx - cx) * 0.25;
+        cy += (ty - cy) * 0.25;
+        cScale += (tScale - cScale) * 0.30;
+        card.style.transform = "perspective(1100px) rotateX("+cy.toFixed(2)+"deg) rotateY("+cx.toFixed(2)+"deg) scale("+cScale.toFixed(3)+")";
+        var sx = (8 - cx*0.9).toFixed(1);
+        var sy = (8 + cy*0.9).toFixed(1);
+        if(pressed){ sx = 4; sy = 4; }
+        card.style.boxShadow = sx + "px " + sy + "px 0 var(--black)";
+        if(Math.abs(tx-cx) > 0.05 || Math.abs(ty-cy) > 0.05 || Math.abs(tScale-cScale) > 0.002){
+          raf = requestAnimationFrame(loop);
+        } else { raf = null; }
+      }
+      function kick(){ if(!raf) raf = requestAnimationFrame(loop); }
+
+      card.addEventListener("mousemove", function(e){
+        var r = card.getBoundingClientRect();
+        var px = (e.clientX - r.left)/r.width - 0.5;
+        var py = (e.clientY - r.top)/r.height - 0.5;
+        tx = clamp(px * 2 * CAP, -CAP, CAP);
+        ty = clamp(-py * 2 * CAP, -CAP, CAP);
+        kick();
+      });
+      card.addEventListener("mouseleave", function(){ tx = 0; ty = 0; tScale = 1; pressed = false; kick(); });
+      card.addEventListener("mousedown", function(){ pressed = true; tScale = 0.985; kick(); });
+      window.addEventListener("mouseup", function(){ if(pressed){ pressed = false; tScale = 1; kick(); } });
+    })();
+
+  })();
+  </script>
+</body>
+</html>

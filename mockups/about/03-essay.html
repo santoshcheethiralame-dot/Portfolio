@@ -1,0 +1,617 @@
+<!doctype html>
+<html lang="en" data-mock="annotated-essay">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ON TAKING THINGS APART — Santosh Cheethirala</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --ink:#141414; --cream:#f7f5f1; --cream2:#efece4; --red:#ed1c24; --red-hot:#ff5247;
+  --lime:#b4ff2e; --black:#0a0a0a; --gray:#928b80;
+  --fd:"Anton",sans-serif; --fm:"JetBrains Mono",monospace; --fi:"Instrument Serif",serif;
+}
+*{ box-sizing:border-box; margin:0; padding:0; }
+html{ -webkit-font-smoothing:antialiased; scroll-behavior:smooth; }
+body{ background:var(--cream); color:var(--ink); font-family:var(--fi); }
+::selection{ background:var(--ink); color:var(--lime); }
+a{ color:inherit; text-decoration:none; }
+
+/* ============================================================ READING PROGRESS */
+#progress-bar{
+  position:fixed; top:0; left:0; height:3px; width:0;
+  background:var(--lime); border-right:2px solid var(--ink);
+  z-index:900; transition:width .05s linear;
+}
+
+/* ============================================================ PAGE HEADER */
+.page-header{
+  border-bottom:3px solid var(--ink);
+  padding:clamp(10px,1.6vw,18px) clamp(20px,4vw,64px);
+  display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+  font-family:var(--fm); font-size:10px; font-weight:700;
+  letter-spacing:.16em; text-transform:uppercase; color:var(--gray);
+}
+.page-header .pill{
+  background:var(--ink); color:var(--cream); padding:4px 10px;
+  font-size:10px; letter-spacing:.12em;
+}
+.page-header .pill-red{
+  background:var(--red); color:var(--cream); padding:4px 10px;
+  font-size:10px; letter-spacing:.12em;
+}
+.page-header .spacer{ margin-left:auto; }
+
+/* ============================================================ ARTICLE WRAPPER */
+.article-wrapper{
+  display:grid;
+  grid-template-columns: minmax(0,1fr) clamp(200px,22vw,280px);
+  gap:0;
+  max-width:1380px;
+  margin:0 auto;
+  padding:0 clamp(20px,4vw,64px);
+  align-items:start;
+}
+
+/* ============================================================ MAIN COLUMN */
+.main-col{
+  min-width:0;
+  padding:clamp(40px,6vw,80px) clamp(24px,3vw,56px) 120px 0;
+  border-right:1.5px solid rgba(20,20,20,.18);
+}
+
+/* --- article header --- */
+.essay-kicker{
+  font-family:var(--fm); font-size:10px; font-weight:700;
+  letter-spacing:.22em; text-transform:uppercase;
+  color:var(--red); margin-bottom:clamp(12px,2vh,20px);
+  display:flex; align-items:center; gap:10px;
+}
+.essay-kicker::after{
+  content:''; flex:1; height:1px; background:var(--red); max-width:60px;
+}
+
+.essay-title{
+  font-family:var(--fd); font-weight:500;
+  font-size:clamp(3.2rem,10vw,8.4rem);
+  line-height:.84; letter-spacing:.01em; text-transform:uppercase;
+  color:var(--ink); margin-bottom:clamp(20px,3vh,32px);
+}
+
+.essay-standfirst{
+  font-family:var(--fi); font-style:italic;
+  font-size:clamp(1.25rem,2.4vw,1.72rem); line-height:1.42;
+  color:var(--ink); max-width:44ch;
+  margin-bottom:clamp(16px,2.4vh,26px);
+  border-left:4px solid var(--ink); padding-left:18px;
+}
+
+.essay-byline{
+  font-family:var(--fm); font-size:11px; font-weight:500;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--gray);
+  padding-bottom:clamp(24px,4vh,40px);
+  border-bottom:1.5px solid rgba(20,20,20,.18);
+  margin-bottom:clamp(32px,5vh,56px);
+}
+.essay-byline b{ color:var(--ink); }
+
+/* --- body text --- */
+.essay-body p{
+  font-family:var(--fi); font-size:clamp(1.06rem,1.7vw,1.22rem);
+  line-height:1.76; color:var(--ink);
+  max-width:60ch;
+  margin-bottom:clamp(22px,3.6vh,36px);
+  position:relative;
+}
+
+/* drop cap */
+.essay-body p:first-child::first-letter{
+  font-family:var(--fd); font-size:5.2em; line-height:.72;
+  float:left; margin-right:.09em; margin-top:.05em;
+  color:var(--ink); font-weight:500;
+}
+
+/* superscript citation markers */
+sup.cit{
+  font-family:var(--fm); font-size:.62em; font-weight:700;
+  color:var(--red); vertical-align:super; line-height:0;
+  letter-spacing:0; margin-left:1px;
+}
+
+/* hot / em words */
+.hot{ color:var(--red); }
+em.good{ font-style:italic; color:var(--ink); }
+
+/* paragraph anchor for rail alignment */
+p[data-para]{ scroll-margin-top:80px; }
+
+/* ============================================================ ANNOTATION RAIL */
+.rail-col{
+  min-width:0;
+  padding:clamp(40px,6vw,80px) 0 120px clamp(16px,2vw,28px);
+  position:sticky;
+  top:0;
+  height:100vh;
+  overflow-y:auto;
+  scrollbar-width:none;
+}
+.rail-col::-webkit-scrollbar{ display:none; }
+
+.rail-section{
+  margin-bottom:clamp(20px,3.2vh,36px);
+  opacity:.55; transition:opacity .3s;
+}
+.rail-section.active{ opacity:1; }
+
+/* citation entries */
+.rail-cite{
+  font-family:var(--fm); font-size:10px; font-weight:500;
+  line-height:1.6; color:var(--ink);
+  padding:8px 10px;
+  border-left:2px solid rgba(20,20,20,.22);
+  margin-bottom:10px;
+}
+.rail-cite .cite-n{
+  display:inline-block; font-weight:700; color:var(--red);
+  margin-right:4px;
+}
+.rail-cite .cite-url{
+  display:block; color:var(--gray); font-size:9px;
+  letter-spacing:.04em; margin-top:3px;
+  word-break:break-all;
+}
+
+/* cat asides */
+.cat-aside{
+  font-family:var(--fm); font-size:10px; font-weight:500;
+  line-height:1.54; color:var(--ink);
+  background:var(--cream2);
+  border:2px solid var(--ink);
+  box-shadow:3px 3px 0 var(--ink);
+  padding:8px 10px;
+  margin-bottom:10px;
+  position:relative;
+}
+.cat-aside::before{
+  content:'[cat]';
+  display:block; font-size:8.5px; font-weight:700;
+  letter-spacing:.12em; text-transform:uppercase;
+  color:var(--gray); margin-bottom:4px;
+}
+
+/* margin annotator (the cat, made visible) */
+.rail-annotator{
+  display:flex; align-items:center; gap:9px;
+  border:2px solid var(--ink); box-shadow:3px 3px 0 var(--ink);
+  background:var(--cream2); padding:7px 9px; margin-bottom:16px;
+}
+.rail-annotator img{
+  width:36px; height:36px; flex:none;
+  border:1.5px solid var(--ink); object-fit:cover; object-position:center 35%;
+  image-rendering:pixelated;
+}
+.rail-annotator .ra-t{
+  font-family:var(--fm); font-size:8.5px; font-weight:700;
+  letter-spacing:.1em; text-transform:uppercase; line-height:1.45;
+}
+.rail-annotator .ra-t span{
+  display:block; color:var(--gray); font-weight:500;
+  letter-spacing:.03em; text-transform:none; margin-top:2px;
+}
+
+/* pull-tabs (details/summary) */
+.pull-tab{
+  margin-bottom:10px;
+  border:2px solid var(--ink);
+  box-shadow:3px 3px 0 var(--ink);
+  background:var(--cream);
+  font-family:var(--fm); font-size:10px;
+  overflow:hidden;
+  transition:box-shadow .15s;
+}
+.pull-tab[open]{ box-shadow:5px 5px 0 var(--ink); }
+.pull-tab summary{
+  display:flex; align-items:center; gap:6px;
+  padding:8px 10px; cursor:pointer;
+  font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+  list-style:none; user-select:none;
+  border-bottom:2px solid transparent;
+  transition:background .12s, border-color .12s;
+}
+.pull-tab summary::-webkit-details-marker{ display:none; }
+.pull-tab summary::before{
+  content:'▸'; font-size:9px; color:var(--ink);
+  transition:color .15s, transform .15s;
+  display:inline-block;
+}
+.pull-tab[open] summary{
+  border-bottom-color:var(--ink); background:var(--ink); color:var(--cream);
+}
+.pull-tab[open] summary::before{
+  content:'▸'; color:var(--lime); transform:rotate(90deg);
+}
+.pull-tab-body{
+  padding:10px 10px 12px;
+  font-size:9.5px; line-height:1.68; color:var(--ink);
+  border-top:none;
+}
+.pull-tab-body .stat-label{
+  display:block; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+  font-size:8.5px; color:var(--gray); margin-bottom:2px; margin-top:8px;
+}
+.pull-tab-body .stat-label:first-child{ margin-top:0; }
+.pull-tab-body .stat-val{
+  display:block; font-weight:500; color:var(--ink); font-size:10px;
+}
+.pull-tab-body .stat-hot{ color:var(--red); font-weight:700; }
+
+/* ============================================================ RAIL SPACER BANDS (align rail to body paragraphs) */
+.rail-band{
+  min-height:clamp(80px,12vh,120px);
+  display:flex; flex-direction:column; justify-content:flex-start; gap:6px;
+  padding-bottom:clamp(16px,2.4vh,28px);
+}
+
+/* ============================================================ FOOTER */
+.essay-footer{
+  border-top:3px solid var(--ink);
+  padding:clamp(32px,5vw,60px) clamp(20px,4vw,64px) clamp(60px,8vh,100px);
+  max-width:1380px; margin:0 auto;
+}
+.footer-rule{
+  width:48px; height:3px; background:var(--ink); margin-bottom:clamp(20px,3vh,32px);
+}
+.footer-sig{
+  font-family:var(--fi); font-style:italic;
+  font-size:clamp(1.1rem,2vw,1.4rem); line-height:1.56;
+  color:var(--ink); max-width:42ch; margin-bottom:24px;
+}
+.footer-meta{
+  font-family:var(--fm); font-size:10px; font-weight:500;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--gray);
+  margin-bottom:8px; line-height:1.8;
+}
+.footer-meta b{ color:var(--ink); }
+.footer-meta a:hover{ color:var(--red); }
+.footer-tags{
+  font-family:var(--fm); font-size:9.5px; font-weight:700;
+  letter-spacing:.12em; text-transform:uppercase; color:var(--gray);
+  margin-top:20px; padding-top:16px; border-top:1.5px solid rgba(20,20,20,.18);
+}
+.footer-tags b{ color:var(--ink); }
+
+/* ============================================================ FIXED FOOTER TAG */
+#tag{
+  position:fixed; left:50%; bottom:7px; transform:translateX(-50%);
+  z-index:1400; font-family:var(--fm); font-size:9.5px;
+  letter-spacing:.14em; text-transform:uppercase;
+  color:rgba(20,20,20,.4); pointer-events:none;
+}
+
+/* ============================================================ MOBILE */
+@media (max-width:860px){
+  .article-wrapper{
+    grid-template-columns:1fr;
+    padding:0 clamp(16px,4vw,32px);
+  }
+  .main-col{
+    border-right:none;
+    padding-right:0;
+    padding-bottom:0;
+  }
+  .rail-col{
+    position:static;
+    height:auto;
+    overflow:visible;
+    padding-left:0;
+    padding-top:8px;
+    border-top:2px dashed rgba(20,20,20,.18);
+  }
+  .rail-section{ opacity:1; }
+  .rail-band{ min-height:auto; }
+  .essay-body p:first-child::first-letter{
+    font-size:4em;
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  html{ scroll-behavior:auto; }
+  *{ transition:none !important; animation:none !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- ░░ READING PROGRESS ░░ -->
+<div id="progress-bar" role="progressbar" aria-label="Reading progress"></div>
+
+<!-- ░░ PAGE HEADER ░░ -->
+<header class="page-header">
+  <span class="pill">PORTFOLIO '26</span>
+  <span class="pill-red">ABOUT</span>
+  <span>Santosh Cheethirala</span>
+  <span class="spacer"></span>
+  <span>Bengaluru · IST</span>
+  <span>PES1UG24CS127</span>
+</header>
+
+<!-- ░░ ARTICLE GRID ░░ -->
+<div class="article-wrapper">
+
+  <!-- ══════════════════ MAIN COLUMN ══════════════════ -->
+  <article class="main-col">
+
+    <p class="essay-kicker">An Essay &middot; About</p>
+    <h1 class="essay-title">On Taking<br>Things Apart</h1>
+    <p class="essay-standfirst">
+      A personal account of the engineer who cannot leave well enough alone — on version control, glass boxes, and the patience it takes to watch a model lie to you.
+    </p>
+    <p class="essay-byline">by <b>Santosh Cheethirala</b> &middot; Bengaluru &middot; 2026</p>
+
+    <div class="essay-body">
+
+      <p data-para="1">
+        There is a specific pleasure in the moment before you understand something — the moment when the machine sits there, doing exactly what it was told, and you have no idea why. I have spent most of my life engineering that moment deliberately, then engineering my way out of it. I open things. I opened the family television when I was nine. It did not work afterward, but I knew, for the first time, what a transformer was. The urge has never left. If anything, it has found better targets.
+      </p>
+
+      <p data-para="2">
+        Version control is, on its surface, a solved problem. Git exists. Git works. Nobody sensible rebuilds Git. But sensible was never quite the point — understanding was. So I spent a semester writing <em class="good">pes-vcs</em><sup class="cit">1</sup>, a version-control system in C: a <code style="font-family:var(--fm);font-size:.88em;background:rgba(20,20,20,.07);padding:1px 5px;">.pes/</code> object store, SHA-256 content-addressed blobs, a staging index that negotiated between working tree and history, commit graphs walked by parent pointers. When you implement something yourself, you stop treating it as a black box you trust and start treating it as a system you can reason about. Every abstraction becomes load-bearing. Every shortcut becomes visible. The exercise taught me more about software than any lecture on software design, and I am not saying that to be clever.
+      </p>
+
+      <p data-para="3">
+        The same logic pushed me toward machine learning, except the stakes are different. A broken version-control system is merely inconvenient. A model that is confidently wrong about something consequential is a different kind of problem entirely. I kept encountering the same opaque surface: the model knows, or it doesn't, and you have no principled way to tell which. That bothered me more than I could articulate for a while, and eventually I stopped trying to articulate it and started building instead. The result was <em class="good">GlassBox</em><sup class="cit">2</sup> — a mechanistic-interpretability visualizer for GPT-2 internals. Activation patching. All 144 attention heads, live. I wanted to see the fact.
+      </p>
+
+      <p data-para="4">
+        And you can. The "Paris is the capital of France" fact sits in layer 0. When you patch the activation there, the capital logit flips: <span style="font-family:var(--fm);font-size:.88em;">+1.89 → −2.81</span>. The model stops knowing. It is not mystical. It is arithmetic at a specific index in a specific residual stream, and once you see it you cannot unsee it. That is the project, really: making the invisible arithmetic visible. I want to build tools that let you point at a model and say, <em class="good">here</em> — this is where it decided.
+      </p>
+
+      <p data-para="5">
+        Local-first follows from the same conviction. If a tool depends on a server I don't control, it is a black box I rent. My data goes in; outputs come out; I have no account of what happened in between. The alternative is: your data, your GPU, no intermediary. <em class="good">Gradient</em><sup class="cit">3</sup> is the sharpest statement of this I've managed — a neural-network trainer that runs entirely in the browser, on your GPU, using raw WGSL compute shaders. No server. No dependencies. 97% MNIST from a two-layer MLP, with every kernel verified against an f64 CPU oracle. The point is not the accuracy number. The point is that nothing about it is hidden from you.
+      </p>
+
+      <p data-para="6">
+        I shot <span class="hot">10m air rifle</span> at the national level for three years. People who haven't done precision shooting assume it must be about steadiness — keeping still. It isn't, really. It's about knowing exactly what your body does when it isn't trying to do anything, and working with that rather than against it. The parallels to debugging are obvious enough that I'll resist spelling them out, except to say that the methodology is the same: reduce variables until there is one left, then address that one. Don't hurry the trigger. Don't hurry the stack trace. <em class="good">Orbit</em><sup class="cit">4</sup> — the local focus engine I maintain — has a scheduling loop that runs in under 5ms. That number exists because I was slow, then I was methodical, then I was fast.
+      </p>
+
+      <p data-para="7">
+        This summer I am joining PI Labs as a research intern, working on hallucination attribution in RAG pipelines. The question is not whether a model hallucinates — they do, reliably, when the retrieval goes wrong. The question is which retrieved chunk introduced the error. That is a localization problem. That is, in exactly the same sense as activation patching, the question of pointing at a system and saying: <em class="good">here</em>. The tools change; the impulse doesn't. I am still opening the television. It still doesn't work afterward. But now I know why.
+      </p>
+
+    </div>
+  </article>
+
+  <!-- ══════════════════ ANNOTATION RAIL ══════════════════ -->
+  <aside class="rail-col" aria-label="Margin annotations">
+
+    <div class="rail-annotator">
+      <img src="cat.jpg" alt="the margin annotator" />
+      <div class="ra-t">Margin Notes<span>annotations &amp; objections by the cat</span></div>
+    </div>
+
+    <!-- Band 1: aligned to para 1 -->
+    <div class="rail-band rail-section" data-for="1">
+      <div class="cat-aside">
+        the television did not survive.
+      </div>
+    </div>
+
+    <!-- Band 2: aligned to para 2 — pes-vcs -->
+    <div class="rail-band rail-section" data-for="2">
+      <div class="rail-cite">
+        <span class="cite-n">1</span>pes-vcs &mdash; Git rebuilt in C.
+        SHA-256 content-addressable object store,
+        tree snapshots, staging index,
+        commit graph via parent pointers.
+        <span class="cite-url">github.com/santoshcheethiralame-dot/PES1UG24CS127-pes-vcs</span>
+      </div>
+      <div class="cat-aside">
+        [he did, in fact, rebuild git.]
+      </div>
+      <details class="pull-tab">
+        <summary>show the receipt</summary>
+        <div class="pull-tab-body">
+          <span class="stat-label">Project</span>
+          <span class="stat-val">pes-vcs</span>
+          <span class="stat-label">Language</span>
+          <span class="stat-val stat-hot">C</span>
+          <span class="stat-label">Object store</span>
+          <span class="stat-val">SHA-256 content-addressable blobs</span>
+          <span class="stat-label">Features</span>
+          <span class="stat-val">.pes/ store &middot; tree snapshots &middot; staging index &middot; parent-pointer commit history</span>
+          <span class="stat-label">Status</span>
+          <span class="stat-val stat-hot">Built</span>
+        </div>
+      </details>
+    </div>
+
+    <!-- Band 3: aligned to para 3 -->
+    <div class="rail-band rail-section" data-for="3">
+      <div class="cat-aside">
+        "opaque surface." yes. familiar feeling.
+      </div>
+    </div>
+
+    <!-- Band 4: aligned to para 4 — GlassBox -->
+    <div class="rail-band rail-section" data-for="4">
+      <div class="rail-cite">
+        <span class="cite-n">2</span>GlassBox &mdash; GPT-2 mechanistic-interpretability viz.
+        FastAPI + TransformerLens backend,
+        React/D3 frontend.
+        The France&rarr;Paris fact localizes to layer 0:
+        capital logit <span style="font-family:var(--fm);font-size:9px;">+1.89&rarr;&minus;2.81</span> on activation patch.
+        All 144 attention heads live.
+        <span class="cite-url">github.com/santoshcheethiralame-dot</span>
+      </div>
+      <details class="pull-tab">
+        <summary>show the numbers</summary>
+        <div class="pull-tab-body">
+          <span class="stat-label">Project</span>
+          <span class="stat-val">GlassBox</span>
+          <span class="stat-label">Stack</span>
+          <span class="stat-val">FastAPI &middot; TransformerLens &middot; React &middot; D3</span>
+          <span class="stat-label">Key finding</span>
+          <span class="stat-val">France&rarr;Paris fact stored in <span class="stat-hot">layer 0</span></span>
+          <span class="stat-label">Logit shift on patch</span>
+          <span class="stat-val stat-hot">+1.89 &rarr; &minus;2.81</span>
+          <span class="stat-label">Heads visualised</span>
+          <span class="stat-val stat-hot">144 / 144</span>
+          <span class="stat-label">Status</span>
+          <span class="stat-val stat-hot">Research</span>
+        </div>
+      </details>
+      <div class="cat-aside">
+        'glass'. drink.
+      </div>
+    </div>
+
+    <!-- Band 5: aligned to para 5 — Gradient -->
+    <div class="rail-band rail-section" data-for="5">
+      <div class="rail-cite">
+        <span class="cite-n">3</span>Gradient &mdash; in-browser GPU training.
+        Raw WGSL compute shaders. 2-layer MLP,
+        ~97% MNIST accuracy. 44/44 kernel checks
+        vs f64 CPU oracle. 0 external deps.
+        <span class="cite-url">santoshcheethiralame-dot.github.io/GRADIENT/</span>
+      </div>
+      <details class="pull-tab">
+        <summary>expand the proof</summary>
+        <div class="pull-tab-body">
+          <span class="stat-label">Project</span>
+          <span class="stat-val">Gradient</span>
+          <span class="stat-label">Runtime</span>
+          <span class="stat-val">Browser, WebGPU / WGSL</span>
+          <span class="stat-label">Dependencies</span>
+          <span class="stat-val stat-hot">0</span>
+          <span class="stat-label">Kernel tests</span>
+          <span class="stat-val stat-hot">44 / 44 vs f64 CPU oracle</span>
+          <span class="stat-label">Accuracy</span>
+          <span class="stat-val stat-hot">~97% MNIST</span>
+          <span class="stat-label">Model</span>
+          <span class="stat-val">2-layer MLP, trained fully in-browser</span>
+          <span class="stat-label">Status</span>
+          <span class="stat-val stat-hot">Shipped</span>
+        </div>
+      </details>
+      <div class="cat-aside">
+        the coffee did most of this.
+      </div>
+    </div>
+
+    <!-- Band 6: aligned to para 6 — Orbit + rifle -->
+    <div class="rail-band rail-section" data-for="6">
+      <div class="rail-cite">
+        <span class="cite-n">4</span>Orbit &mdash; local-first focus engine.
+        &lt;5ms scheduling, no server.
+        IndexedDB v11 (5 tables), snapshot recovery.
+        Offline PWA. 5+ active users.
+      </div>
+      <div class="cat-aside">
+        national level. still lost a key in the range bag. priorities unclear.
+      </div>
+    </div>
+
+    <!-- Band 7: aligned to para 7 — PI Labs -->
+    <div class="rail-band rail-section" data-for="7">
+      <div class="rail-cite">
+        <span class="cite-n">&mdash;</span>PI Labs &mdash; Research Intern, incoming Jun&ndash;Jul 2026.
+        Focus: hallucination attribution in RAG pipelines.
+        Which retrieved chunk introduced the error.
+      </div>
+      <div class="cat-aside">
+        still the television. the television never ends.
+      </div>
+    </div>
+
+  </aside>
+</div>
+
+<!-- ░░ FOOTER ░░ -->
+<footer class="essay-footer">
+  <div class="footer-rule"></div>
+  <p class="footer-sig">
+    If there is a theme, it is this: I would rather understand one system deeply than use ten systems shallowly. The tools I build are evidence of that preference. So is the time I spend taking apart the tools I didn't build.
+  </p>
+  <p class="footer-meta">
+    <b>Santosh Cheethirala</b> &middot; B.Tech CSE, PES University, Bengaluru (2024&ndash;2028)<br>
+    CGPA 7.95 / 10 &middot; Open to SWE / ML internships, Summer 2026<br>
+    <a href="mailto:santoshcheethirala.me@gmail.com">santoshcheethirala.me@gmail.com</a>
+    &middot;
+    <a href="https://github.com/santoshcheethiralame-dot" target="_blank" rel="noopener">github.com/santoshcheethiralame-dot</a>
+  </p>
+  <p class="footer-tags">
+    <b>Filed under:</b> local-first &middot; interpretability &middot; rebuilding things that already work &middot; 2026
+  </p>
+</footer>
+
+<!-- ░░ FIXED FOOTER TAG ░░ -->
+<div id="tag">03 &middot; annotated essay &middot; about</div>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ── reading progress bar ── */
+  var bar = document.getElementById('progress-bar');
+  function updateProgress(){
+    var doc = document.documentElement;
+    var max = doc.scrollHeight - doc.clientHeight;
+    var pct = max > 0 ? Math.min(100, (window.pageYOffset / max) * 100) : 0;
+    bar.style.width = pct.toFixed(2) + '%';
+  }
+
+  /* ── rail section activation (highlight annotation aligned to visible para) ── */
+  var railSections = [].slice.call(document.querySelectorAll('.rail-section[data-for]'));
+  var paraEls = [].slice.call(document.querySelectorAll('p[data-para]'));
+
+  function syncRail(){
+    var vh = window.innerHeight || 800;
+    var midY = vh * 0.46;
+
+    /* find the "active" paragraph (nearest to midpoint above fold) */
+    var activePara = null;
+    paraEls.forEach(function(p){
+      var r = p.getBoundingClientRect();
+      if(r.top < midY) activePara = p.getAttribute('data-para');
+    });
+
+    /* mirror to rail sections */
+    railSections.forEach(function(sec){
+      var forPara = sec.getAttribute('data-for');
+      sec.classList.toggle('active', forPara === activePara);
+    });
+  }
+
+  /* ── scroll to sync rail column scroll position to main column ── */
+  var railCol = document.querySelector('.rail-col');
+  var mainCol = document.querySelector('.main-col');
+
+  function syncRailScroll(){
+    if(!railCol || !mainCol) return;
+    /* only sync on desktop (when rail is sticky) */
+    if(window.innerWidth <= 860) return;
+    var mainRect = mainCol.getBoundingClientRect();
+    var mainH = mainCol.scrollHeight;
+    var railH = railCol.scrollHeight;
+    var scrolled = -mainRect.top;
+    var fraction = mainH > 0 ? Math.max(0, Math.min(1, scrolled / (mainH - window.innerHeight))) : 0;
+    railCol.scrollTop = fraction * (railH - window.innerHeight);
+  }
+
+  function onScroll(){
+    updateProgress();
+    syncRail();
+    syncRailScroll();
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+
+  /* initial call */
+  updateProgress();
+  syncRail();
+})();
+</script>
+</body>
+</html>

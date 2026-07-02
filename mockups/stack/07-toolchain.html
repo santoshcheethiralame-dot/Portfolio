@@ -1,0 +1,878 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>STACK / 07 — TOOLCHAIN</title>
+
+<!-- Fonts: Anton (display) + JetBrains Mono (everything else) -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+
+<style>
+  :root{
+    --red:#ed1c24;        /* canvas */
+    --red-deep:#b3001b;   /* deeper red panel */
+    --red-dark:#7a0014;   /* darkest red */
+    --ink:#ffffff;        /* white text + outlines */
+    --black:#0a0a0a;      /* hard drop shadows + inverted text */
+    --line:rgba(255,255,255,0.26);
+    --lime:#c8e620;       /* THE single accent — used only for the flowing "current" + active task */
+    --font-display:"Anton",sans-serif;
+    --font-mono:"JetBrains Mono",monospace;
+
+    --ease:cubic-bezier(.2,.9,.2,1);
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+
+  body{
+    background:var(--red);
+    color:var(--ink);
+    font-family:var(--font-mono);
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+
+  /* ---------------------------------------------------------------- TOP BAR */
+  .topbar{
+    position:fixed;
+    inset:0 0 auto 0;
+    z-index:100;
+    height:64px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 clamp(16px,4vw,40px);
+    background:var(--red);
+    border-bottom:2px solid var(--ink);
+  }
+  .index-btn{
+    font-family:var(--font-mono);
+    font-weight:700;
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink);
+    text-decoration:none;
+    background:transparent;
+    border:2px solid var(--ink);
+    padding:9px 16px;
+    box-shadow:4px 4px 0 var(--black);
+    transition:transform 120ms var(--ease), box-shadow 120ms var(--ease),
+               background 120ms, color 120ms;
+    white-space:nowrap;
+  }
+  .index-btn:hover,
+  .index-btn:focus-visible{
+    background:var(--ink);
+    color:var(--red);
+    transform:translate(-2px,-2px);
+    box-shadow:6px 6px 0 var(--black);
+    outline:none;
+  }
+  .index-btn:active{
+    transform:translate(2px,2px);
+    box-shadow:1px 1px 0 var(--black);
+  }
+  .caption{ text-align:right; line-height:1.35; }
+  .caption .cap-id{
+    font-weight:700; font-size:12px; letter-spacing:.18em; text-transform:uppercase;
+  }
+  .caption .cap-hint{
+    font-weight:400; font-size:10.5px; letter-spacing:.08em;
+    color:rgba(255,255,255,0.78); text-transform:lowercase;
+  }
+
+  /* ---------------------------------------------------------------- LAYOUT */
+  .page{
+    padding:calc(64px + clamp(22px,4vw,44px)) clamp(20px,6vw,90px) clamp(40px,8vw,90px);
+    max-width:1500px;
+    margin:0 auto;
+  }
+  .kicker{
+    font-family:var(--font-mono);
+    font-weight:500; font-size:13px; letter-spacing:.16em;
+    color:rgba(255,255,255,0.85);
+    margin:0 0 10px;
+  }
+  .title{
+    font-family:var(--font-display);
+    font-weight:400; text-transform:uppercase; color:var(--ink);
+    line-height:.82; letter-spacing:.005em;
+    font-size:clamp(2.4rem,10vw,8rem);
+    margin:0 0 clamp(20px,2.6vw,30px);
+  }
+
+  /* ---------------------------------------------------------------- TASK SELECTOR */
+  .tasks-label{
+    font-weight:700; font-size:12px; letter-spacing:.18em; text-transform:uppercase;
+    color:rgba(255,255,255,0.85); margin:0 0 12px;
+  }
+  .tasks{
+    display:flex; flex-wrap:wrap; gap:12px 14px;
+    padding-bottom:clamp(20px,3vw,30px);
+    border-bottom:2px solid var(--ink);
+    margin-bottom:clamp(22px,3vw,34px);
+  }
+  .task{
+    position:relative;
+    font-family:var(--font-mono);
+    font-weight:700; font-size:13px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--ink);
+    background:transparent;
+    border:2px solid var(--ink);
+    padding:12px 18px;
+    cursor:pointer;
+    box-shadow:5px 5px 0 var(--black);
+    transition:transform 120ms var(--ease), box-shadow 120ms var(--ease),
+               background 120ms, color 120ms;
+    display:inline-flex; align-items:center; gap:11px;
+  }
+  .task .idx{
+    font-weight:500; font-size:11px; color:rgba(255,255,255,0.55);
+  }
+  .task:hover{ transform:translate(-2px,-2px); box-shadow:7px 7px 0 var(--black); }
+  .task:active{ transform:translate(2px,2px); box-shadow:1px 1px 0 var(--black); }
+  .task:focus-visible{ outline:2px dashed var(--ink); outline-offset:3px; }
+  /* selected task: the ONE lime accent on the chrome — lime fill, black text */
+  .task[aria-pressed="true"]{
+    background:var(--lime);
+    color:var(--black);
+    border-color:var(--black);
+    transform:translate(2px,2px);
+    box-shadow:1px 1px 0 var(--black);
+  }
+  .task[aria-pressed="true"] .idx{ color:rgba(10,10,10,0.55); }
+
+  /* ---------------------------------------------------------------- PIPELINE */
+  .pipe-wrap{
+    position:relative;
+    overflow-x:auto;
+    overflow-y:hidden;
+    padding:6px 2px 16px;
+    scrollbar-width:thin;
+    scrollbar-color:var(--ink) transparent;
+  }
+  .pipe-wrap::-webkit-scrollbar{ height:10px; }
+  .pipe-wrap::-webkit-scrollbar-track{ background:var(--red-dark); }
+  .pipe-wrap::-webkit-scrollbar-thumb{ background:var(--ink); border:2px solid var(--red); }
+
+  .pipe{
+    display:flex;
+    align-items:stretch;
+    gap:0;
+    min-height:118px;
+    width:max-content;
+    min-width:100%;
+  }
+
+  /* a STAGE = node + caption, plus a leading connector (except first) */
+  .stage{
+    display:flex;
+    align-items:flex-start;
+    flex:0 0 auto;
+  }
+
+  /* connector cell between nodes */
+  .conn{
+    position:relative;
+    flex:0 0 auto;
+    width:clamp(34px,4.4vw,62px);
+    height:54px;             /* aligned to node body height */
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    /* enter state */
+    opacity:0;
+    transform:scaleX(0);
+    transform-origin:left center;
+    transition:opacity 120ms var(--ease), transform 150ms var(--ease);
+  }
+  .conn.in{ opacity:1; transform:scaleX(1); }
+  /* the rail (hard 2px line) */
+  .conn .rail{
+    position:absolute;
+    left:0; right:0; top:50%;
+    height:2px; margin-top:-1px;
+    background:var(--ink);
+  }
+  /* the arrowhead, drawn with borders (hard edges, no blur) */
+  .conn .head{
+    position:relative;
+    z-index:2;
+    width:0; height:0;
+    border-top:7px solid transparent;
+    border-bottom:7px solid transparent;
+    border-left:11px solid var(--ink);
+    margin-left:auto;
+    margin-right:-1px;
+  }
+  /* the lime "current" pulse that travels the rail */
+  .conn .pulse{
+    position:absolute;
+    z-index:1;
+    top:50%; left:0;
+    width:14px; height:8px; margin-top:-4px;
+    background:var(--lime);
+    opacity:0;
+  }
+  .conn.lit .rail{ background:var(--lime); }
+  .conn.lit .head{ border-left-color:var(--lime); }
+
+  /* a NODE cell holds the tile + role caption + stage number */
+  .node-cell{
+    flex:0 0 auto;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+    /* enter state */
+    opacity:0;
+    transform:translateY(10px);
+    transition:opacity 130ms var(--ease), transform 160ms var(--ease);
+  }
+  .node-cell.in{ opacity:1; transform:translateY(0); }
+
+  .stage-no{
+    font-weight:700; font-size:10px; letter-spacing:.16em;
+    color:rgba(255,255,255,0.55);
+    text-transform:uppercase;
+  }
+
+  /* the tool tile — solid white brutalist block with hard black shadow */
+  .node{
+    position:relative;
+    height:54px;
+    min-width:96px;
+    padding:0 16px;
+    display:flex; flex-direction:column; align-items:flex-start; justify-content:center;
+    gap:4px;
+    background:var(--ink);
+    color:var(--black);
+    border:2px solid var(--black);
+    box-shadow:5px 5px 0 var(--black);
+    cursor:default;
+    user-select:none;
+    transition:transform 110ms var(--ease), box-shadow 110ms var(--ease),
+               background 110ms, color 110ms;
+  }
+  .node:hover{
+    transform:translate(-2px,-2px);
+    box-shadow:7px 7px 0 var(--black);
+  }
+  .node .nm{
+    font-weight:700; font-size:12.5px; letter-spacing:.06em; text-transform:uppercase;
+    line-height:1; white-space:nowrap;
+  }
+  /* proficiency weight pips on each tile */
+  .node .wt{ display:inline-flex; gap:2px; }
+  .node .wt i{
+    width:11px; height:3px; background:var(--black); opacity:.2;
+  }
+  .node .wt i.on{ opacity:1; }
+
+  /* the node currently being "energised" by the travelling pulse */
+  .node.active{
+    background:var(--lime);
+    border-color:var(--black);
+    transform:translate(-2px,-2px);
+    box-shadow:7px 7px 0 var(--black);
+  }
+  .node.active .wt i{ background:var(--black); }
+
+  .role{
+    font-weight:500; font-size:10px; letter-spacing:.12em; text-transform:uppercase;
+    color:rgba(255,255,255,0.7);
+    white-space:nowrap;
+  }
+
+  /* ---------------------------------------------------------------- READOUT */
+  .readout{
+    margin-top:clamp(22px,3vw,34px);
+    display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px;
+    font-family:var(--font-mono); font-size:12px; letter-spacing:.08em;
+    text-transform:uppercase; color:rgba(255,255,255,0.85);
+    min-height:22px;
+    padding-top:16px;
+    border-top:2px solid var(--line);
+  }
+  .readout .prompt{ color:var(--ink); font-weight:700; }
+  .readout #readout-text b{ color:var(--ink); font-weight:700; }
+  .readout #readout-text .hi{ color:var(--lime); font-weight:700; }
+  .readout .cursor{
+    display:inline-block; width:9px; height:14px; background:var(--ink);
+    animation:blink 1s steps(2,start) infinite; vertical-align:-2px;
+  }
+  @keyframes blink{ 0%,49%{opacity:1;} 50%,100%{opacity:0;} }
+
+  /* ---------------------------------------------------------------- FOOTER */
+  .foot{
+    margin-top:clamp(26px,4vw,44px);
+    padding-top:16px;
+    border-top:2px solid var(--line);
+    font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+    color:rgba(255,255,255,0.6);
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;
+  }
+
+  /* ---------------------------------------------------------------- JUDGING CAT */
+  .cat-corner{
+    position:fixed;
+    right:clamp(14px,2.5vw,28px);
+    bottom:clamp(14px,2.5vw,28px);
+    z-index:90;
+    display:flex; align-items:flex-end; gap:10px;
+    pointer-events:none;
+    max-width:min(78vw,360px);
+  }
+  .cat-bubble{
+    position:relative;
+    background:var(--ink);
+    color:var(--black);
+    border:2px solid var(--black);
+    box-shadow:4px 4px 0 var(--black);
+    padding:8px 12px;
+    font-family:var(--font-mono);
+    font-weight:700; font-size:11px; letter-spacing:.05em; text-transform:uppercase;
+    line-height:1.25;
+    max-width:240px;
+    transition:opacity 120ms var(--ease), transform 120ms var(--ease);
+  }
+  /* hard little pointer made of two stacked squares (no blur) */
+  .cat-bubble::after{
+    content:"";
+    position:absolute;
+    right:-9px; bottom:11px;
+    width:9px; height:9px;
+    background:var(--ink);
+    border-right:2px solid var(--black);
+    border-bottom:2px solid var(--black);
+    transform:rotate(-45deg);
+  }
+  .cat-bubble.pop{ transform:translateY(-2px); }
+  .cat-svg{
+    width:clamp(52px,7vw,68px);
+    height:auto;
+    display:block;
+    filter:drop-shadow(4px 4px 0 var(--black));
+    flex:0 0 auto;
+  }
+  .cat-tail{ transform-origin:48px 50px; animation:tailflick 3.4s ease-in-out infinite; }
+  @keyframes tailflick{
+    0%,86%,100%{ transform:rotate(0deg); }
+    90%{ transform:rotate(-9deg); }
+    94%{ transform:rotate(6deg); }
+  }
+  .cat-skip{
+    pointer-events:auto;
+    position:absolute;
+    top:-20px; left:0;
+    background:transparent; border:none;
+    font-family:var(--font-mono); font-weight:700; font-size:9px;
+    letter-spacing:.14em; text-transform:uppercase;
+    color:rgba(255,255,255,0.55); cursor:pointer;
+  }
+  .cat-skip:hover{ color:var(--ink); }
+  .cat-corner.muted .cat-bubble{ opacity:0; pointer-events:none; }
+
+  /* ---------------------------------------------------------------- RESPONSIVE */
+  @media (max-width:720px){
+    .node .nm{ font-size:11px; }
+    .node{ min-width:84px; padding:0 12px; }
+    .caption .cap-hint{ display:none; }
+    .role{ font-size:9px; }
+  }
+
+  /* ---------------------------------------------------------------- REDUCED MOTION */
+  @media (prefers-reduced-motion: reduce){
+    .conn, .node-cell{ transition:none; }
+    .cat-tail{ animation:none; }
+    .readout .cursor{ animation:none; opacity:1; }
+  }
+</style>
+</head>
+
+<body>
+  <!-- ======================================================= TOP BAR -->
+  <header class="topbar">
+    <a class="index-btn" href="index.html">&larr; INDEX</a>
+    <div class="caption">
+      <div class="cap-id">STYLE 07 / TOOLCHAIN</div>
+      <div class="cap-hint">pick a task — watch the pipeline assemble</div>
+    </div>
+  </header>
+
+  <!-- ======================================================= PAGE -->
+  <main class="page">
+    <p class="kicker">// stack</p>
+    <h1 class="title">What I<br>Work With</h1>
+
+    <p class="tasks-label">PICK A TASK:</p>
+    <div class="tasks" id="tasks" role="group" aria-label="Choose a task"></div>
+
+    <div class="pipe-wrap" id="pipeWrap">
+      <div class="pipe" id="pipe" aria-live="polite"></div>
+    </div>
+
+    <div class="readout">
+      <span class="prompt">&gt;</span>
+      <span id="readout-text">booting toolchain&hellip;</span>
+      <span class="cursor" aria-hidden="true"></span>
+    </div>
+
+    <div class="foot">
+      <span>not a list &mdash; an answer</span>
+      <span>4 tasks &middot; ordered pipelines</span>
+    </div>
+  </main>
+
+  <!-- ======================================================= JUDGING CAT -->
+  <div class="cat-corner" id="catCorner">
+    <button class="cat-skip" id="catSkip" type="button">[ mute cat ]</button>
+    <div class="cat-bubble" id="catBubble">sizing you up&hellip;</div>
+    <!-- simple inline SVG cat, brutalist flat shapes -->
+    <svg class="cat-svg" viewBox="0 0 96 96" aria-hidden="true" role="img">
+      <!-- tail (animated) -->
+      <path class="cat-tail" d="M70 72 q22 -2 16 -26 q-2 -10 -10 -8 q6 4 4 14 q-3 14 -18 14 z"
+            fill="#0a0a0a"/>
+      <!-- body -->
+      <path d="M24 86 L24 56 Q24 40 48 40 Q72 40 72 56 L72 86 Z" fill="#0a0a0a"/>
+      <!-- head -->
+      <circle cx="48" cy="34" r="22" fill="#0a0a0a"/>
+      <!-- ears -->
+      <path d="M30 20 L26 4 L44 16 Z" fill="#0a0a0a"/>
+      <path d="M66 20 L70 4 L52 16 Z" fill="#0a0a0a"/>
+      <!-- inner ears -->
+      <path d="M32 17 L31 9 L40 16 Z" fill="#ed1c24"/>
+      <path d="M64 17 L65 9 L56 16 Z" fill="#ed1c24"/>
+      <!-- eyes (judging — narrow slits) -->
+      <rect x="36" y="32" width="9" height="3" fill="#c8e620"/>
+      <rect x="51" y="32" width="9" height="3" fill="#c8e620"/>
+      <!-- nose -->
+      <rect x="46" y="38" width="4" height="3" fill="#ed1c24"/>
+    </svg>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ----------------------------------------------------------------- DATA */
+  // Skill data (verbatim) — used to look up the proficiency weight per tool.
+  var DATA = [
+    { group:"Languages", items:[
+      ["C",4],["Python",5],["TypeScript",5],["JavaScript",4],
+      ["SQL",3],["HTML",4],["CSS",4],["WGSL",3] ]},
+    { group:"ML / AI", items:[
+      ["PyTorch",4],["TensorFlow",3],["scikit-learn",4],["NumPy",4],
+      ["Pandas",4],["TransformerLens",4],["LLM Evaluation",4],["RAG",4],
+      ["Failure Taxonomy",3],["Deep Learning",4] ]},
+    { group:"Web / Frontend", items:[
+      ["React",5],["Tailwind CSS",4],["Vite",4],["WebGPU",4],
+      ["PWA",4],["IndexedDB / Dexie.js",4],["Canvas",3],["Web Workers",3] ]},
+    { group:"Backend / Data", items:[
+      ["FastAPI",4],["Pydantic",3],["Node.js",4],["Express",3],
+      ["MongoDB",3],["REST APIs",4] ]},
+    { group:"Tools / Systems", items:[
+      ["Git",4],["Linux",4],["OpenRouter API",3] ]}
+  ];
+  var WEIGHT = {};
+  DATA.forEach(function(g){ g.items.forEach(function(it){ WEIGHT[it[0]] = it[1]; }); });
+
+  // Tasks + their ordered tool pipelines (verbatim strings).
+  var TASKS = [
+    { task:"TRAIN A MODEL", pipe:[
+      "Python","Pandas","NumPy","PyTorch","scikit-learn","Deep Learning","LLM Evaluation" ]},
+    { task:"SHIP A WEB APP", pipe:[
+      "TypeScript","React","Tailwind CSS","Vite","IndexedDB / Dexie.js","Web Workers","PWA" ]},
+    { task:"GO FAST ON THE METAL", pipe:[
+      "C","WGSL","WebGPU","Canvas","Web Workers","Linux" ]},
+    { task:"MAKE IT LEGIBLE", pipe:[
+      "Python","PyTorch","TransformerLens","RAG","LLM Evaluation","Failure Taxonomy","FastAPI" ]}
+  ];
+
+  // Dry commentary the cat says per task (keyed by task index).
+  var CAT_BY_TASK = [
+    "training, huh. mind the overfit.",
+    "another web app. how brave.",
+    "metal. okay, show-off.",
+    "legibility? finally, taste."
+  ];
+  // Occasional reactions to specific tools as the pulse passes them.
+  var CAT_BY_TOOL = {
+    "C":"c? bold.",
+    "Python":"python, predictably.",
+    "React":"react again…",
+    "PyTorch":"the torch is lit.",
+    "TransformerLens":"peeking inside. nosy.",
+    "Linux":"of course it's linux.",
+    "FastAPI":"fast, allegedly.",
+    "WebGPU":"gpu flex noted.",
+    "RAG":"retrieval. respectable.",
+    "PWA":"installable. cute."
+  };
+  var CAT_DONE = "pipeline holds. acceptable.";
+
+  // Role caption inferred from position within the pipe (start..end).
+  // We map index -> a sensible role word over the 0..1 progress.
+  var ROLE_SEQ = ["INPUT","DATA","PREP","CORE","BUILD","REFINE","EVAL","SHIP"];
+  function roleFor(i, n){
+    if(n <= 1) return "CORE";
+    if(i === 0) return ROLE_SEQ[0];
+    if(i === n-1) return ROLE_SEQ[ROLE_SEQ.length-1];
+    // distribute the middle roles across remaining slots, deterministically
+    var t = i / (n-1);                       // 0..1
+    var mid = ROLE_SEQ.slice(1, ROLE_SEQ.length-1); // INPUT/ ... /SHIP trimmed
+    var k = Math.min(mid.length-1, Math.max(0, Math.round(t*(mid.length-1))));
+    return mid[k];
+  }
+
+  var REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ----------------------------------------------------------------- DOM */
+  var tasksEl   = document.getElementById("tasks");
+  var pipeEl    = document.getElementById("pipe");
+  var pipeWrap  = document.getElementById("pipeWrap");
+  var readoutEl = document.getElementById("readout-text");
+  var catCorner = document.getElementById("catCorner");
+  var catBubble = document.getElementById("catBubble");
+  var catSkip   = document.getElementById("catSkip");
+
+  /* ----------------------------------------------------------------- DECODE-IN */
+  // Scramble a label through mono glyphs, settling to the real string.
+  // Per-character resolve order is derived from the element index (stable),
+  // while the scramble glyph is shuffled per frame for the flicker.
+  var GLYPHS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&$/<>*+=-_:.";
+  function glyphFor(seed){ return GLYPHS.charAt(Math.floor(Math.random()*GLYPHS.length)); }
+
+  function decode(el, finalText, seedIdx, duration){
+    // No animation to show if reduced-motion OR the tab is hidden (rAF is paused
+    // while hidden, so a scramble would never paint and could leave the label
+    // blank) — just write the final string.
+    if(REDUCED || document.hidden){ el.textContent = finalText; return; }
+    var start = performance.now();
+    var dur = duration || 360;
+    var len = finalText.length;
+    // each char resolves at a time offset derived from its position + element seed
+    var resolveAt = [];
+    for(var i=0;i<len;i++){
+      var jitter = ((seedIdx*31 + i*17) % 100) / 100;  // deterministic per (idx,char)
+      resolveAt[i] = (i / Math.max(1,len)) * 0.62 + jitter*0.30; // 0..~0.9 of dur
+    }
+    function frame(now){
+      var p = Math.min(1, (now - start) / dur);
+      var out = "";
+      for(var c=0;c<len;c++){
+        var ch = finalText.charAt(c);
+        if(ch === " "){ out += " "; continue; }
+        if(p >= resolveAt[c]) out += ch;
+        else out += glyphFor(c);
+      }
+      el.textContent = out;
+      if(p < 1) requestAnimationFrame(frame);
+      else el.textContent = finalText;
+    }
+    requestAnimationFrame(frame);
+    // Safety net: force the resolved text after the duration even if rAF stalls
+    // (e.g. the tab is backgrounded mid-scramble) so a label is never left blank.
+    setTimeout(function(){ el.textContent = finalText; }, dur + 80);
+  }
+
+  /* ----------------------------------------------------------------- READOUT */
+  function setReadout(html){ readoutEl.innerHTML = html; }
+
+  /* ----------------------------------------------------------------- CAT */
+  var catMuted = false;
+  function catSay(text){
+    if(catMuted) return;
+    catBubble.textContent = text;
+    catBubble.classList.remove("pop");
+    // restart the pop micro-animation
+    void catBubble.offsetWidth;
+    catBubble.classList.add("pop");
+  }
+  catSkip.addEventListener("click", function(){
+    catMuted = !catMuted;
+    catCorner.classList.toggle("muted", catMuted);
+    catSkip.textContent = catMuted ? "[ wake cat ]" : "[ mute cat ]";
+  });
+
+  /* ----------------------------------------------------------------- BUILD TASK BUTTONS */
+  var taskBtns = [];
+  TASKS.forEach(function(t, i){
+    var b = document.createElement("button");
+    b.className = "task";
+    b.type = "button";
+    b.setAttribute("aria-pressed", i === 0 ? "true" : "false");
+    b.setAttribute("data-i", String(i));
+
+    var idx = document.createElement("span");
+    idx.className = "idx";
+    idx.textContent = (i+1 < 10 ? "0" : "") + (i+1);
+
+    var nm = document.createElement("span");
+    nm.className = "tname";
+    nm.textContent = t.task;          // set immediately; decoded on load below
+
+    b.appendChild(idx);
+    b.appendChild(nm);
+    b.addEventListener("click", function(){ selectTask(i); });
+    tasksEl.appendChild(b);
+    taskBtns.push({ btn:b, nm:nm });
+  });
+
+  /* ----------------------------------------------------------------- PIPELINE RENDER */
+  var current = -1;
+  var buildToken = 0;     // cancels stale staggered timers when switching tasks
+  var timers = [];        // pending setTimeout ids for the active build
+  var cellNodes = [];     // node tiles in the current pipe
+  var cellConns = [];     // connector cells in the current pipe (one before each node>0)
+
+  function clearTimers(){
+    timers.forEach(function(id){ clearTimeout(id); });
+    timers = [];
+  }
+
+  function buildPipeDom(pipe){
+    pipeEl.innerHTML = "";
+    cellNodes = [];
+    cellConns = [];
+    var n = pipe.length;
+
+    pipe.forEach(function(name, i){
+      var stage = document.createElement("div");
+      stage.className = "stage";
+
+      // connector (between previous node and this one)
+      if(i > 0){
+        var conn = document.createElement("div");
+        conn.className = "conn";
+        var rail = document.createElement("span"); rail.className = "rail";
+        var pulse = document.createElement("span"); pulse.className = "pulse";
+        var head = document.createElement("span"); head.className = "head";
+        conn.appendChild(rail);
+        conn.appendChild(pulse);
+        conn.appendChild(head);
+        stage.appendChild(conn);
+        cellConns.push(conn);
+      }
+
+      // node cell (number + tile + role)
+      var cell = document.createElement("div");
+      cell.className = "node-cell";
+
+      var no = document.createElement("div");
+      no.className = "stage-no";
+      no.textContent = (i+1 < 10 ? "0" : "") + (i+1);
+
+      var node = document.createElement("div");
+      node.className = "node";
+
+      var nm = document.createElement("span");
+      nm.className = "nm";
+      nm.textContent = "";              // filled by decode on landing
+
+      var wt = document.createElement("span");
+      wt.className = "wt";
+      var w = WEIGHT[name] || 0;
+      for(var k=0;k<5;k++){
+        var pip = document.createElement("i");
+        if(k < w) pip.className = "on";
+        wt.appendChild(pip);
+      }
+
+      node.appendChild(nm);
+      node.appendChild(wt);
+
+      var role = document.createElement("div");
+      role.className = "role";
+      role.textContent = roleFor(i, n);
+
+      cell.appendChild(no);
+      cell.appendChild(node);
+      cell.appendChild(role);
+      stage.appendChild(cell);
+
+      // hover micro-reaction from the cat
+      node.addEventListener("mouseenter", function(){
+        if(CAT_BY_TOOL[name]) catSay(CAT_BY_TOOL[name]);
+      });
+
+      pipeEl.appendChild(stage);
+      cellNodes.push({ cell:cell, node:node, nm:nm, name:name });
+    });
+  }
+
+  // Animate the build: nodes land left-to-right; connectors draw; a lime pulse
+  // travels stage-to-stage energising each node as it arrives.
+  function playBuild(pipe){
+    var token = buildToken;
+    var n = pipe.length;
+    var STAGGER = 150;     // ms between stages
+    var t = 0;
+
+    function schedule(fn, at){
+      var id = setTimeout(function(){
+        if(token !== buildToken) return;
+        fn();
+      }, at);
+      timers.push(id);
+    }
+
+    // reduced motion: reveal everything instantly, no pulse.
+    if(REDUCED){
+      cellNodes.forEach(function(c, i){
+        c.cell.classList.add("in");
+        c.nm.textContent = c.name;
+      });
+      cellConns.forEach(function(c){ c.classList.add("in"); });
+      finishReadout(pipe);
+      return;
+    }
+
+    cellNodes.forEach(function(c, i){
+      var nodeAt = t;
+      // 1) node-cell drops in + decodes its label
+      schedule(function(){
+        c.cell.classList.add("in");
+        decode(c.nm, c.name, i, 360);
+      }, nodeAt);
+
+      // 2) energise: lime pulse highlights this node briefly
+      schedule(function(){
+        c.node.classList.add("active");
+        if(CAT_BY_TOOL[c.name]) catSay(CAT_BY_TOOL[c.name]);
+      }, nodeAt + 60);
+      schedule(function(){
+        c.node.classList.remove("active");
+      }, nodeAt + STAGGER + 40);
+
+      // 3) connector AFTER this node, animating the lime pulse forward
+      if(i < n-1){
+        var conn = cellConns[i];   // connector before node i+1
+        schedule(function(){
+          conn.classList.add("in");
+          conn.classList.add("lit");
+          firePulse(conn, token);
+        }, nodeAt + 80);
+        // connector settles back to white once the current has passed
+        schedule(function(){
+          conn.classList.remove("lit");
+        }, nodeAt + STAGGER + 60);
+      }
+
+      t += STAGGER;
+    });
+
+    // done: settle readout + cat
+    schedule(function(){ finishReadout(pipe); }, t + 120);
+  }
+
+  // Travelling lime block along one connector rail.
+  function firePulse(conn, token){
+    var pulse = conn.querySelector(".pulse");
+    if(!pulse) return;
+    var w = conn.clientWidth || 50;
+    pulse.style.transition = "none";
+    pulse.style.left = "0px";
+    pulse.style.opacity = "1";
+    void pulse.offsetWidth;            // commit
+    pulse.style.transition = "left 150ms linear, opacity 90ms linear";
+    requestAnimationFrame(function(){
+      if(token !== buildToken) return;
+      pulse.style.left = (w - 14) + "px";
+    });
+    var id = setTimeout(function(){
+      if(token !== buildToken) return;
+      pulse.style.opacity = "0";
+    }, 150);
+    timers.push(id);
+  }
+
+  function finishReadout(pipe){
+    var t = TASKS[current];
+    setReadout(
+      "task: <b>" + escapeHtml(t.task) + "</b> &mdash; <span class=\"hi\">" +
+      pipe.length + " stages</span> assembled &middot; " +
+      escapeHtml(pipe[0]) + " &rarr; " + escapeHtml(pipe[pipe.length-1])
+    );
+    catSay(CAT_DONE);
+  }
+
+  function escapeHtml(s){
+    return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  }
+
+  /* ----------------------------------------------------------------- SELECT TASK */
+  function selectTask(i){
+    if(i === current) return;
+    current = i;
+    var t = TASKS[i];
+
+    // button states (the ONE lime accent on chrome lives here)
+    taskBtns.forEach(function(o, k){
+      o.btn.setAttribute("aria-pressed", k === i ? "true" : "false");
+    });
+
+    // tear down cleanly: cancel pending timers, rebuild DOM fresh
+    buildToken++;
+    clearTimers();
+
+    setReadout("task: <b>" + escapeHtml(t.task) + "</b> &mdash; assembling pipeline&hellip;");
+    catSay(CAT_BY_TASK[i] || "let's see…");
+
+    // reset scroll to the start of the pipe so the build reads left-to-right
+    pipeWrap.scrollLeft = 0;
+
+    buildPipeDom(t.pipe);
+
+    // Kick the build on the next frame so the .in transitions animate from the
+    // hidden state. requestAnimationFrame is THROTTLED/paused while the tab is
+    // backgrounded, so a page opened in a hidden tab would otherwise never
+    // assemble — guard with a setTimeout fallback that fires regardless. A
+    // per-token "started" flag makes sure the build runs exactly once.
+    var startToken = buildToken;
+    var started = false;
+    function kick(){
+      if(started || startToken !== buildToken) return;
+      started = true;
+      playBuild(t.pipe);
+    }
+    requestAnimationFrame(function(){ requestAnimationFrame(kick); });
+    var kickId = setTimeout(kick, 60);   // fallback for hidden/throttled tabs
+    timers.push(kickId);
+  }
+
+  /* ----------------------------------------------------------------- KEYBOARD */
+  // 1-4 selects a task.
+  document.addEventListener("keydown", function(e){
+    if(e.metaKey || e.ctrlKey || e.altKey) return;
+    var num = parseInt(e.key, 10);
+    if(num >= 1 && num <= TASKS.length){ selectTask(num-1); }
+  });
+
+  /* ----------------------------------------------------------------- BOOT */
+  function boot(){
+    // decode-in the task button labels on load
+    taskBtns.forEach(function(o, i){
+      decode(o.nm, TASKS[i].task, i+5, 420);
+    });
+    // select the first task by default (assembles its pipeline)
+    selectTask(0);
+  }
+
+  if(document.fonts && document.fonts.ready){
+    document.fonts.ready.then(boot);
+    setTimeout(function(){ if(current === -1) boot(); }, 900);  // fallback
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+---
+// Newspaper page-folio strip — the running header that stitches every section
+// into one paper: page number · desk name · the masthead · live date (filled
+// by main.ts). Decorative furniture: the real headings carry the semantics.
+// Classes are `pfolio-*` — the edition's masthead already owns `.folio`.
+interface Props {
+  page: string;
+  desk: string;
+  tone?: 'paper' | 'ink'; // paper = dark text on cream sections, ink = light on red
+}
+const { page, desk, tone = 'ink' } = Astro.props;
+---
+
+<div class={`pfolio pfolio--${tone}`} aria-hidden="true">
+  <span class="pfolio-page">{page}</span>
+  <span class="pfolio-desk">{desk}</span>
+  <span class="pfolio-paper">THE DAILY CHEETHIRALA</span>
+  <span class="pfolio-date" data-folio-date>—</span>
+</div>

@@ -1,0 +1,998 @@
+---
+import { site } from '../data/site';
+---
+
+<!-- HERO (sticky; edition rises over it) -->
+<header class="me-top" id="top">
+  <div class="hero-panel">
+    <div class="hp-bar">
+      <span class="hp-pill">PORTFOLIO '26</span>
+      <span class="hp-meta">{site.location}</span>
+      <span class="hp-meta hp-avail"><i class="dot" aria-hidden="true"></i>{site.availability}</span>
+      <span class="hp-meta hp-clock" id="clock-time">—</span>
+    </div>
+
+    <div class="hp-stage">
+      <!-- LEFT: big name + folded teaser -->
+      <div class="hp-left">
+        <h1 class="hp-name" aria-label={`${site.name.first} ${site.name.last}`}>
+          <span class="hero-name">{site.name.first}</span>
+          <span class="hero-name is-out" aria-hidden="true">{site.name.last}</span>
+        </h1>
+
+        <!-- FOLDED TEASER — the about shortcut -->
+        <div class="teaser-wrap">
+          <figure class="teaser" id="teaser" role="button" tabindex="0" aria-label="Read today's edition">
+            <span class="ts-stamp" aria-hidden="true"><span id="ts-edition">LATE EDITION</span><br /><span class="b">&#9658;</span> BREAKING</span>
+
+            <div class="ts-folio">
+              <span>VOL. PES1UG24CS127</span>
+              <span>PRICE: ONE FILTER COFFEE</span>
+            </div>
+            <hr class="ts-rule" />
+            <div class="ts-mast">THE DAILY CHEETHIRALA</div>
+            <div class="ts-dateline">
+              <span class="dl-tag">BENGALURU</span><span>&middot;</span>
+              <span id="ts-dl-date">&mdash;</span><span>&middot;</span>
+              <span id="ts-dl-time">&mdash;</span>
+            </div>
+
+            <div class="ts-lead">
+              <span class="ts-kicker">&#9654; FRONT PAGE &middot; BENGALURU BUREAU</span>
+              <h2 class="ts-head" id="ts-head">THE INTERESTING WORK IS INSIDE THE BOX EVERYONE ELSE LEAVES SEALED</h2>
+              <p class="ts-deck">I open black boxes &mdash; neural nets, version control, whatever&rsquo;s opaque.</p>
+            </div>
+
+            <ul class="ts-inside" aria-hidden="true">
+              <li class="ih">// INSIDE TODAY</li>
+              <li class="row"><span>The throughline</span><span class="dots"></span><span class="pg">p.1</span></li>
+              <li class="row"><span>House rules &amp; stderr</span><span class="dots"></span><span class="pg">p.2</span></li>
+              <li class="row"><span>Orbit &middot; GlassBox &middot; git-in-C</span><span class="dots"></span><span class="pg">p.3</span></li>
+              <li class="row"><span>Interning now &middot; open summer &rsquo;27</span><span class="dots"></span><span class="pg">p.4</span></li>
+            </ul>
+
+            <div class="ts-foldzone">
+              <div class="crease" aria-hidden="true"></div>
+              <div class="ts-under" aria-hidden="true">
+                <p>i spent more time planning to study than actually studying. orbit started as the fix &mdash; a planner that thinks in forgetting curves.</p>
+                <p>i wrote a neural net by hand in the browser, backprop and all. a black box is just a system nobody&rsquo;s opened yet.</p>
+              </div>
+            </div>
+
+            <div class="ts-hint">
+              <span class="tri" aria-hidden="true">&#9658;</span>
+              <span>TODAY&rsquo;S EDITION</span>
+              <span class="arrow" aria-hidden="true">&darr;</span>
+            </div>
+          </figure>
+        </div>
+      </div>
+
+      <!-- RIGHT: pixel cat (slow parallax + canvas rain only) -->
+      <div class="hp-side">
+        <div class="hp-photo">
+          <div class="cat-scene">
+            <div class="cat-parallax" id="hp-cat-parallax">
+              <img class="hp-cat" src="/img/cat.jpg" alt="Pixel-art portrait" />
+            </div>
+            <canvas class="cat-rain" id="hp-cat-rain"></canvas>
+            <div class="cat-scan" aria-hidden="true"></div>
+          </div>
+          <span class="hp-photo-tag" id="hp-cat-tag" data-decode="[ it me ]">[ it me ]</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hp-marquee" aria-hidden="true">
+      <div class="mq-track">
+        <span>LOCAL-FIRST TOOLS   ✱   TRANSPARENT ML   ✱   GPU KERNELS IN THE BROWSER   ✱   THE INTERNALS OF GPT-2   ✱   GIT REBUILT IN C   ✱  LOCAL-FIRST TOOLS   ✱   TRANSPARENT ML   ✱   GPU KERNELS IN THE BROWSER   ✱   THE INTERNALS OF GPT-2   ✱   GIT REBUILT IN C   ✱  </span>
+        <span aria-hidden="true">LOCAL-FIRST TOOLS   ✱   TRANSPARENT ML   ✱   GPU KERNELS IN THE BROWSER   ✱   THE INTERNALS OF GPT-2   ✱   GIT REBUILT IN C   ✱  LOCAL-FIRST TOOLS   ✱   TRANSPARENT ML   ✱   GPU KERNELS IN THE BROWSER   ✱   THE INTERNALS OF GPT-2   ✱   GIT REBUILT IN C   ✱  </span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<style>
+  /* ============================================================ HERO (.me-top) — fully scoped */
+  /* STICKY hero: the edition sheet rises over it via native scroll, no JS. */
+  .me-top {
+    --bink: #141414;
+    --bcream: #f7f5f1;
+    --bcream2: #efece4;
+    --bred: #ed1c24;
+    --blime: #b4ff2e;
+    --bgray: #928b80;
+    position: sticky;
+    top: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100svh;
+    background: var(--bred);
+    padding: clamp(10px, 1.4vw, 20px);
+    display: flex;
+    flex-direction: column;
+    cursor: auto; /* native cursor restored — no probe */
+  }
+
+  .hero-panel {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--bcream);
+    background-image: var(--press-grain); /* same paper stock as the edition */
+    border: 4px solid var(--bink);
+    box-shadow: 10px 10px 0 var(--bink);
+    overflow: hidden;
+  }
+
+  /* ── TOP BAR ── */
+  .hp-bar {
+    display: flex;
+    align-items: center;
+    gap: clamp(12px, 2vw, 26px);
+    flex-wrap: wrap;
+    min-height: 56px;
+    padding: 8px clamp(16px, 2.4vw, 30px);
+    border-bottom: 3px solid var(--bink);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--bink);
+  }
+  .hp-pill {
+    background: var(--bink);
+    color: var(--bcream);
+    padding: 4px 10px;
+  }
+  .hp-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .hp-clock {
+    /* the clock reprints every second — fixed-width digit cells so the
+       surrounding meta row doesn't twitch as the numerals change */
+    font-variant-numeric: tabular-nums;
+  }
+  .hp-avail .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--bink);
+    box-shadow: 0 0 0 2px var(--bink);
+    /* idle-animation diet: static dot — the marquee is this viewport's one motion */
+  }
+
+  /* ── STAGE ── */
+  .hp-stage {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 1.33fr 1fr;
+    /* hard gutter: the name/card column never touches the photo */
+    gap: clamp(18px, 2.6vw, 40px);
+    padding: clamp(16px, 2.2vw, 32px) clamp(16px, 2.6vw, 34px);
+  }
+  .hp-left {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    min-width: 0;
+    /* let the column shrink to its grid track so the teaser can't overflow
+       down into the marquee (it was overlapping the marquee band by ~35px) */
+    min-height: 0;
+  }
+  .hp-name {
+    min-width: 0;
+  }
+  .hero-name {
+    display: block; /* spans inside the single h1 — each name line stays a block */
+    font-family: "Anton", sans-serif;
+    font-weight: 500;
+    /* FIX: clamp max reduced + wrapping allowed so CHEETHIRALA never runs under the cat */
+    font-size: clamp(2.4rem, 11.5vw, 8.6rem);
+    line-height: 0.82;
+    letter-spacing: 0.005em;
+    text-transform: uppercase;
+    color: var(--bink);
+    white-space: normal;
+    word-break: break-word;
+  }
+  /* the surname is the printing plate: an ink outline whose FILL develops as
+     the edition rises over it (--plate-ink 0->1, driven by the hero engine).
+     SANTOSH CHEETHIRALA inks up, then prints THE DAILY CHEETHIRALA. */
+  .hero-name.is-out {
+    color: transparent; /* fallback where color-mix is unsupported */
+    color: color-mix(in srgb, var(--bink) calc(var(--plate-ink, 0) * 100%), transparent);
+    -webkit-text-stroke: 2px var(--bink);
+  }
+  /* decode-in cells (written by the wordmark script) — the outline line resolves from ciphertext */
+  .hero-name .dc {
+    display: inline-block;
+  }
+  .hero-name.is-out .dc.scr {
+    -webkit-text-stroke: 2px var(--blime);
+    color: transparent;
+  }
+  /* .dc.on sets only the stroke, so each cell inherits the developing fill */
+  .hero-name.is-out .dc.on {
+    -webkit-text-stroke: 2px var(--bink);
+    transition: -webkit-text-stroke-color 0.25s ease;
+  }
+  /* the platen thump — a tiny press-down the instant the plate is fully inked */
+  .hero-name.is-out.plate-struck {
+    animation: plate-strike 0.18s ease;
+  }
+  @keyframes plate-strike {
+    45% { transform: translateY(2px); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-name.is-out.plate-struck { animation: none; }
+  }
+
+  /* ============================================================ FOLDED TEASER — the about shortcut */
+  .teaser-wrap {
+    margin-top: clamp(14px, 1.8vw, 26px);
+    /* clear of the marquee band below */
+    margin-bottom: clamp(14px, 1.8vw, 24px);
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: stretch;
+  }
+  .teaser {
+    position: relative;
+    width: 100%;
+    /* fill the left column (width + height) — no narrow cap; this kills the void below the name */
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: var(--bcream);
+    border: 2.5px solid var(--bink);
+    box-shadow: 8px 8px 0 var(--bink);
+    padding: clamp(12px, 1.3vw, 20px) clamp(14px, 1.5vw, 22px) clamp(12px, 1.3vw, 18px);
+    cursor: pointer;
+    /* ONE allowed micro-interaction: hover lift; no looping animation */
+    transition: transform 0.14s ease, box-shadow 0.14s ease;
+    outline: none;
+  }
+  /* small stack of papers underneath — hard edged, no animation */
+  .teaser::before,
+  .teaser::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--bcream2);
+    border: 2.5px solid var(--bink);
+    z-index: -1;
+  }
+  .teaser::before {
+    transform: translate(4px, 4px);
+  }
+  .teaser::after {
+    transform: translate(8px, 8px);
+    z-index: -2;
+  }
+  .teaser:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 6px 6px 0 var(--bink);
+  }
+  .teaser:focus-visible {
+    box-shadow: 8px 8px 0 var(--bink), 0 0 0 3px var(--bred);
+  }
+
+  /* shrunk LATE EDITION stamp — one accent, rotated, hard-edged */
+  .teaser .ts-stamp {
+    position: absolute;
+    top: -13px;
+    right: -11px;
+    z-index: 6;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 8px;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-align: center;
+    color: var(--bcream);
+    background: var(--bred);
+    border: 2px solid var(--bink);
+    box-shadow: 3px 3px 0 var(--bink);
+    padding: 4px 7px;
+    transform: rotate(7deg);
+  }
+  .teaser .ts-stamp .b {
+    color: var(--blime);
+  }
+
+  /* folio strip */
+  .teaser .ts-folio {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 2px 10px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--bgray);
+    margin-bottom: 6px;
+  }
+  .teaser .ts-rule {
+    border: none;
+    border-top: 3px solid var(--bink);
+    margin: 0 0 7px;
+  }
+  .teaser .ts-mast {
+    font-family: "Anton", sans-serif;
+    font-weight: 500;
+    font-size: clamp(1.8rem, 2.7vw, 2.7rem);
+    line-height: 0.9;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    color: var(--bink);
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .teaser .ts-dateline {
+    background: var(--bink);
+    color: var(--bcream);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    padding: 4px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    text-align: center;
+  }
+  .teaser .ts-dateline .dl-tag {
+    color: var(--blime);
+  }
+
+  /* lead headline + one-line deck — the headline resolves from ciphertext on hover */
+  .teaser .ts-lead {
+    padding-top: 8px;
+  }
+  .teaser .ts-kicker {
+    display: block;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--bred);
+    margin-bottom: 5px;
+  }
+  .teaser .ts-head {
+    font-family: "Anton", sans-serif;
+    font-weight: 500;
+    font-size: clamp(1.1rem, 1.65vw, 1.55rem);
+    line-height: 1.04;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    color: var(--bink);
+    margin: 0;
+  }
+  .teaser .ts-head .dc {
+    display: inline-block;
+  }
+  .teaser .ts-head .dc.scr {
+    color: #c4302b;
+  }
+  .teaser .ts-head .dc.on {
+    color: var(--bink);
+    transition: color 0.2s ease;
+  }
+  .teaser .ts-deck {
+    margin-top: 7px;
+    font-family: "Instrument Serif", serif;
+    font-style: italic;
+    font-size: clamp(0.9rem, 1.1vw, 1.05rem);
+    line-height: 1.22;
+    color: var(--bink);
+  }
+
+  /* INSIDE TODAY — four dotted entries */
+  .teaser .ts-inside {
+    list-style: none;
+    margin: 9px 0 0;
+    padding-top: 7px;
+    border-top: 1.5px solid rgba(20, 20, 20, 0.25);
+  }
+  .teaser .ts-inside .ih {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 7.5px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--bgray);
+    margin-bottom: 3px;
+  }
+  .teaser .ts-inside li.row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-family: "Instrument Serif", serif;
+    font-size: 0.86rem;
+    color: var(--bink);
+    padding: 1px 0;
+  }
+  .teaser .ts-inside .dots {
+    flex: 1;
+    border-bottom: 1.5px dotted rgba(20, 20, 20, 0.4);
+    transform: translateY(-3px);
+  }
+  .teaser .ts-inside .pg {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 8.5px;
+    font-weight: 700;
+    color: var(--bink);
+  }
+
+  /* the fold: hard crease, then everything below tucked under (clip + cream→transparent mask) */
+  .teaser .ts-foldzone {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    margin-top: 7px;
+    display: flex;
+    flex-direction: column;
+  }
+  .teaser .crease {
+    flex: none;
+    height: 9px;
+    border-top: 1px solid rgba(20, 20, 20, 0.6);
+    box-shadow: 0 -7px 9px -7px rgba(20, 20, 20, 0.4) inset,
+      0 7px 9px -7px rgba(20, 20, 20, 0.22) inset;
+  }
+  .teaser .ts-under {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    margin-top: 3px;
+    font-family: "Instrument Serif", serif;
+    font-size: 0.74rem;
+    line-height: 1.45;
+    color: var(--bink);
+    columns: 2;
+    column-gap: 15px;
+    column-rule: 1px solid rgba(20, 20, 20, 0.2);
+    -webkit-mask-image: linear-gradient(180deg, #000 0, #000 14%, transparent 88%);
+    mask-image: linear-gradient(180deg, #000 0, #000 14%, transparent 88%);
+  }
+  .teaser .ts-under p {
+    margin: 0 0 0.5em;
+  }
+
+  /* hint row */
+  .teaser .ts-hint {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: none;
+    margin-top: 8px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--bred);
+  }
+  .teaser .ts-hint .tri {
+    color: var(--blime);
+    font-size: 11px;
+    line-height: 1;
+  }
+  .teaser .ts-hint .arrow {
+    margin-left: auto;
+  }
+
+  /* ── CAT SIDE ── */
+  .hp-side {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: stretch;
+    min-width: 0;
+  }
+  .hp-photo {
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    align-self: stretch;
+    border: 6px solid var(--bink);
+    box-shadow: 8px 8px 0 var(--bink);
+    background: var(--bink);
+    position: relative;
+    overflow: hidden;
+  }
+  .hp-cat {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 38%;
+    image-rendering: pixelated;
+  }
+  .cat-scene {
+    position: absolute;
+    inset: 0;
+  }
+  .cat-parallax {
+    position: absolute;
+    inset: -7%;
+    will-change: transform;
+  }
+  .cat-rain {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .cat-scan {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    opacity: 0.1;
+    mix-blend-mode: multiply;
+    background: repeating-linear-gradient(0deg, rgba(10, 10, 10, 0.6) 0 1px, transparent 1px 3px);
+  }
+  .hp-photo-tag {
+    position: absolute;
+    bottom: 10px;
+    left: 12px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(247, 245, 241, 0.7);
+    background: rgba(20, 20, 20, 0.6);
+    padding: 3px 6px;
+    z-index: 10;
+  }
+
+  /* ── MARQUEE ── */
+  .hp-marquee {
+    border-top: 3px solid var(--bink);
+    background: var(--bink);
+    overflow: hidden;
+  }
+  .mq-track {
+    display: flex;
+    width: max-content;
+    animation: mq-scroll 46s linear infinite;
+  }
+  .mq-track span {
+    white-space: nowrap;
+    padding: 12px 0;
+    font-family: "Anton", sans-serif;
+    font-weight: 500;
+    font-size: clamp(1rem, 1.6vw, 1.45rem);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--bcream);
+  }
+  @keyframes mq-scroll {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mq-track {
+      animation: none;
+    }
+  }
+
+  /* HERO RESPONSIVE */
+  @media (max-width: 820px) {
+    .hp-stage {
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+    .hero-name {
+      font-size: clamp(2.2rem, 13vw, 6rem);
+    }
+    .hp-photo {
+      min-height: 150px;
+    }
+    /* stacked column: teaser sizes to content, single-column tuck */
+    .teaser-wrap {
+      flex: none;
+    }
+    .teaser {
+      height: auto;
+      padding: 12px 14px;
+    }
+    .teaser .ts-foldzone {
+      flex: none;
+    }
+    .teaser .ts-under {
+      flex: none;
+      height: 3.2em;
+      columns: 1;
+    }
+  }
+  @media (max-width: 600px) {
+    /* collapse: masthead bar + hint only */
+    .teaser .ts-folio,
+    .teaser .ts-rule,
+    .teaser .ts-dateline,
+    .teaser .ts-lead,
+    .teaser .ts-inside,
+    .teaser .ts-foldzone,
+    .teaser .ts-stamp {
+      display: none;
+    }
+    .teaser .ts-mast {
+      margin-bottom: 6px;
+      text-align: left;
+      font-size: 1.5rem;
+    }
+    .teaser .ts-hint {
+      margin-top: 8px;
+    }
+    .teaser::before,
+    .teaser::after {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  // HERO ENGINE: reactive cat — slow head-lean parallax + canvas rain only (no glitch, no flash).
+  // Plus the [ it me ] tag decode. The clock (#clock-time) is filled by main.ts.
+  import { decode } from '../scripts/decode';
+
+  (function () {
+    'use strict';
+    try {
+      const photo = document.querySelector<HTMLElement>('.me-top .hp-photo');
+      const hero = document.querySelector<HTMLElement>('.me-top');
+      const parallax = document.getElementById('hp-cat-parallax');
+      const rainCv = document.getElementById('hp-cat-rain');
+      const tag = document.getElementById('hp-cat-tag');
+      if (!photo || !hero || !parallax || !(rainCv instanceof HTMLCanvasElement)) return;
+
+      const PRM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      /* 1. slow head-lean parallax (the ONE subtle motion alongside rain) */
+      const LEAN = 9;
+      let tx = 0, ty = 0, cx = 0, cy = 0;
+      hero.addEventListener('pointermove', function (e) {
+        const r = photo.getBoundingClientRect();
+        const nx = ((e.clientX - r.left) / r.width - 0.5) * 2;
+        const ny = ((e.clientY - r.top) / r.height - 0.5) * 2;
+        tx = Math.max(-1, Math.min(1, nx)) * LEAN;
+        ty = Math.max(-1, Math.min(1, ny)) * LEAN * 0.7;
+      });
+      hero.addEventListener('pointerleave', function () { tx = 0; ty = 0; });
+
+      /* 2. live rain canvas */
+      const ctx = rainCv.getContext('2d');
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      let drops: { x: number; y: number; len: number; sp: number; w: number; a: number }[] = [];
+      function seed() {
+        const w = rainCv.width / dpr, h = rainCv.height / dpr;
+        const n = Math.max(40, Math.min(120, Math.round((w * h) / 2600)));
+        drops = [];
+        for (let i = 0; i < n; i++) {
+          const near = Math.random() > 0.55;
+          drops.push({
+            x: Math.random() * w, y: Math.random() * h,
+            len: near ? 14 + Math.random() * 16 : 7 + Math.random() * 9,
+            sp: near ? 9 + Math.random() * 6 : 4 + Math.random() * 4,
+            w: near ? 2 : 1,
+            a: near ? 0.3 + Math.random() * 0.2 : 0.12 + Math.random() * 0.1,
+          });
+        }
+      }
+      function sizeRain() {
+        const r = photo.getBoundingClientRect();
+        rainCv.width = Math.max(1, Math.round(r.width * dpr));
+        rainCv.height = Math.max(1, Math.round(r.height * dpr));
+        if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        seed();
+      }
+      function drawRain() {
+        if (!ctx) return;
+        const w = rainCv.width / dpr, h = rainCv.height / dpr;
+        ctx.clearRect(0, 0, w, h);
+        for (let i = 0; i < drops.length; i++) {
+          const d = drops[i];
+          ctx.fillStyle = 'rgba(247,245,241,' + d.a + ')';
+          ctx.fillRect(Math.round(d.x), Math.round(d.y), d.w, d.len);
+          if (!PRM) { d.y += d.sp; d.x += 0.6; }
+          if (d.y > h) { d.y = -d.len; d.x = Math.random() * w; }
+        }
+      }
+
+      /* rAF loop — runs only while the hero can actually be seen. Two flags:
+         the sticky hero "intersecting" even while the edition sheet covers it,
+         so a second observer watches whether the edition spans the viewport's
+         top edge (rootMargin bottom -100% reduces the root to that top line). */
+      let heroInView = true, editionCoversTop = false, rafOn = false;
+      const mqTrack = hero.querySelector<HTMLElement>('.mq-track');
+      function running() { return heroInView && !editionCoversTop; }
+      function reflectMarquee() {
+        // the IO-based pause in main.ts can't see the edition occluding the
+        // sticky hero — reuse the engine's visibility flags for the marquee too
+        if (mqTrack) mqTrack.classList.toggle('mq-offstage', !running());
+      }
+
+      /* plate impression: the outline surname fills with ink as the rising
+         edition closes on it, hitting solid right as the press covers it */
+      const surname = document.querySelector<HTMLElement>('.me-top .hero-name.is-out');
+      const editionEl = document.getElementById('about');
+      let lastInk = 0;
+      function inkPlate() {
+        if (PRM || !surname || !editionEl) return;
+        const nr = surname.getBoundingClientRect();
+        if (nr.height < 1) return;
+        const lead = window.innerHeight * 0.55;
+        const startTop = nr.bottom + lead; // editionTop where inking begins (p=0)
+        const endTop = nr.top;             // editionTop where the plate is solid (p=1)
+        const editionTop = editionEl.getBoundingClientRect().top;
+        const p = Math.max(0, Math.min(1, (startTop - editionTop) / (startTop - endTop)));
+        surname.style.setProperty('--plate-ink', p.toFixed(3));
+        if (p >= 0.985 && lastInk < 0.985) {
+          surname.classList.remove('plate-struck');
+          void surname.offsetWidth; // restart the one-shot thump
+          surname.classList.add('plate-struck');
+        }
+        lastInk = p;
+      }
+
+      function loop() {
+        if (!running()) { rafOn = false; return; }
+        if (!(window as any).__pressFreeze) { // STOP THE PRESS holds everything mid-air
+          inkPlate();
+          cx += (tx - cx) * 0.12;
+          cy += (ty - cy) * 0.12;
+          if (parallax) parallax.style.transform = PRM ? 'translate(0,0)' : 'translate(' + Math.round(cx) + 'px,' + Math.round(cy) + 'px)';
+          drawRain();
+        }
+        requestAnimationFrame(loop);
+      }
+      function startLoop() {
+        if (!rafOn && running()) { rafOn = true; requestAnimationFrame(loop); }
+      }
+      if (typeof IntersectionObserver !== 'undefined') {
+        new IntersectionObserver(function (es) {
+          es.forEach(function (en) { heroInView = en.isIntersecting; });
+          startLoop();
+          reflectMarquee();
+        }).observe(hero);
+        const edition = document.getElementById('about');
+        if (edition) {
+          new IntersectionObserver(function (es) {
+            es.forEach(function (en) { editionCoversTop = en.isIntersecting; });
+            startLoop();
+            reflectMarquee();
+          }, { rootMargin: '0px 0px -100% 0px' }).observe(edition);
+        }
+      }
+
+      sizeRain();
+      window.addEventListener('resize', sizeRain);
+      /* decode the [ it me ] tag via the shared house cipher */
+      if (tag) decode(tag as HTMLElement, null, { dur: 700 });
+      startLoop();
+    } catch (e) { /* hero engine failed silently */ }
+  })();
+</script>
+
+<script>
+  // TEASER SHORTCUT: click or Enter/Space scrolls in-page to #about.
+  (function () {
+    'use strict';
+    try {
+      const teaser = document.getElementById('teaser');
+      if (!teaser) return;
+
+      function jump() {
+        try {
+          const lenis = (window as unknown as { __lenis?: { scrollTo: (t: string, o?: unknown) => void } }).__lenis;
+          if (lenis) {
+            lenis.scrollTo('#about', { offset: 0 });
+          } else {
+            document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
+          }
+        } catch (e) {
+          document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
+
+      teaser.addEventListener('click', jump);
+      teaser.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); jump(); }
+      });
+    } catch (e) { /* teaser shortcut failed silently */ }
+  })();
+</script>
+
+<script>
+  // THE NAME: justified two-line wordmark (each line fit to the column width, so the
+  //   longer surname ends up smaller per-letter and both edges line up) + the outline
+  //   surname develops from ciphertext on load.
+  // THE CHRONICLE: live IST dateline + a lead headline that resolves from ciphertext on
+  //   hover — the same decode the edition completes when it prints over.
+  (function () {
+    'use strict';
+    try {
+      const PRM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const GLYPHS = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789#/<>[]{}*+=·.@%&';
+      const rg = () => GLYPHS[(Math.random() * GLYPHS.length) | 0];
+
+      /* shared decode: scramble → resolve, left to right */
+      function decode(el: HTMLElement, text: string, stagger: number, scr: number) {
+        if (PRM) { el.textContent = text; return; }
+        const spans = text.split('').map((ch) => {
+          const s = document.createElement('span');
+          s.className = 'dc';
+          if (ch === ' ') { s.innerHTML = '&nbsp;'; s.dataset.sp = '1'; }
+          else { s.textContent = rg(); s.classList.add('scr'); }
+          s.dataset.ch = ch;
+          return s;
+        });
+        el.textContent = '';
+        spans.forEach((s) => el.appendChild(s));
+        const start = performance.now();
+        let bucket = -1;
+        const tick = (now: number) => {
+          const b = (now / 48) | 0;
+          const swap = b !== bucket;
+          bucket = b;
+          let done = true;
+          spans.forEach((s, i) => {
+            if (s.dataset.sp) return;
+            const begin = start + i * stagger;
+            if (now >= begin + scr) {
+              if (!s.dataset.on) {
+                s.dataset.on = '1';
+                s.textContent = s.dataset.ch || '';
+                s.classList.remove('scr');
+                s.classList.add('on');
+              }
+            } else {
+              done = false;
+              if (now >= begin && swap) s.textContent = rg();
+            }
+          });
+          if (!done) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      }
+
+      /* stable ciphertext at rest (looks encrypted, not noise) */
+      function cipher(el: HTMLElement, text: string) {
+        el.textContent = '';
+        text.split('').forEach((ch, i) => {
+          const s = document.createElement('span');
+          s.className = 'dc';
+          if (ch === ' ') { s.innerHTML = '&nbsp;'; }
+          else { s.textContent = GLYPHS[((i * 29 + 13) >>> 0) % GLYPHS.length]; s.classList.add('scr'); }
+          el.appendChild(s);
+        });
+      }
+
+      /* ── THE NAME ── */
+      const l1 = document.querySelector<HTMLElement>('.me-top .hero-name:not(.is-out)');
+      const l2 = document.querySelector<HTMLElement>('.me-top .hero-name.is-out');
+      const L1 = l1 ? (l1.textContent || '').trim() : '';
+      const L2 = l2 ? (l2.textContent || '').trim() : '';
+      let meas: HTMLSpanElement | null = null;
+      function textW(ref: HTMLElement, text: string) {
+        if (!meas) {
+          meas = document.createElement('span');
+          meas.style.cssText = 'position:absolute;left:-99999px;top:0;white-space:nowrap;visibility:hidden;pointer-events:none;';
+          document.body.appendChild(meas);
+        }
+        const cs = getComputedStyle(ref);
+        meas.style.fontFamily = cs.fontFamily;
+        meas.style.fontWeight = cs.fontWeight;
+        meas.style.letterSpacing = cs.letterSpacing;
+        meas.style.textTransform = 'uppercase';
+        meas.style.fontSize = '100px';
+        meas.textContent = text;
+        return meas.offsetWidth;
+      }
+      function fit(el: HTMLElement, text: string, target: number) {
+        el.style.whiteSpace = 'nowrap';
+        const w = textW(el, text);
+        if (w > 0) el.style.fontSize = (100 * target) / w + 'px';
+      }
+      function layoutName() {
+        if (!l1 || !l2) return;
+        const col = (l1.parentElement as HTMLElement).getBoundingClientRect().width;
+        if (window.innerWidth <= 820 || col < 2) {
+          l1.style.fontSize = ''; l2.style.fontSize = '';
+          l1.style.whiteSpace = ''; l2.style.whiteSpace = '';
+          l1.textContent = L1;
+          return;
+        }
+        l1.textContent = L1;
+        fit(l1, L1, col);
+        fit(l2, L2, col); // measures via the hidden span — does NOT disturb l2's decode content
+      }
+      function runName() { layoutName(); }
+      // the wordmark cypher: HOLD until the page has actually revealed (main.ts removes
+      // html.staging) — tying it to fonts.ready let it finish before first paint on a
+      // slow bundle, so you only caught the last few letters. Then run it slow enough to
+      // watch, on the now-free main thread (the cover-stack build is deferred to idle).
+      let cyphered = false;
+      function startCypher() {
+        if (cyphered || !l2) return;
+        cyphered = true;
+        if (PRM) { l2.textContent = L2; return; }
+        decode(l2, L2, 70, 560);
+      }
+      (function waitReveal(n: number) {
+        if (!document.documentElement.classList.contains('staging') || n > 80) return startCypher();
+        requestAnimationFrame(() => waitReveal(n + 1));
+      })(0);
+      window.addEventListener('resize', layoutName);
+
+      /* ── THE CHRONICLE: the teaser headline stays plain + readable. Sitting in
+         ciphertext (it only resolved on hover) read as a first-look glitch, so the
+         cypher is gone — #ts-head already carries the real headline from the markup.
+         Hovering the teaser plays ONE quick decode flourish, and never re-scrambles. ── */
+      const head = document.getElementById('ts-head');
+      const HTEXT = head ? (head.textContent || '').trim() : '';
+      const teaser = document.getElementById('teaser');
+      if (head && teaser && !PRM) {
+        let played = false;
+        const enter = () => { if (played) return; played = true; decode(head, HTEXT, 20, 280); };
+        teaser.addEventListener('pointerenter', enter);
+        teaser.addEventListener('focus', enter);
+      }
+
+      /* ── live IST dateline (BENGALURU · date · time) ── */
+      const dEl = document.getElementById('ts-dl-date');
+      const tEl = document.getElementById('ts-dl-time');
+      if (dEl || tEl) {
+        const fd = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Kolkata', weekday: 'short', month: 'short', day: 'numeric' });
+        const ft = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Kolkata', hour: 'numeric', minute: '2-digit', hour12: true });
+        const tickDL = () => {
+          const now = new Date();
+          if (dEl) dEl.textContent = fd.format(now).toUpperCase();
+          if (tEl) tEl.textContent = ft.format(now).replace(' ', '');
+        };
+        tickDL();
+        setInterval(tickDL, 15000);
+      }
+
+      /* ── the folded teaser's stamp tracks the same IST edition as the masthead ── */
+      const edStamp = document.getElementById('ts-edition');
+      if (edStamp) {
+        let hr = 12;
+        try { hr = parseInt(new Intl.DateTimeFormat('en-GB', { hour: '2-digit', hour12: false, timeZone: 'Asia/Kolkata' }).format(new Date()), 10); } catch (e) { /* keep midday */ }
+        edStamp.textContent =
+          hr >= 5 && hr < 11 ? 'MORNING EDITION'
+          : hr >= 11 && hr < 16 ? 'MIDDAY EDITION'
+          : hr >= 16 && hr < 21 ? 'EVENING EDITION'
+          : 'LATE EDITION';
+      }
+
+      const docFonts = (document as unknown as { fonts?: { ready: Promise<unknown> } }).fonts;
+      if (docFonts && docFonts.ready) docFonts.ready.then(runName);
+      else runName();
+      setTimeout(runName, 650);
+    } catch (e) { /* name / chronicle enhancement failed silently */ }
+  })();
+</script>

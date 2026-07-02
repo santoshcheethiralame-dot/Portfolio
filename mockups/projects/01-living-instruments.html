@@ -1,0 +1,1598 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PROJECTS / 01 — LIVING INSTRUMENTS</title>
+
+  <!-- Fonts: Anton (display) + JetBrains Mono (everything else) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet" />
+
+  <style>
+    :root {
+      --red: #ed1c24;
+      --red-deep: #b3001b;
+      --ink: #ffffff;
+      --black: #0a0a0a;
+      --paper: #eceae4;
+      --line: rgba(10, 10, 10, 0.18);
+      --font-display: "Anton", sans-serif;
+      --font-mono: "JetBrains Mono", monospace;
+
+      --hatch: 0px;
+      /* driven by scroll */
+      --ease: cubic-bezier(.2, .9, .2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--paper);
+      color: var(--black);
+      font-family: var(--font-mono);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ---------------------------------------------------------------- TOP BAR */
+    .topbar {
+      position: fixed;
+      inset: 0 0 auto 0;
+      z-index: 200;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 clamp(16px, 4vw, 40px);
+      background: var(--black);
+      border-bottom: 2px solid var(--black);
+    }
+
+    .index-btn {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--ink);
+      text-decoration: none;
+      background: transparent;
+      border: 2px solid var(--ink);
+      padding: 8px 14px;
+      box-shadow: 4px 4px 0 var(--red);
+      transition: transform 120ms var(--ease), box-shadow 120ms var(--ease),
+        background 120ms, color 120ms;
+      white-space: nowrap;
+    }
+
+    .index-btn:hover,
+    .index-btn:focus-visible {
+      background: var(--ink);
+      color: var(--black);
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0 var(--red);
+      outline: none;
+    }
+
+    .index-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0 var(--red);
+    }
+
+    .caption {
+      text-align: right;
+      line-height: 1.3;
+      color: var(--ink);
+    }
+
+    .caption .cap-id {
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    .caption .cap-hint {
+      font-weight: 400;
+      font-size: 10.5px;
+      letter-spacing: .06em;
+      color: rgba(255, 255, 255, .66);
+      text-transform: lowercase;
+    }
+
+    /* ---------------------------------------------------------------- PAGE */
+    .page {
+      padding: calc(60px + clamp(24px, 4vw, 46px)) clamp(18px, 5vw, 76px) clamp(50px, 8vw, 96px);
+      max-width: 1500px;
+      margin: 0 auto;
+    }
+
+    .kicker {
+      font-weight: 500;
+      font-size: 13px;
+      letter-spacing: .18em;
+      color: var(--red);
+      margin: 0 0 10px;
+    }
+
+    .kicker .blink {
+      animation: blink 1.1s steps(1) infinite;
+    }
+
+    @keyframes blink {
+      50% {
+        opacity: 0;
+      }
+    }
+
+    .title-wrap {
+      transform-origin: left center;
+      will-change: transform;
+    }
+
+    .title {
+      font-family: var(--font-display);
+      font-weight: 400;
+      text-transform: uppercase;
+      line-height: .82;
+      letter-spacing: .005em;
+      font-size: clamp(2.6rem, 11vw, 8.5rem);
+      margin: 0;
+    }
+
+    .title em {
+      font-style: normal;
+      color: var(--red);
+    }
+
+    .lede {
+      max-width: 62ch;
+      margin: 18px 0 0;
+      font-size: 13px;
+      line-height: 1.65;
+      color: #2a2a2a;
+    }
+
+    .lede b {
+      color: var(--black);
+      font-weight: 700;
+    }
+
+    /* ---------------------------------------------------------------- CONTROLS */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 14px 22px;
+      margin: clamp(24px, 3vw, 36px) 0 clamp(20px, 2.6vw, 30px);
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--black);
+    }
+
+    .ctrl-label {
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    .toggle-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .toggle {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--black);
+      background: var(--ink);
+      border: 2px solid var(--black);
+      padding: 8px 13px;
+      cursor: pointer;
+      box-shadow: 3px 3px 0 var(--black);
+      transition: transform 110ms var(--ease), box-shadow 110ms var(--ease), background 110ms, color 110ms;
+    }
+
+    .toggle:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 5px 5px 0 var(--black);
+    }
+
+    .toggle:active {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0 var(--black);
+    }
+
+    .toggle[aria-pressed="true"] {
+      background: var(--red);
+      color: var(--ink);
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0 var(--black);
+    }
+
+    .toggle:focus-visible {
+      outline: 2px dashed var(--black);
+      outline-offset: 3px;
+    }
+
+    /* live monitor readout */
+    .monitor {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 11px;
+      letter-spacing: .06em;
+      color: #333;
+      border: 2px solid var(--black);
+      background: var(--ink);
+      padding: 7px 11px;
+      box-shadow: 3px 3px 0 var(--black);
+      max-width: 100%;
+    }
+
+    .monitor .hb {
+      width: 8px;
+      height: 8px;
+      background: var(--red);
+      border-radius: 50%;
+      flex: 0 0 auto;
+      animation: hb 1.6s var(--ease) infinite;
+    }
+
+    @keyframes hb {
+
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      18% {
+        transform: scale(1.7);
+        opacity: .5;
+      }
+
+      36% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .monitor .pingline {
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .monitor .pingline b {
+      color: var(--black);
+      font-weight: 700;
+    }
+
+    .monitor .ok {
+      color: var(--red);
+      font-weight: 700;
+    }
+
+    /* ---------------------------------------------------------------- GRID */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: clamp(22px, 2.6vw, 36px) clamp(22px, 2.6vw, 40px);
+    }
+
+    @media (max-width:880px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ---------------------------------------------------------------- CARD */
+    .card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      background: var(--ink);
+      border: 2.5px solid var(--black);
+      /* stacked hard shadow = a deck */
+      box-shadow: 6px 6px 0 var(--red), 12px 12px 0 var(--black);
+      transition: transform 150ms var(--ease), box-shadow 150ms var(--ease), opacity 200ms ease;
+      will-change: transform;
+    }
+
+    /* LIFT: peel up off the deck (inverse of the topbar's press) */
+    .card:hover {
+      transform: translate(-6px, -6px);
+      box-shadow: 12px 12px 0 var(--red), 24px 24px 0 var(--black);
+      z-index: 3;
+    }
+
+    /* header = black hatched instrument panel with a live canvas */
+    .card-head {
+      position: relative;
+      height: clamp(168px, 21vw, 196px);
+      overflow: hidden;
+      background-color: var(--black);
+      background-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, .055) 0 1px, transparent 1px 9px);
+      background-position: 0 var(--hatch);
+      border-bottom: 2.5px solid var(--black);
+      cursor: pointer;
+    }
+
+    .card-head canvas.demo {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* ghosted index number — brightness/scale driven by scroll position */
+    .idx {
+      position: absolute;
+      right: 10px;
+      bottom: 2px;
+      z-index: 2;
+      pointer-events: none;
+      font-family: var(--font-display);
+      line-height: .8;
+      font-size: clamp(3.2rem, 7vw, 5rem);
+      color: rgba(255, 255, 255, calc(.05 + .16*var(--g, 0)));
+      transform: scale(calc(.9 + .14*var(--g, 0)));
+      transform-origin: right bottom;
+      transition: color 80ms linear;
+    }
+
+    /* monogram tile (spins like Saturn on hover) */
+    .mono {
+      position: absolute;
+      left: 10px;
+      top: 10px;
+      z-index: 3;
+      width: 34px;
+      height: 34px;
+      perspective: 300px;
+    }
+
+    .mono i {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      background: var(--red);
+      color: var(--ink);
+      border: 2px solid var(--ink);
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-style: normal;
+      transform-style: preserve-3d;
+      transition: transform .55s var(--ease);
+    }
+
+    .card:hover .mono i {
+      transform: rotateY(360deg);
+    }
+
+    /* LIVE / BUILT badge */
+    .badge {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      z-index: 3;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--ink);
+      background: rgba(10, 10, 10, .5);
+      border: 1.5px solid rgba(255, 255, 255, .5);
+      padding: 4px 8px;
+    }
+
+    .badge .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+
+    .badge.live .dot {
+      background: var(--red);
+      animation: hb 1.6s var(--ease) infinite;
+    }
+
+    .badge.live.pinged .dot {
+      box-shadow: 0 0 0 0 var(--red);
+      animation: ping .5s var(--ease);
+    }
+
+    @keyframes ping {
+      0% {
+        box-shadow: 0 0 0 0 rgba(237, 28, 36, .7);
+      }
+
+      100% {
+        box-shadow: 0 0 0 9px rgba(237, 28, 36, 0);
+      }
+    }
+
+    .badge.built {
+      background: rgba(255, 255, 255, .92);
+      color: var(--black);
+      border-color: var(--black);
+    }
+
+    .badge.built .dot {
+      background: var(--black);
+      border-radius: 0;
+    }
+
+    /* one-time scanline boot-up sweep on hover */
+    .scan {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 46px;
+      z-index: 2;
+      pointer-events: none;
+      background: linear-gradient(180deg, transparent, rgba(255, 255, 255, .16) 45%, rgba(237, 28, 36, .22) 55%, transparent);
+      transform: translateY(-60px);
+      opacity: 0;
+    }
+
+    .card-head.sweep .scan {
+      animation: scan .72s var(--ease);
+    }
+
+    @keyframes scan {
+      0% {
+        transform: translateY(-60px);
+        opacity: 0;
+      }
+
+      8% {
+        opacity: 1;
+      }
+
+      100% {
+        transform: translateY(210px);
+        opacity: 0;
+      }
+    }
+
+    /* ------- card body ------- */
+    .card-body {
+      padding: clamp(16px, 1.8vw, 22px);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .name-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .pname {
+      font-family: var(--font-display);
+      font-size: clamp(1.5rem, 2.5vw, 2.1rem);
+      letter-spacing: .01em;
+      line-height: .92;
+    }
+
+    .plabel {
+      font-size: 11px;
+      letter-spacing: .1em;
+      color: var(--red);
+      font-weight: 700;
+    }
+
+    .plabel::before {
+      content: "// ";
+      color: #999;
+    }
+
+    .blurb {
+      font-size: 12.5px;
+      line-height: 1.6;
+      color: #2c2c2c;
+    }
+
+    .stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .stack span {
+      font-size: 10px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-weight: 500;
+      border: 1.5px solid var(--black);
+      padding: 4px 8px;
+      background: var(--ink);
+    }
+
+    .stats {
+      display: flex;
+      gap: 10px;
+      margin-top: 2px;
+    }
+
+    .stat {
+      flex: 1;
+      border: 2px solid var(--black);
+      padding: 8px 10px;
+      background: var(--paper);
+    }
+
+    .snum {
+      font-family: var(--font-display);
+      font-size: clamp(1.4rem, 2.4vw, 1.9rem);
+      line-height: .9;
+      display: flex;
+      align-items: baseline;
+    }
+
+    .snum .pre {
+      font-size: .6em;
+      margin-right: 1px;
+      color: var(--red);
+    }
+
+    .snum .suf {
+      font-size: .6em;
+      margin-left: 1px;
+      color: var(--red);
+    }
+
+    .slab {
+      font-size: 9px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: #666;
+      margin-top: 3px;
+    }
+
+    .view {
+      margin-top: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--ink);
+      background: var(--black);
+      border: none;
+      cursor: pointer;
+      padding: 13px 14px;
+      transition: background 120ms, color 120ms;
+      width: 100%;
+    }
+
+    .view:hover {
+      background: var(--red);
+    }
+
+    .view .arr {
+      transition: transform 150ms var(--ease);
+    }
+
+    .card:hover .view .arr {
+      transform: translateX(5px);
+    }
+
+    .view:focus-visible {
+      outline: 2px dashed var(--black);
+      outline-offset: 3px;
+    }
+
+    .card.is-out {
+      opacity: 0;
+      transform: scale(.95);
+      pointer-events: none;
+    }
+
+    /* ---------------------------------------------------------------- CASE STUDY PANEL */
+    .cs-panel {
+      position: fixed;
+      z-index: 300;
+      overflow: hidden;
+      background: var(--ink);
+      border: 2.5px solid var(--black);
+      transition: left .52s var(--ease), top .52s var(--ease), width .52s var(--ease), height .52s var(--ease);
+    }
+
+    .cs-panel.cs-expand {
+      left: 0 !important;
+      top: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+    }
+
+    .cs-head {
+      position: relative;
+      height: clamp(180px, 30vh, 300px);
+      overflow: hidden;
+      background-color: var(--black);
+      background-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, .055) 0 1px, transparent 1px 9px);
+      border-bottom: 2.5px solid var(--black);
+    }
+
+    .cs-head canvas.demo {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .cs-close {
+      position: absolute;
+      right: 14px;
+      top: 14px;
+      z-index: 5;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: .1em;
+      color: var(--ink);
+      background: rgba(10, 10, 10, .5);
+      border: 2px solid var(--ink);
+      padding: 7px 11px;
+      cursor: pointer;
+      transition: background 120ms, color 120ms;
+    }
+
+    .cs-close:hover {
+      background: var(--ink);
+      color: var(--black);
+    }
+
+    .cs-mono {
+      position: absolute;
+      left: 18px;
+      top: 18px;
+      z-index: 4;
+      width: 46px;
+      height: 46px;
+    }
+
+    .cs-mono i {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      background: var(--red);
+      color: var(--ink);
+      border: 2px solid var(--ink);
+      font-family: var(--font-display);
+      font-size: 28px;
+      font-style: normal;
+    }
+
+    .cs-scroll {
+      height: calc(100% - clamp(180px, 30vh, 300px));
+      overflow: auto;
+    }
+
+    .cs-body {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: clamp(22px, 4vw, 52px) clamp(20px, 5vw, 60px) 80px;
+      opacity: 0;
+      transform: translateY(14px);
+      transition: opacity .4s ease .22s, transform .4s var(--ease) .22s;
+    }
+
+    .cs-panel.cs-expand .cs-body {
+      opacity: 1;
+      transform: none;
+    }
+
+    .cs-eyebrow {
+      font-size: 12px;
+      letter-spacing: .16em;
+      color: var(--red);
+      font-weight: 700;
+    }
+
+    .cs-eyebrow::before {
+      content: "// ";
+      color: #aaa;
+    }
+
+    .cs-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem, 7vw, 5rem);
+      line-height: .85;
+      margin: 10px 0 6px;
+      text-transform: uppercase;
+    }
+
+    .cs-tag {
+      font-size: 14px;
+      color: #333;
+      max-width: 60ch;
+      line-height: 1.5;
+    }
+
+    .cs-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: clamp(24px, 4vw, 48px);
+      margin-top: clamp(28px, 4vw, 44px);
+    }
+
+    @media (max-width:760px) {
+      .cs-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .cs-section-h {
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      padding-bottom: 7px;
+      border-bottom: 2px solid var(--black);
+      margin-bottom: 14px;
+    }
+
+    .cs-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .cs-list li {
+      font-size: 13.5px;
+      line-height: 1.55;
+      padding-left: 20px;
+      position: relative;
+      color: #222;
+    }
+
+    .cs-list li::before {
+      content: "▸";
+      color: var(--red);
+      position: absolute;
+      left: 0;
+    }
+
+    .cs-meta {
+      border: 2px solid var(--black);
+      background: var(--paper);
+      padding: 16px;
+    }
+
+    .cs-meta dt {
+      font-size: 10px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: #777;
+      margin-top: 12px;
+    }
+
+    .cs-meta dt:first-child {
+      margin-top: 0;
+    }
+
+    .cs-meta dd {
+      margin: 3px 0 0;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .cs-links {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+
+    .cs-link {
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      text-decoration: none;
+      border: 2px solid var(--black);
+      padding: 11px 15px;
+      box-shadow: 4px 4px 0 var(--black);
+      transition: transform 110ms var(--ease), box-shadow 110ms var(--ease), background 110ms, color 110ms;
+    }
+
+    .cs-link.primary {
+      background: var(--red);
+      color: var(--ink);
+    }
+
+    .cs-link.ghost {
+      background: var(--ink);
+      color: var(--black);
+    }
+
+    .cs-link:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0 var(--black);
+    }
+
+    .cs-link:active {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0 var(--black);
+    }
+
+    body.cs-open {
+      overflow: hidden;
+    }
+
+    /* ---------------------------------------------------------------- FOOT */
+    .foot {
+      margin-top: clamp(40px, 5vw, 64px);
+      padding-top: 16px;
+      border-top: 2px solid var(--line);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 22px;
+      justify-content: space-between;
+      font-size: 11px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #666;
+    }
+
+    .foot b {
+      color: var(--black);
+      font-weight: 700;
+    }
+
+    /* ---------------------------------------------------------------- REDUCED MOTION */
+    @media (prefers-reduced-motion: reduce) {
+
+      .card,
+      .cs-panel,
+      .view .arr,
+      .mono i,
+      .title-wrap {
+        transition: none !important;
+      }
+
+      .badge.live .dot,
+      .monitor .hb,
+      .kicker .blink {
+        animation: none !important;
+      }
+
+      .card-head.sweep .scan {
+        animation: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ======================================================= TOP BAR -->
+  <header class="topbar">
+    <a class="index-btn" href="index.html">&larr; INDEX</a>
+    <div class="caption">
+      <div class="cap-id">STYLE 01 / LIVING INSTRUMENTS</div>
+      <div class="cap-hint">each header runs its own project · hover to speed up · click to expand</div>
+    </div>
+  </header>
+
+  <!-- ======================================================= PAGE -->
+  <main class="page">
+    <p class="kicker">selected work <span class="blink">_</span></p>
+    <div class="title-wrap" id="titleWrap">
+      <h1 class="title">SELECTED <em>WORK</em></h1>
+    </div>
+    <p class="lede">
+      Every card is a tiny working model of the project it links to — a
+      <b>2-colour instrument</b> that animates the thing itself, not a screenshot.
+      Live deployments report a real heartbeat. Hover to overclock a demo; click to
+      let the card grow into its case study, demo and all.
+    </p>
+
+    <!-- controls: filter + live monitor -->
+    <div class="controls">
+      <span class="ctrl-label">FILTER:</span>
+      <div class="toggle-row" id="filters" role="group" aria-label="Filter projects">
+        <button class="toggle" data-filter="all" aria-pressed="true">[ ALL ]</button>
+        <button class="toggle" data-filter="live" aria-pressed="false">[ LIVE ]</button>
+        <button class="toggle" data-filter="built" aria-pressed="false">[ BUILT ]</button>
+      </div>
+      <div class="monitor" title="Periodic health checks against live deployments">
+        <span class="hb" aria-hidden="true"></span>
+        <span class="pingline" id="pingline">booting monitor&hellip;</span>
+      </div>
+    </div>
+
+    <!-- grid is built by JS from PROJECTS -->
+    <div class="grid" id="grid"></div>
+
+    <div class="foot">
+      <span><b>palette</b> #ED1C24 · #FFFFFF · #0A0A0A</span>
+      <span><b>motion</b> canvas instruments · FLIP filter · shared-element expand</span>
+      <span><b>type</b> Anton + JetBrains Mono</span>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var RED = "#ed1c24", INK = "#ffffff";
+      var REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      /* =====================================================================
+         PROJECT DATA — drives the grid, the canvases, and the case studies.
+         ===================================================================== */
+      var PROJECTS = [
+        {
+          key: 'orbit', mono: 'O', idx: '01', name: 'ORBIT', label: 'orbit',
+          status: 'live', host: 'orbit-virid-gamma.vercel.app',
+          github: 'https://github.com/santoshcheethiralame-dot/ORBIT',
+          tagline: 'A local-first focus engine that plans your day around your energy, deadlines, and exam readiness.',
+          blurb: 'Drops your tasks onto your real energy curve — deep work lands on the peaks, busywork fills the troughs. Fully offline PWA, shipped at v3.2.',
+          stack: ['React 19', 'TypeScript', 'Dexie.js / IndexedDB', 'PWA'],
+          stats: [{ pre: '<', target: 5, suf: 'ms', lab: 'Latency' }, { target: 100, suf: '%', lab: 'Local-first' }],
+          overview: 'ORBIT asks when you will have the energy to do a task well, not just when it is due. A three-tier engine scores subject readiness with Ebbinghaus forgetting curves, scales urgency by exam proximity, and back-schedules deadlines with infeasibility warnings — wrapped in a fully offline, installable PWA with SM-2 spaced repetition and an AI exam simulator.',
+          highlights: [
+            '100% local-first — IndexedDB/Dexie, no accounts, no telemetry, fully offline.',
+            'Sub-5ms local scheduling latency with zero server dependency.',
+            'IndexedDB v11 schema (5 tables) with snapshot recovery and multi-tab sync.',
+            'OpenRouter AI coach with bring-your-own key — never bundled, never logged.',
+            'Shipped v3.2, live on Vercel with 5+ active users.'
+          ],
+          meta: { Role: 'Solo — design & engineering', Year: '2026', Type: 'Local-first PWA' }
+        },
+        {
+          key: 'glassbox', mono: 'G', idx: '02', name: 'GLASSBOX', label: 'glassbox',
+          status: 'live', host: 'numero00-glassbox.hf.space',
+          github: 'https://github.com/santoshcheethiralame-dot/GlassBox',
+          tagline: 'Watch GPT-2 think — attention, activations, and where facts live inside a transformer.',
+          blurb: 'A transformer visualiser: watch attention heads light up cell-by-cell as tokens flow through the network, layer by layer.',
+          stack: ['FastAPI', 'TransformerLens', 'PyTorch', 'React'],
+          stats: [{ target: 144, suf: '', lab: 'Attn heads' }, { target: 124, suf: 'M', lab: 'Parameters' }],
+          overview: 'GLASSBOX hooks into GPT-2 small with TransformerLens and streams its internals to an interactive dashboard: forward-pass predictions, all 12×12 attention heads with causal masking, activation patching to localize facts, per-layer linear probes, and single-neuron analysis — rendered with hand-rolled inline SVG, no charting library.',
+          highlights: [
+            'Activation patching localizes factual recall — patching the "France" token at layer 0 swings the answer logit from +1.89 to −2.81.',
+            'Subject-number probes resolve from below-chance to ~1.0 accuracy by layer 3.',
+            'Identified neuron 1133 acting as a pronoun detector.',
+            'Live attention maps across all 144 heads with causal masking shown honestly.'
+          ],
+          meta: { Role: 'Solo — research tool', Year: '2025', Type: 'Interpretability' }
+        },
+        {
+          key: 'gradient', mono: 'G', idx: '03', name: 'GRADIENT', label: 'gradient',
+          status: 'live', host: 'santoshcheethiralame-dot.github.io/GRADIENT',
+          github: 'https://github.com/santoshcheethiralame-dot/GRADIENT',
+          tagline: 'A neural network that trains entirely on your GPU, in the browser — no Python, no server, no WASM.',
+          blurb: 'The whole training loop runs client-side. This very thumbnail is a real 2-layer net learning two-moons by backprop — the decision boundary forms as it trains, live.',
+          stack: ['WebGPU / WGSL', 'TypeScript', 'React 19', 'Web Workers'],
+          stats: [{ pre: '~', target: 97, suf: '%', lab: 'MNIST acc' }, { target: 44, suf: '/44', lab: 'Kernel checks' }],
+          overview: 'Forward passes, backprop, and optimization run as hand-authored WGSL compute shaders dispatched from TypeScript — no framework, no server, no WASM. A nano-GPT char transformer and an MLP train off-thread in a Web Worker while a 60fps dashboard streams loss, heatmaps, and a sampled loss landscape. A reference f64 CPU implementation doubles as correctness oracle and fallback.',
+          highlights: [
+            '~97% MNIST test accuracy from a 2-layer MLP trained entirely on the GPU.',
+            'Self-verifying: 44/44 kernel checks pass against the f64 CPU oracle on every load.',
+            'Gradient checking holds relative error below 1e-3.',
+            'Draw-a-digit recognition with full in-browser MNIST preprocessing.'
+          ],
+          meta: { Role: 'Solo — design & build', Year: '2026', Type: 'In-browser ML' }
+        },
+        {
+          key: 'pesvcs', mono: 'P', idx: '04', name: 'PES-VCS', label: 'pes-vcs',
+          status: 'built', host: null,
+          github: 'https://github.com/santoshcheethiralame-dot/PES1UG24CS127-pes-vcs',
+          tagline: 'Git, rebuilt from scratch in C — content-addressable storage, trees, staging, and commit history.',
+          blurb: 'Content-addressed objects, trees, a staging index, walkable history — the commit graph in the header draws the data structure pes-vcs is built around.',
+          stack: ['C', 'OpenSSL (SHA-256)', 'Makefile', 'Ubuntu'],
+          stats: [{ pre: 'SHA-', target: 256, suf: '', lab: 'Object IDs' }, { target: 100, suf: '%', lab: 'From scratch' }],
+          overview: 'PES-VCS is Git rebuilt to understand it — a .pes/ store mirroring .git/: SHA-256 content-addressable objects sharded by their first two hex characters, tree objects for directory snapshots, a staging index, and commit objects with parent pointers for history. Exposes init, add, status, commit, and log.',
+          highlights: [
+            'Content-addressable object store with SHA-256 integrity verification.',
+            'Sharded objects directory to avoid filesystem degradation at scale.',
+            'Full commit-history walking via parent pointers and refs/HEAD.'
+          ],
+          meta: { Role: 'Solo — systems lab', Year: '2026', Type: 'CLI / C' }
+        }
+      ];
+
+      /* =====================================================================
+         CANVAS ENGINE — one rAF loop drives every registered instrument.
+         ===================================================================== */
+      function base(cv) {
+        var o = { cv: cv, ctx: null, w: 0, h: 0, hover: false, visible: true, isCase: false, clk: 0 };
+        o.resize = function () {
+          var r = cv.getBoundingClientRect(); if (r.width < 1 || r.height < 1) return;
+          var dpr = Math.min(2, window.devicePixelRatio || 1);
+          cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
+          o.ctx = cv.getContext("2d"); o.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          o.w = r.width; o.h = r.height;
+        };
+        o.setHover = function (b) { o.hover = b; };
+        o.advance = function (dt) { o.clk += dt * (o.hover ? 2.3 : 1) / 1000; };
+        return o;
+      }
+
+      // ---- ORBIT: energy curve + blocks slotting into a day ----
+      function makeOrbit(cv) {
+        var o = base(cv);
+        var blocks = [{ s: .05, d: .12, e: .50 }, { s: .19, d: .17, e: .86 }, { s: .40, d: .10, e: .42 },
+        { s: .53, d: .08, e: .28 }, { s: .64, d: .15, e: .70 }, { s: .83, d: .13, e: .52 }];
+        function energy(x) {
+          var v = 0.52 + 0.34 * Math.sin(Math.PI * (x - 0.12));
+          v -= 0.22 * Math.exp(-Math.pow((x - 0.54) / 0.07, 2));   // post-lunch dip
+          v += 0.05 * Math.sin(x * 22.0);                         // micro-ripple
+          return Math.max(0.06, Math.min(1, v));
+        }
+        o.tick = function (now, dt) {
+          o.advance(dt);
+          var ctx = o.ctx, w = o.w, h = o.h; if (!ctx) return; ctx.clearRect(0, 0, w, h);
+          var padX = 16, padT = 16, padB = 22;
+          var x0 = padX, x1 = w - padX, baseY = h - padB, topY = padT, usable = baseY - topY;
+          // baseline + hour ticks
+          ctx.strokeStyle = "rgba(255,255,255,.22)"; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(x0, baseY + .5); ctx.lineTo(x1, baseY + .5); ctx.stroke();
+          ctx.fillStyle = "rgba(255,255,255,.30)";
+          for (var i = 0; i <= 8; i++) { var tx = x0 + (x1 - x0) * i / 8; ctx.fillRect(tx, baseY + 2, 1, 4); }
+          // energy curve (fill + stroke)
+          var drift = Math.sin(o.clk * 0.6) * 0.012, f, xx, yy;
+          ctx.beginPath();
+          for (i = 0; i <= 64; i++) { f = i / 64; xx = x0 + (x1 - x0) * f; yy = baseY - energy(f + drift) * usable; i ? ctx.lineTo(xx, yy) : ctx.moveTo(xx, yy); }
+          ctx.lineTo(x1, baseY); ctx.lineTo(x0, baseY); ctx.closePath();
+          ctx.fillStyle = "rgba(237,28,36,.12)"; ctx.fill();
+          ctx.beginPath();
+          for (i = 0; i <= 64; i++) { f = i / 64; xx = x0 + (x1 - x0) * f; yy = baseY - energy(f + drift) * usable; i ? ctx.lineTo(xx, yy) : ctx.moveTo(xx, yy); }
+          ctx.strokeStyle = RED; ctx.lineWidth = 2; ctx.stroke();
+          // blocks dropping into their slots
+          var cycle = 6.5, dropDur = 0.6, stagger = 0.5, tau = o.clk % cycle;
+          blocks.forEach(function (b, k) {
+            var local = tau - k * stagger; if (local < -0.001) return;
+            var p = Math.max(0, Math.min(1, local / dropDur));
+            var eased = 1 - Math.pow(1 - p, 3);
+            var bx = x0 + (x1 - x0) * b.s, bw = (x1 - x0) * b.d, bh = Math.max(8, b.e * usable * 0.8);
+            var slotY = baseY - bh, startY = topY - bh - 6, y = startY + (slotY - startY) * eased;
+            ctx.fillStyle = "rgba(237,28,36,.16)"; ctx.fillRect(bx, y, bw, bh);
+            ctx.strokeStyle = "rgba(255,255,255,.85)"; ctx.lineWidth = 1.5; ctx.strokeRect(bx + .5, y + .5, bw - 1, bh - 1);
+            ctx.fillStyle = RED; ctx.fillRect(bx, y, bw, 3);
+          });
+          // playhead sweeping the day
+          var px = x0 + (x1 - x0) * (tau / cycle);
+          ctx.strokeStyle = "rgba(255,255,255,.5)"; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(px, topY - 4); ctx.lineTo(px, baseY); ctx.stroke();
+          ctx.fillStyle = INK; ctx.beginPath(); ctx.moveTo(px - 3, topY - 4); ctx.lineTo(px + 3, topY - 4); ctx.lineTo(px, topY + 1); ctx.closePath(); ctx.fill();
+        };
+        return o;
+      }
+
+      // ---- GLASSBOX: 6x6 causal attention matrix, tokens flowing left->right ----
+      function makeGlassbox(cv) {
+        var o = base(cv); var N = 6, toks = ["the", "cat", "sat", "on", "a", "mat"];
+        function wt(r, k) { var s = Math.sin(r * 7.13 + k * 3.7 + 1.5) * 0.5 + 0.5; return 0.15 + 0.85 * s; }
+        o.tick = function (now, dt) {
+          o.advance(dt);
+          var ctx = o.ctx, w = o.w, h = o.h; if (!ctx) return; ctx.clearRect(0, 0, w, h);
+          var pad = 14, topH = 20, gridTop = pad + topH;
+          var avail = Math.min(w - pad * 2, h - gridTop - pad), cell = avail / N;
+          var gx = (w - cell * N) / 2, gy = gridTop;
+          var qf = o.clk / 0.75, q = Math.floor(qf) % N, within = qf % 1;
+          // token row with the active query highlighted; flow moves L->R as q advances
+          for (var k = 0; k < N; k++) {
+            var tx = gx + cell * k, tw = cell, active = (k === q);
+            if (active) { ctx.fillStyle = INK; ctx.fillRect(tx + 2, pad - 2, tw - 4, topH - 4); }
+            ctx.strokeStyle = "rgba(255,255,255,.25)"; ctx.lineWidth = 1; ctx.strokeRect(tx + 2.5, pad - 1.5, tw - 5, topH - 5);
+            ctx.fillStyle = active ? "#0a0a0a" : "rgba(255,255,255,.7)";
+            ctx.font = '600 9px "JetBrains Mono",monospace'; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+            ctx.fillText(toks[k], tx + tw / 2, pad + topH / 2 - 1);
+          }
+          // attention grid (causal: only k<=r), filling cell-by-cell on the active row
+          for (var r = 0; r < N; r++) {
+            for (k = 0; k < N; k++) {
+              var cx = gx + cell * k, cy = gy + cell * r, bright = 0;
+              if (k <= r) {
+                if (r < q) bright = wt(r, k);
+                else if (r === q) bright = (k <= within * (r + 1)) ? wt(r, k) : 0;
+              }
+              if (bright > 0) { ctx.fillStyle = "rgba(237,28,36," + (0.12 + 0.8 * bright).toFixed(3) + ")"; ctx.fillRect(cx + 1, cy + 1, cell - 2, cell - 2); }
+              ctx.strokeStyle = "rgba(255,255,255," + (k <= r ? 0.14 : 0.05) + ")"; ctx.lineWidth = 1; ctx.strokeRect(cx + .5, cy + .5, cell - 1, cell - 1);
+            }
+          }
+          // outline the active query row
+          ctx.strokeStyle = "rgba(255,255,255,.55)"; ctx.lineWidth = 1.5;
+          ctx.strokeRect(gx + .5, gy + cell * q + .5, cell * N - 1, cell - 1);
+        };
+        return o;
+      }
+
+      // ---- GRADIENT: a real 2-layer MLP (2 -> 16 tanh -> 1 sigmoid) learning
+      //      two-moons by actual backprop, live. The decision boundary forms as
+      //      the net trains; loss/acc are the real numbers. No faked frames.
+      function makeGradient(cv) {
+        var o = base(cv);
+        var H = 16, lr = 0.35, N = 120, maxEpoch = 360;
+        var DX0 = -1.5, DX1 = 1.5, DY0 = -1.3, DY1 = 1.3;
+        var data, W1, b1, W2, b2, epoch, settle, run = 0, lossv = 1, accv = 0;
+        function rnd() { return (Math.random() * 2 - 1) * 0.8; }
+        function genMoons() {
+          data = [];
+          for (var i = 0; i < N; i++) {
+            var c = i % 2, t = Math.PI * Math.random(), nx = (Math.random() - 0.5) * 0.18, ny = (Math.random() - 0.5) * 0.18, x, y;
+            if (c === 0) { x = Math.cos(t); y = Math.sin(t); } else { x = 1 - Math.cos(t); y = -Math.sin(t) - 0.2; }
+            data.push({ x: (x - 0.5) * 0.9 + nx, y: (y + 0.1) * 0.9 + ny, c: c });
+          }
+        }
+        function reset() {
+          genMoons();
+          W1 = []; b1 = []; W2 = [];
+          for (var j = 0; j < H; j++) { W1.push([rnd(), rnd()]); b1.push(0); W2.push(rnd()); }
+          b2 = 0; epoch = 0; settle = 0; lossv = 1; accv = 0; run++;
+        }
+        reset();
+        function fwd(x, y) {
+          var a1 = new Array(H), z;
+          for (var j = 0; j < H; j++) { z = W1[j][0] * x + W1[j][1] * y + b1[j]; a1[j] = Math.tanh(z); }
+          var z2 = b2; for (j = 0; j < H; j++) z2 += W2[j] * a1[j];
+          return { a1: a1, p: 1 / (1 + Math.exp(-z2)) };
+        }
+        function trainEpoch() {
+          var gW1 = [], gb1 = new Array(H).fill(0), gW2 = new Array(H).fill(0), gb2 = 0, L = 0, ok = 0, j;
+          for (j = 0; j < H; j++) gW1.push([0, 0]);
+          for (var i = 0; i < N; i++) {
+            var d = data[i], f = fwd(d.x, d.y), p = f.p, y = d.c;
+            L += -(y * Math.log(p + 1e-7) + (1 - y) * Math.log(1 - p + 1e-7));
+            if ((p > 0.5 ? 1 : 0) === y) ok++;
+            var dz2 = p - y; gb2 += dz2;
+            for (j = 0; j < H; j++) {
+              gW2[j] += dz2 * f.a1[j];
+              var dz1 = dz2 * W2[j] * (1 - f.a1[j] * f.a1[j]);
+              gW1[j][0] += dz1 * d.x; gW1[j][1] += dz1 * d.y; gb1[j] += dz1;
+            }
+          }
+          var s = lr / N;
+          for (j = 0; j < H; j++) { W1[j][0] -= s * gW1[j][0]; W1[j][1] -= s * gW1[j][1]; b1[j] -= s * gb1[j]; W2[j] -= s * gW2[j]; }
+          b2 -= s * gb2; lossv = L / N; accv = ok / N; epoch++;
+        }
+        o.tick = function (now, dt) {
+          o.advance(dt);
+          var ctx = o.ctx, w = o.w, h = o.h; if (!ctx) return; ctx.clearRect(0, 0, w, h);
+          var spf = o.hover ? 4 : 1;
+          for (var s = 0; s < spf; s++) { if (epoch < maxEpoch) trainEpoch(); }
+          if (epoch >= maxEpoch) { settle += dt * (o.hover ? 2.3 : 1); if (settle > 1400) reset(); }
+          var padL = 12, padR = 12, padT = 12, padB = 22, iw = w - padL - padR, ih = h - padT - padB;
+          function CX(x) { return padL + (x - DX0) / (DX1 - DX0) * iw; }
+          function CY(y) { return padT + ih - (y - DY0) / (DY1 - DY0) * ih; }
+          // decision-boundary field — every cell is a real forward pass
+          var G = 22, cw = iw / G, ch = ih / G, gx, gy, dx, dy, p;
+          for (gx = 0; gx < G; gx++) for (gy = 0; gy < G; gy++) {
+            dx = DX0 + (gx + 0.5) / G * (DX1 - DX0); dy = DY0 + (gy + 0.5) / G * (DY1 - DY0); p = fwd(dx, dy).p;
+            ctx.fillStyle = p > 0.5
+              ? 'rgba(237,28,36,' + (0.05 + 0.32 * (p - 0.5) * 2).toFixed(3) + ')'
+              : 'rgba(255,255,255,' + (0.03 + 0.14 * (0.5 - p) * 2).toFixed(3) + ')';
+            ctx.fillRect(padL + gx * cw, padT + gy * ch, cw + 1, ch + 1);
+          }
+          // the data
+          var i, d;
+          for (i = 0; i < N; i++) {
+            d = data[i];
+            ctx.fillStyle = d.c ? RED : 'rgba(255,255,255,.92)';
+            ctx.strokeStyle = 'rgba(10,10,10,.55)'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.arc(CX(d.x), CY(d.y), 2.3, 0, 7); ctx.fill(); ctx.stroke();
+          }
+          // readout — the genuine numbers
+          ctx.font = '600 9px "JetBrains Mono",monospace'; ctx.textBaseline = 'alphabetic';
+          ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.textAlign = 'left';
+          ctx.fillText('epoch ' + epoch + '   loss ' + lossv.toFixed(3) + '   acc ' + Math.round(accv * 100) + '%', padL, h - 7);
+          ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.textAlign = 'right';
+          ctx.fillText('train #' + run, w - padR, h - 7);
+        };
+        return o;
+      }
+
+      // ---- PES-VCS: a commit graph drawing itself (fork + merge + HEAD) ----
+      function makePesVcs(cv) {
+        var o = base(cv);
+        var commits = [
+          { id: 0, lane: 0, par: [] }, { id: 1, lane: 0, par: [0] },
+          { id: 2, lane: 1, par: [1] }, { id: 3, lane: 1, par: [2] },
+          { id: 4, lane: 0, par: [1] }, { id: 5, lane: 0, par: [4, 3] }, { id: 6, lane: 0, par: [5] }
+        ];
+        o.tick = function (now, dt) {
+          o.advance(dt);
+          var ctx = o.ctx, w = o.w, h = o.h; if (!ctx) return; ctx.clearRect(0, 0, w, h);
+          var pad = 20, n = commits.length, x0 = pad + 8, x1 = w - pad - 8;
+          var laneLow = h - pad - 14, laneHigh = pad + 16;
+          function colX(id) { return x0 + (x1 - x0) * (id / (n - 1)); }
+          function laneY(l) { return l === 0 ? laneLow : laneHigh; }
+          var revealEach = 0.6, hold = 1.7, total = n * revealEach + hold, tau = o.clk % total;
+          var shown = tau / revealEach;
+          // edges
+          commits.forEach(function (c) {
+            var ap = Math.min(1, Math.max(0, shown - c.id)); if (ap <= 0) return;
+            c.par.forEach(function (pi) {
+              var p = commits[pi], x2 = colX(c.id), y2 = laneY(c.lane), x1p = colX(p.id), y1p = laneY(p.lane);
+              var ex = x1p + (x2 - x1p) * ap, ey = y1p + (y2 - y1p) * ap;
+              ctx.strokeStyle = (c.lane === 1 || p.lane === 1) ? "rgba(237,28,36,.85)" : "rgba(255,255,255,.6)";
+              ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x1p, y1p);
+              if (p.lane !== c.lane) { var mxk = x1p + (x2 - x1p) * 0.5; ctx.lineTo(mxk, y1p); ctx.lineTo(mxk, y2); ctx.lineTo(ex, ey); }
+              else ctx.lineTo(ex, ey);
+              ctx.stroke();
+            });
+          });
+          // nodes
+          var headIdx = -1;
+          commits.forEach(function (c) {
+            var ap = Math.min(1, Math.max(0, shown - c.id)); if (ap <= 0) return; headIdx = c.id;
+            var x = colX(c.id), y = laneY(c.lane), drop = (1 - ap) * -10, rr = 5.5 * Math.min(1, ap * 1.4);
+            ctx.fillStyle = RED; ctx.strokeStyle = INK; ctx.lineWidth = 1.6;
+            ctx.beginPath(); ctx.arc(x, y + drop, rr, 0, 7); ctx.fill(); ctx.stroke();
+          });
+          // HEAD pointer on the latest commit
+          if (headIdx >= 0) {
+            var c = commits[headIdx], x = colX(c.id), y = laneY(c.lane);
+            ctx.font = '700 8px "JetBrains Mono",monospace'; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+            var lbl = "HEAD", bw = ctx.measureText(lbl).width + 8, by = y - 17;
+            ctx.fillStyle = INK; ctx.fillRect(x - bw / 2, by - 7, bw, 13);
+            ctx.fillStyle = "#0a0a0a"; ctx.fillText(lbl, x, by);
+            ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, by + 6); ctx.lineTo(x, y - 6); ctx.stroke();
+          }
+          // lane labels
+          ctx.fillStyle = "rgba(255,255,255,.4)"; ctx.font = '600 8px "JetBrains Mono",monospace';
+          ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+          ctx.fillText("main", x0 - 2, laneLow + 16);
+          ctx.fillText("feat", x0 - 2, laneHigh - 9);
+        };
+        return o;
+      }
+
+      var RENDER = { orbit: makeOrbit, glassbox: makeGlassbox, gradient: makeGradient, pesvcs: makePesVcs };
+
+      // ---- single rAF loop over all registered instruments ----
+      var renderers = []; var overlayOpen = false; var lastT = performance.now();
+      function loop(now) {
+        var dt = Math.min(50, now - lastT); lastT = now;
+        for (var i = 0; i < renderers.length; i++) {
+          var r = renderers[i];
+          if (overlayOpen && !r.isCase) continue;
+          if (!r.visible) continue;
+          r.tick(now, dt);
+        }
+        requestAnimationFrame(loop);
+      }
+      function staticFrame(r, key) {
+        // reduced-motion: advance to a representative state, draw once.
+        if (key === "gradient") { for (var s = 0; s < 90; s++) r.tick(0, 30); }   // advance a descent
+        else { r.clk = key === "glassbox" ? 4.2 : key === "pesvcs" ? 5.6 : 3.0; r.tick(0, 16); }
+      }
+
+      /* =====================================================================
+         BUILD CARDS
+         ===================================================================== */
+      var grid = document.getElementById("grid");
+      var cardByKey = {};
+
+      function statHTML(s) {
+        var pre = s.pre ? '<span class="pre">' + s.pre + '</span>' : "";
+        var suf = s.suf ? '<span class="suf">' + s.suf + '</span>' : "";
+        return '<div class="stat">' +
+          '<div class="snum">' + pre + '<span class="val" data-target="' + s.target + '" data-decimals="' + (s.decimals || 0) + '">0</span>' + suf + '</div>' +
+          '<div class="slab">' + s.lab + '</div></div>';
+      }
+
+      PROJECTS.forEach(function (p) {
+        var card = document.createElement("article");
+        card.className = "card"; card.dataset.key = p.key; card.dataset.status = p.status;
+        var badge = p.status === "live"
+          ? '<div class="badge live" data-host="' + p.host + '"><span class="dot"></span>LIVE</div>'
+          : '<div class="badge built"><span class="dot"></span>BUILT</div>';
+        card.innerHTML =
+          '<div class="card-head">' +
+          '<canvas class="demo"></canvas>' +
+          '<div class="scan"></div>' +
+          '<div class="mono"><i>' + p.mono + '</i></div>' +
+          badge +
+          '<div class="idx">' + p.idx + '</div>' +
+          '</div>' +
+          '<div class="card-body">' +
+          '<div class="name-row"><span class="pname" data-decode="' + p.name + '">' + p.name + '</span>' +
+          '<span class="plabel" data-decode="' + p.label + '">' + p.label + '</span></div>' +
+          '<p class="blurb">' + p.blurb + '</p>' +
+          '<div class="stack">' + p.stack.map(function (t) { return '<span>' + t + '</span>'; }).join("") + '</div>' +
+          '<div class="stats">' + p.stats.map(statHTML).join("") + '</div>' +
+          '<button class="view" type="button">VIEW CASE STUDY <span class="arr">&rarr;</span></button>' +
+          '</div>';
+        grid.appendChild(card);
+        cardByKey[p.key] = card;
+
+        // wire the live instrument
+        var cv = card.querySelector("canvas.demo");
+        var r = RENDER[p.key](cv); r.resize();
+        cv._r = r; renderers.push(r);
+
+        // hover speeds the demo + plays a one-time scanline sweep
+        var head = card.querySelector(".card-head");
+        card.addEventListener("mouseenter", function () { r.setHover(true); head.classList.add("sweep"); });
+        card.addEventListener("mouseleave", function () { r.setHover(false); });
+        head.addEventListener("animationend", function () { head.classList.remove("sweep"); });
+
+        // open the case study from the header or the button
+        function open() { openCase(p); }
+        head.addEventListener("click", open);
+        card.querySelector(".view").addEventListener("click", open);
+
+        if (REDUCED) staticFrame(r, p.key);
+      });
+
+      if (!REDUCED) requestAnimationFrame(loop);
+
+      /* =====================================================================
+         INTERSECTION REVEAL — decode text + count-up stats + pause off-screen
+         ===================================================================== */
+      function countUp(el) {
+        var target = parseFloat(el.dataset.target), dec = parseInt(el.dataset.decimals, 10) || 0, dur = 1000, t0 = performance.now();
+        function fmt(v) { return dec ? v.toFixed(dec) : Math.round(v).toLocaleString(); }
+        if (REDUCED) { el.textContent = fmt(target); return; }
+        (function step(now) {
+          var p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+          el.textContent = fmt(target * e);
+          if (p < 1) requestAnimationFrame(step); else el.textContent = fmt(target);
+        })(t0);
+      }
+
+      var GLYPHS = "ABCDEFGHKLMNPRSTUVXYZ0123456789/<>_#";
+      function decode(el) {
+        var fin = el.dataset.decode || el.textContent, dur = 620, t0 = performance.now();
+        if (REDUCED) { el.textContent = fin; return; }
+        (function step(now) {
+          var p = Math.min(1, (now - t0) / dur), reveal = Math.floor(p * fin.length), out = "";
+          for (var i = 0; i < fin.length; i++) {
+            if (i < reveal || fin[i] === " ") out += fin[i];
+            else out += GLYPHS[(Math.random() * GLYPHS.length) | 0];
+          }
+          el.textContent = out;
+          if (p < 1) requestAnimationFrame(step); else el.textContent = fin;
+        })(t0);
+      }
+
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          var card = en.target, r = card.querySelector("canvas.demo")._r;
+          r.visible = en.isIntersecting;
+          if (en.isIntersecting && !card._revealed) {
+            card._revealed = true;
+            card.querySelectorAll(".val").forEach(countUp);
+            card.querySelectorAll("[data-decode]").forEach(decode);
+          }
+        });
+      }, { threshold: 0.18 });
+      Object.keys(cardByKey).forEach(function (k) { io.observe(cardByKey[k]); });
+
+      /* =====================================================================
+         FILTER with FLIP rearrange
+         ===================================================================== */
+      var filters = Array.prototype.slice.call(document.querySelectorAll("#filters .toggle"));
+      var curFilter = "all";
+      filters.forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var f = btn.dataset.filter; if (f === curFilter) return;
+          filters.forEach(function (b) { b.setAttribute("aria-pressed", b === btn ? "true" : "false"); });
+          applyFilter(f);
+        });
+      });
+      function applyFilter(f) {
+        var cards = PROJECTS.map(function (p) { return cardByKey[p.key]; });
+        // FIRST
+        var first = {}; cards.forEach(function (c) { first[c.dataset.key] = c.getBoundingClientRect(); });
+        // mutate visibility
+        cards.forEach(function (c) {
+          var match = (f === "all") || (c.dataset.status === f);
+          c.style.display = match ? "" : "none";
+          c.classList.toggle("is-out", !match);
+        });
+        curFilter = f;
+        if (REDUCED) return;
+        // LAST + INVERT + PLAY on the still-visible cards
+        cards.forEach(function (c) {
+          if (c.style.display === "none") return;
+          var fr = first[c.dataset.key], lr = c.getBoundingClientRect();
+          var dx = fr.left - lr.left, dy = fr.top - lr.top;
+          if (!dx && !dy) return;
+          c.style.transition = "none";
+          c.style.transform = "translate(" + dx + "px," + dy + "px)";
+          requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+              c.style.transition = "transform .5s " + "cubic-bezier(.2,.9,.2,1)";
+              c.style.transform = "";
+            });
+          });
+        });
+      }
+
+      /* =====================================================================
+         SCROLL-DRIVEN UI — hatch drift, index glow, title squash
+         ===================================================================== */
+      var titleWrap = document.getElementById("titleWrap");
+      var lastScroll = window.scrollY, vel = 0, squash = 0;
+      window.addEventListener("scroll", function () {
+        var y = window.scrollY; vel = y - lastScroll; lastScroll = y;
+      }, { passive: true });
+
+      function uiFrame() {
+        // hatch drifts diagonally with scroll
+        document.documentElement.style.setProperty("--hatch", (lastScroll * 0.45 % 200) + "px");
+        // index glow: brighten the card whose centre is nearest the viewport centre
+        var vc = window.innerHeight * 0.5;
+        PROJECTS.forEach(function (p) {
+          var card = cardByKey[p.key]; if (card.style.display === "none") return;
+          var rc = card.getBoundingClientRect(), cc = rc.top + rc.height * 0.5;
+          var d = Math.min(1, Math.abs(cc - vc) / (window.innerHeight * 0.7));
+          card.querySelector(".idx").style.setProperty("--g", (1 - d).toFixed(3));
+        });
+        // SELECTED WORK squashes on scroll velocity (width-axis move)
+        squash += (Math.max(-60, Math.min(60, vel)) - squash) * 0.25; vel *= 0.8;
+        var k = squash * 0.0016;
+        titleWrap.style.transform = "scaleY(" + (1 - k).toFixed(4) + ") scaleX(" + (1 + k * 0.7).toFixed(4) + ")";
+        requestAnimationFrame(uiFrame);
+      }
+      if (!REDUCED) requestAnimationFrame(uiFrame);
+      else {
+        document.documentElement.style.setProperty("--hatch", "0px");
+        PROJECTS.forEach(function (p) { cardByKey[p.key].querySelector(".idx").style.setProperty("--g", "0.6"); });
+      }
+
+      /* =====================================================================
+         LIVE MONITOR — periodic "ping -> ok" against the live deployments.
+         (Simulated latency here; production swaps the setTimeout for a real
+          fetch(host,{method:"HEAD"}) and reads the response status.)
+         ===================================================================== */
+      var pingline = document.getElementById("pingline");
+      var liveProjects = PROJECTS.filter(function (p) { return p.status === "live"; });
+      var pIdx = 0;
+      function pingNext() {
+        if (!liveProjects.length) return;
+        var p = liveProjects[pIdx % liveProjects.length]; pIdx++;
+        pingline.innerHTML = '&#9656; ping <b>' + p.host + '</b> &hellip;';
+        var latency = 28 + Math.floor(Math.random() * 70);
+        setTimeout(function () {
+          pingline.innerHTML = '&#9656; <b>' + p.host + '</b> &rarr; <span class="ok">200 OK</span> ' + latency + 'ms';
+          var badge = cardByKey[p.key].querySelector(".badge.live");
+          if (badge) { badge.classList.add("pinged"); setTimeout(function () { badge.classList.remove("pinged"); }, 520); }
+          setTimeout(pingNext, 1900);
+        }, 360 + Math.floor(Math.random() * 240));
+      }
+      setTimeout(pingNext, 700);
+
+      /* =====================================================================
+         CASE STUDY — shared-element expand (the card grows into the page)
+         ===================================================================== */
+      var activePanel = null, caseRenderer = null;
+
+      function buildPanel(p) {
+        var panel = document.createElement("section");
+        panel.className = "cs-panel"; panel.dataset.key = p.key;
+        var srcLink = '<a class="cs-link ghost" href="' + p.github + '" target="_blank" rel="noopener">VIEW SOURCE</a>';
+        var links = p.host
+          ? '<a class="cs-link primary" href="https://' + p.host + '" target="_blank" rel="noopener">VISIT LIVE &rarr;</a>' + srcLink
+          : srcLink;
+        var metaRows = Object.keys(p.meta).map(function (kk) { return '<dt>' + kk + '</dt><dd>' + p.meta[kk] + '</dd>'; }).join("");
+        panel.innerHTML =
+          '<div class="cs-head">' +
+          '<canvas class="demo"></canvas>' +
+          '<div class="cs-mono"><i>' + p.mono + '</i></div>' +
+          '<button class="cs-close" type="button">CLOSE &times; ESC</button>' +
+          '</div>' +
+          '<div class="cs-scroll"><div class="cs-body">' +
+          '<div class="cs-eyebrow">' + p.label + '</div>' +
+          '<h2 class="cs-title">' + p.name + '</h2>' +
+          '<p class="cs-tag">' + p.tagline + '</p>' +
+          '<div class="cs-grid">' +
+          '<div>' +
+          '<div class="cs-section-h">Overview</div>' +
+          '<p style="font-size:14px;line-height:1.6;color:#222;margin:0 0 26px;">' + p.overview + '</p>' +
+          '<div class="cs-section-h">Highlights</div>' +
+          '<ul class="cs-list">' + p.highlights.map(function (x) { return '<li>' + x + '</li>'; }).join("") + '</ul>' +
+          '</div>' +
+          '<aside>' +
+          '<div class="cs-section-h">Stack</div>' +
+          '<div class="stack" style="margin-bottom:22px">' + p.stack.map(function (t) { return '<span>' + t + '</span>'; }).join("") + '</div>' +
+          '<div class="cs-meta"><dl style="margin:0">' + metaRows + '</dl></div>' +
+          '<div class="cs-links">' + links + '</div>' +
+          '</aside>' +
+          '</div>' +
+          '</div></div>';
+        return panel;
+      }
+
+      function openCase(p) {
+        if (activePanel) return;
+        var card = cardByKey[p.key], rect = card.getBoundingClientRect();
+        var panel = buildPanel(p); document.body.appendChild(panel);
+        panel.style.left = rect.left + "px"; panel.style.top = rect.top + "px";
+        panel.style.width = rect.width + "px"; panel.style.height = rect.height + "px";
+        // spin up the same instrument in the panel header (demo carries over)
+        var cv = panel.querySelector("canvas.demo");
+        var r = RENDER[p.key](cv); r.isCase = true; r.resize(); caseRenderer = r; renderers.push(r);
+        activePanel = panel; overlayOpen = true;
+        document.body.classList.add("cs-open");
+
+        panel.getBoundingClientRect();           // force reflow before expanding
+        requestAnimationFrame(function () { panel.classList.add("cs-expand"); });
+
+        panel.addEventListener("transitionend", function te(e) {
+          if (e.propertyName === "width") { r.resize(); if (REDUCED) { staticFrame(r, p.key); } }
+        });
+        if (REDUCED) { panel.style.transition = "none"; panel.classList.add("cs-expand"); r.resize(); staticFrame(r, p.key); }
+
+        panel.querySelector(".cs-close").addEventListener("click", closeCase);
+      }
+
+      function closeCase() {
+        if (!activePanel) return;
+        var panel = activePanel, key = panel.dataset.key, card = cardByKey[key];
+        var rect = card.getBoundingClientRect();
+        // animate back to the (current) card rect, then tear down
+        panel.style.left = rect.left + "px"; panel.style.top = rect.top + "px";
+        panel.style.width = rect.width + "px"; panel.style.height = rect.height + "px";
+        panel.classList.remove("cs-expand");
+        var done = function () {
+          renderers = renderers.filter(function (x) { return x !== caseRenderer; });
+          caseRenderer = null; panel.remove(); activePanel = null;
+          overlayOpen = false; document.body.classList.remove("cs-open");
+        };
+        if (REDUCED) { done(); return; }
+        var fired = false;
+        panel.addEventListener("transitionend", function (e) { if (e.propertyName === "width" && !fired) { fired = true; done(); } });
+        setTimeout(function () { if (!fired) { fired = true; done(); } }, 700); // safety net
+      }
+
+      document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeCase(); });
+
+      /* =====================================================================
+         RESIZE — re-fit every canvas (debounced)
+         ===================================================================== */
+      var rz = null;
+      window.addEventListener("resize", function () {
+        if (rz) clearTimeout(rz);
+        rz = setTimeout(function () {
+          renderers.forEach(function (r) { r.resize(); if (REDUCED) staticFrame(r, r.cv.closest("[data-key]") ? r.cv.closest("[data-key]").dataset.key : "orbit"); });
+        }, 140);
+      });
+    })();
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,719 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ORBITAL HUD — saturn nav (orbit · detonate · command · live)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+/* ============================================================ TOKENS (cream brutalist world) */
+:root{
+  --red:#ed1c24; --red-deep:#b3001b;
+  --paper:#f7f5f1; --paper2:#efece4;
+  --ink:#141414; --black:#0a0a0a;
+  --lime:#c8e620;                 /* main-site brand → reserved for PROGRESS (a completed orbit) */
+  --gray:#928b80;
+  --font-display:"Anton",sans-serif;
+  --font-mono:"JetBrains Mono",monospace;
+  --ease:cubic-bezier(.2,.9,.2,1);
+  --pop:cubic-bezier(.16,1,.3,1);
+  --spring:cubic-bezier(.2,1.25,.3,1);
+  --thunk:cubic-bezier(.18,1.5,.3,1);
+}
+*{ box-sizing:border-box; margin:0; padding:0; }
+html{ scroll-behavior:smooth; }
+@media (prefers-reduced-motion:reduce){ html{ scroll-behavior:auto; } }
+body{ background:var(--paper); color:var(--ink); font-family:var(--font-mono); -webkit-font-smoothing:antialiased; }
+::selection{ background:var(--red); color:var(--paper); }
+a{ color:inherit; text-decoration:none; }
+button{ font:inherit; color:inherit; background:none; border:none; cursor:pointer; }
+
+/* registered prop so the moon "fling" (0 → out) can transition */
+@property --k{ syntax:'<number>'; inherits:true; initial-value:0; }
+
+/* ============================================================ DEMO PAGE (something for the nav to track) */
+.skip{ position:absolute; left:-9999px; top:0; background:var(--ink); color:var(--paper); padding:8px 12px; z-index:4000; }
+.skip:focus{ left:8px; top:8px; }
+
+.demo-sec{ min-height:100vh; padding:clamp(70px,11vh,150px) clamp(20px,7vw,120px) clamp(40px,8vh,90px); scroll-margin-top:0;
+  display:flex; flex-direction:column; justify-content:center; border-bottom:3px solid var(--ink); position:relative; }
+.demo-sec:nth-child(even){ background:var(--paper2); }
+.sec-kicker{ font-size:12px; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:var(--red); }
+.sec-kicker::before{ content:"// "; color:#a39c91; }
+.sec-row{ display:flex; align-items:baseline; gap:clamp(14px,3vw,40px); flex-wrap:wrap; margin-top:10px; }
+.sec-num{ font-family:var(--font-display); font-size:clamp(2.4rem,7vw,6rem); line-height:.8; color:var(--ink);
+  -webkit-text-stroke:2px var(--ink); color:transparent; }
+.sec-title{ font-family:var(--font-display); font-size:clamp(3rem,12vw,10rem); line-height:.82; text-transform:uppercase; letter-spacing:.005em; }
+.sec-body{ margin-top:clamp(20px,3vw,34px); max-width:62ch; font-size:clamp(.95rem,1.2vw,1.05rem); line-height:1.85; color:#33302a; }
+.sec-body b{ color:var(--ink); font-weight:700; }
+.chips{ display:flex; flex-wrap:wrap; gap:10px; margin-top:26px; }
+.chip{ font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; border:2px solid var(--ink);
+  padding:7px 12px; background:var(--paper); box-shadow:3px 3px 0 var(--ink); }
+.demo-hero{ min-height:100vh; display:flex; flex-direction:column; justify-content:center; gap:18px;
+  padding:clamp(70px,11vh,150px) clamp(20px,7vw,120px); border-bottom:3px solid var(--ink); }
+.demo-hero h1{ font-family:var(--font-display); font-size:clamp(3rem,13vw,11rem); line-height:.78; text-transform:uppercase; }
+.demo-hero h1 em{ font-style:normal; color:var(--red); }
+.demo-hero .lead{ max-width:60ch; font-size:clamp(.95rem,1.3vw,1.1rem); line-height:1.8; color:#33302a; }
+.legend{ display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+.legend kbd{ font-family:var(--font-mono); font-size:11px; font-weight:700; letter-spacing:.06em; border:2px solid var(--ink);
+  background:var(--ink); color:var(--paper); padding:6px 9px; box-shadow:3px 3px 0 rgba(20,20,20,.3); }
+.legend kbd b{ color:var(--lime); }
+.foot{ padding:34px clamp(20px,7vw,120px) 80px; font-size:11px; letter-spacing:.08em; color:#6b655c; }
+
+/* ============================================================ TOP PROGRESS RAIL + WALKING CAT */
+.rail{ position:fixed; top:0; left:0; right:0; height:4px; z-index:1200; background:rgba(20,20,20,.10); }
+.rail-fill{ position:absolute; left:0; top:0; bottom:0; width:var(--p,0%); background:var(--lime);
+  border-right:2px solid var(--ink); }
+.cat-walk{ position:fixed; top:5px; left:0; z-index:1201; width:34px; height:26px; pointer-events:none;
+  transform:translateX(calc(var(--px,0px) - 17px)); color:var(--ink); }
+.cat-walk svg{ display:block; width:100%; height:100%; }
+.cat-walk.walking{ animation:catbob .26s steps(2) infinite; }
+@keyframes catbob{ 50%{ transform:translateX(calc(var(--px,0px) - 17px)) translateY(-1.5px); } }
+
+/* ============================================================ HUD (collapsed, always-on instrument) */
+.hud{ position:fixed; top:clamp(14px,2vw,22px); right:clamp(14px,2vw,22px); z-index:1300;
+  display:flex; align-items:stretch; gap:0; }
+.readout{ display:flex; align-items:center; gap:8px; height:52px; padding:0 14px;
+  background:var(--ink); color:var(--paper); border:3px solid var(--ink); border-right:none;
+  box-shadow:5px 5px 0 rgba(20,20,20,.35);
+  font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; white-space:nowrap; }
+.readout .mk{ color:var(--red); }
+.readout .ro-n{ color:var(--lime); }
+@media (max-width:560px){ .readout{ display:none; } }
+
+.mono-btn{ position:relative; flex:none; width:52px; height:52px; display:grid; place-items:center;
+  background:var(--red); color:var(--ink); border:3px solid var(--ink);
+  box-shadow:5px 5px 0 rgba(20,20,20,.35);
+  transition:transform .12s var(--ease), box-shadow .12s var(--ease); }
+.mono-btn:hover{ transform:translate(2px,2px); box-shadow:3px 3px 0 rgba(20,20,20,.35); }
+.mono-btn:focus-visible{ outline:2px solid var(--paper); outline-offset:-5px; }
+.mono-svg{ width:30px; height:30px; overflow:visible; }
+.mono-svg .ring-bg{ stroke:rgba(20,20,20,.30); }
+.mono-svg .ring-fill{ stroke:var(--lime); stroke-linecap:round;
+  stroke-dasharray:100; stroke-dashoffset:calc(100 - var(--pp,0)); }
+.mono-btn:hover .mono-svg{ animation:spin360 .8s var(--pop); }
+@keyframes spin360{ from{ transform:rotate(0); } to{ transform:rotate(360deg); } }
+
+/* ============================================================ ORBITAL OVERLAY (idea 1) */
+.orbit-wrap{ position:fixed; inset:0; z-index:1500; display:none; }
+.orbit-wrap.open{ display:block; }
+.orbit-backdrop{ position:absolute; inset:0; background:rgba(247,245,241,.78);
+  backdrop-filter:blur(2px); opacity:0; transition:opacity .3s ease; }
+.orbit-wrap.open .orbit-backdrop{ opacity:1; }
+.orbit-center{ position:absolute; left:50%; top:48%; width:0; height:0; }
+
+.orbit-ring{ position:absolute; left:0; top:0; transform:translate(-50%,-50%) rotate(-26deg); overflow:visible; pointer-events:none; }
+.orbit-ring .orbit-line{ fill:none; stroke:var(--ink); stroke-width:2; stroke-dasharray:2 7; opacity:.45; }
+.orbit-ring .orbit-line.solid{ stroke-dasharray:none; stroke-width:2.5; opacity:.85; }
+
+.orbit-moons{ position:absolute; left:0; top:0; width:0; height:0; }
+.moon{ position:absolute; left:0; top:0; --k:0;
+  transform:translate(-50%,-50%) translate(calc(var(--mx,0px)*var(--k)), calc(var(--my,0px)*var(--k)));
+  opacity:var(--k); pointer-events:none;
+  transition:--k .55s var(--spring), opacity .35s ease; transition-delay:calc(var(--i,0)*.05s); }
+.orbit-moons.open .moon{ --k:1; pointer-events:auto; }
+.moon-cr{ display:block; transform:rotate(26deg); transform-origin:center; }
+.moon-box{ display:flex; flex-direction:column; align-items:center; gap:3px; min-width:96px; padding:10px 12px;
+  background:var(--paper); color:var(--ink); border:2.5px solid var(--ink); box-shadow:3px 3px 0 var(--ink);
+  transition:transform .16s var(--spring), background .14s, color .14s, box-shadow .14s, border-color .14s; }
+.moon-n{ font-size:9px; font-weight:700; letter-spacing:.2em; color:var(--red); }
+.moon-l{ font-size:12.5px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; }
+.moon .moon-ext{ font-size:9px; letter-spacing:.12em; color:var(--gray); }
+/* hover = invert + enlarge */
+.moon:hover .moon-box, .moon:focus-visible .moon-box{ transform:scale(1.16); background:var(--red); color:var(--paper);
+  border-color:var(--ink); box-shadow:6px 6px 0 var(--ink); }
+.moon:hover .moon-n, .moon:focus-visible .moon-n{ color:var(--paper); }
+.moon:focus-visible{ outline:none; }
+/* lit = the section you're currently in (position indicator) */
+.moon.lit .moon-box{ background:var(--red); color:var(--paper); box-shadow:4px 4px 0 var(--ink), 0 0 0 3px var(--lime); }
+.moon.lit .moon-n{ color:var(--lime); }
+.moon.lit:hover .moon-box, .moon.lit:focus-visible .moon-box{ background:var(--ink); color:var(--lime); }
+.moon.lit:hover .moon-n{ color:var(--lime); }
+
+/* center planet — its 360° spin is the open animation; clicking it DETONATES */
+.sat-core{ position:absolute; left:0; top:0; transform:translate(-50%,-50%); width:96px; height:96px;
+  display:grid; place-items:center; background:var(--red); color:var(--ink); border:3px solid var(--ink);
+  border-radius:50%; box-shadow:6px 6px 0 var(--ink); transition:transform .25s var(--spring), box-shadow .2s; }
+.sat-core:hover{ box-shadow:0 0 0 4px var(--lime), 6px 6px 0 var(--ink); }
+.sat-core:focus-visible{ outline:none; box-shadow:0 0 0 4px var(--lime), 6px 6px 0 var(--ink); }
+.sat-core .core-svg{ width:54px; height:54px; overflow:visible; }
+.orbit-wrap.open .sat-core .core-svg{ animation:spin360 .95s var(--pop); }
+.sat-hint{ position:absolute; left:50%; top:calc(50% + 66px); transform:translateX(-50%); white-space:nowrap;
+  font-size:9px; font-weight:700; letter-spacing:.18em; color:var(--ink); opacity:.0; transition:opacity .2s; pointer-events:none; }
+.orbit-wrap.open .sat-hint{ opacity:.6; transition-delay:.5s; }
+.sat-core:hover ~ .sat-hint, .orbit-center:hover .sat-hint{ opacity:1; color:var(--red); }
+
+/* ============================================================ DETONATE — full-screen takeover (idea 4) */
+.blast{ position:fixed; inset:0; z-index:1700; background:var(--black); color:var(--paper);
+  display:none; overflow:hidden; }
+.blast.open{ display:block; }
+.blast-grid{ position:absolute; inset:0;
+  background-image:linear-gradient(rgba(247,245,241,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(247,245,241,.05) 1px,transparent 1px);
+  background-size:48px 48px; pointer-events:none; }
+.blast-top{ position:relative; display:flex; align-items:center; justify-content:space-between; gap:16px;
+  padding:clamp(18px,3vw,34px) clamp(20px,5vw,70px); border-bottom:2px solid rgba(247,245,241,.18); }
+.blast-top .bt-k{ font-size:11px; font-weight:700; letter-spacing:.2em; color:var(--lime); }
+.blast-close{ font-size:11px; font-weight:700; letter-spacing:.14em; border:2px solid var(--paper); color:var(--paper);
+  padding:8px 12px; transition:background .14s,color .14s; }
+.blast-close:hover{ background:var(--red); color:var(--paper); border-color:var(--red); }
+.blast-list{ position:relative; list-style:none; padding:clamp(6px,2vh,30px) 0; margin:0;
+  height:calc(100% - 70px); display:flex; flex-direction:column; justify-content:center; overflow-y:auto; }
+.blast-item{ position:relative; display:flex; align-items:center; gap:clamp(14px,2.5vw,34px);
+  padding:clamp(2px,1vh,14px) clamp(20px,7vw,120px); cursor:pointer; overflow:hidden; }
+.blast-item::before{ content:""; position:absolute; inset:0; background:var(--red); transform:translateX(-101%);
+  transition:transform .28s var(--pop); z-index:0; }
+.blast-item:hover::before, .blast-item:focus-visible::before{ transform:translateX(0); }
+.blast-item > *{ position:relative; z-index:1; }
+.blast-n{ font-family:var(--font-mono); font-size:clamp(.9rem,1.4vw,1.1rem); font-weight:700; letter-spacing:.1em;
+  color:var(--lime); min-width:3ch; }
+.blast-name{ font-family:var(--font-display); font-size:clamp(1.7rem,min(8.5vw,10vh),7rem); line-height:.86; text-transform:uppercase;
+  color:var(--paper); transition:color .2s, transform .2s var(--pop); }
+.blast-item:hover .blast-name, .blast-item:focus-visible .blast-name{ transform:translateX(10px); }
+.blast-ext{ font-size:11px; letter-spacing:.16em; color:rgba(247,245,241,.5); align-self:center; }
+.blast-item.lit .blast-name{ color:var(--lime); }
+.blast-item.lit .blast-n::after{ content:" ◂ HERE"; color:var(--paper); font-size:.7em; letter-spacing:.1em; }
+.blast-item:focus-visible{ outline:none; }
+/* marquee spine down the right edge */
+.spine{ position:absolute; top:0; right:0; bottom:0; width:54px; border-left:2px solid rgba(247,245,241,.18);
+  overflow:hidden; display:grid; place-items:center; }
+.spine-track{ writing-mode:vertical-rl; white-space:nowrap; font-family:var(--font-display); font-size:1.5rem;
+  letter-spacing:.16em; text-transform:uppercase; color:rgba(247,245,241,.42); will-change:transform; }
+/* cat lounging in the corner */
+.blast-cat-wrap{ position:absolute; left:clamp(16px,4vw,54px); bottom:clamp(14px,3vh,40px); display:flex; align-items:flex-start; gap:10px; }
+.blast-cat{ width:120px; height:78px; color:var(--paper); opacity:.9; }
+.blast-cat-wrap .meow{ margin-top:8px; font-size:10px; letter-spacing:.14em; color:var(--lime); white-space:nowrap; }
+.blast-cat-wrap .meow::before{ content:"“ "; }
+.blast-cat-wrap .meow:not(:empty)::after{ content:" ”"; }
+
+/* ============================================================ COMMAND PALETTE (idea 2) */
+.cmd-wrap{ position:fixed; inset:0; z-index:1900; display:none; }
+.cmd-wrap.open{ display:block; }
+.cmd-back{ position:absolute; inset:0; background:rgba(10,10,10,.5); opacity:0; transition:opacity .2s; }
+.cmd-wrap.open .cmd-back{ opacity:1; }
+.cmd{ position:absolute; left:50%; top:84px; transform:translate(-50%,-18px); width:min(92vw,560px);
+  background:var(--ink); border:3px solid var(--ink); box-shadow:10px 10px 0 rgba(10,10,10,.5);
+  opacity:0; transition:transform .22s var(--pop), opacity .2s ease; }
+.cmd-wrap.open .cmd{ transform:translate(-50%,0); opacity:1; }
+.cmd-input-row{ display:flex; align-items:center; gap:10px; padding:14px 16px; border-bottom:2px solid rgba(247,245,241,.16); }
+.cmd-prompt{ color:var(--lime); font-weight:700; }
+.cmd-input{ flex:1; background:none; border:none; outline:none; color:var(--paper); font-family:var(--font-mono);
+  font-size:15px; letter-spacing:.04em; caret-color:var(--lime); }
+.cmd-input::placeholder{ color:rgba(247,245,241,.4); }
+.cmd-esc{ font-size:9px; font-weight:700; letter-spacing:.12em; color:rgba(247,245,241,.45); border:1.5px solid rgba(247,245,241,.3); padding:4px 7px; }
+.cmd-list{ list-style:none; margin:0; padding:6px; max-height:50vh; overflow:auto; }
+.cmd-item{ display:flex; align-items:center; gap:12px; padding:11px 12px; color:var(--paper); }
+.cmd-item .ci-n{ font-size:11px; font-weight:700; letter-spacing:.12em; color:var(--lime); min-width:2.4ch; }
+.cmd-item .ci-l{ font-size:13px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+.cmd-item .ci-tag{ margin-left:auto; font-size:10px; letter-spacing:.12em; color:rgba(247,245,241,.45); }
+.cmd-item.here .ci-tag{ color:var(--lime); }
+.cmd-item.active{ background:var(--red); }
+.cmd-item.active .ci-n{ color:var(--paper); }
+.cmd-item.active .ci-tag{ color:var(--paper); }
+.cmd-empty{ padding:18px 14px; color:rgba(247,245,241,.5); font-size:12px; letter-spacing:.04em; }
+
+/* ============================================================ reduced motion */
+@media (prefers-reduced-motion:reduce){
+  .cat-walk.walking, .spine-track, .mono-btn:hover .mono-svg, .orbit-wrap.open .sat-core .core-svg{ animation:none; }
+  .moon{ transition:opacity .2s linear; }
+  .blast-item::before{ transition:none; }
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">skip to content</a>
+
+<!-- ░░░░░░░░ TOP PROGRESS RAIL + WALKING CAT (idea 3 + lightning round) ░░░░░░░░ -->
+<div class="rail" aria-hidden="true"><div class="rail-fill" id="railFill"></div></div>
+<div class="cat-walk" id="catWalk" aria-hidden="true">
+  <!-- minimal grumpy cat, riding the progress edge -->
+  <svg viewBox="0 0 34 26" fill="currentColor">
+    <path d="M4 6 L7 1 L9 7 Z M16 7 L19 1 L21 8 Z"/>            <!-- ears -->
+    <path d="M3 9 q9 -4 18 0 q4 1 4 7 q0 6 -9 6 h-8 q-5 0 -5 -6 Z"/> <!-- head/body -->
+    <rect x="26" y="14" width="6" height="2.4" rx="1.2"/>        <!-- tail -->
+    <rect x="7"  y="13" width="3" height="1.6" fill="#f7f5f1"/>  <!-- grumpy eyes -->
+    <rect x="14" y="13" width="3" height="1.6" fill="#f7f5f1"/>
+  </svg>
+</div>
+
+<!-- ░░░░░░░░ HUD — collapsed, always-on instrument (idea 3) ░░░░░░░░ -->
+<nav class="hud" aria-label="Primary">
+  <div class="readout" id="readout" aria-live="polite">
+    <span class="mk">▸</span><span class="ro-n" id="roNum">01</span><span id="roName">WORK</span>
+  </div>
+  <button class="mono-btn" id="orbToggle" type="button" aria-haspopup="menu" aria-expanded="false"
+          aria-controls="orbitMoons" aria-label="Open orbital menu — current section Work">
+    <svg class="mono-svg" id="monoSvg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <!-- the canonical Saturn mark; the ring at −26° fills with scroll progress -->
+      <ellipse class="ring-bg" cx="12" cy="12" rx="10.6" ry="3.9" transform="rotate(-26 12 12)" stroke-width="1.7"></ellipse>
+      <ellipse class="ring-fill" cx="12" cy="12" rx="10.6" ry="3.9" pathLength="100" transform="rotate(-26 12 12)" stroke-width="2.4"></ellipse>
+      <circle cx="12" cy="12" r="3" fill="currentColor"></circle>
+      <circle cx="3.7" cy="16.1" r="1.7" fill="currentColor"></circle>
+    </svg>
+  </button>
+</nav>
+
+<!-- ░░░░░░░░ ORBITAL OVERLAY — moons on the tilted ring (idea 1) ░░░░░░░░ -->
+<div class="orbit-wrap" id="orbitWrap">
+  <div class="orbit-backdrop" id="orbitBackdrop"></div>
+  <div class="orbit-center" id="orbitCenter">
+    <svg class="orbit-ring" id="orbitRing" aria-hidden="true"></svg>
+    <ul class="orbit-moons" id="orbitMoons" role="menu" aria-label="Sections"></ul>
+    <button class="sat-core" id="satCore" type="button" aria-label="Detonate — full-screen menu">
+      <svg class="core-svg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <ellipse cx="12" cy="12" rx="10.6" ry="3.9" transform="rotate(-26 12 12)" stroke="currentColor" stroke-width="1.7"></ellipse>
+        <circle cx="12" cy="12" r="3" fill="currentColor"></circle>
+        <circle cx="3.7" cy="16.1" r="1.7" fill="currentColor"></circle>
+      </svg>
+    </button>
+    <span class="sat-hint" id="satHint">TAP CORE — DETONATE</span>
+  </div>
+</div>
+
+<!-- ░░░░░░░░ DETONATE — full-screen takeover (idea 4) ░░░░░░░░ -->
+<div class="blast" id="blast" role="dialog" aria-modal="true" aria-label="Full-screen menu">
+  <div class="blast-grid" aria-hidden="true"></div>
+  <div class="blast-top">
+    <span class="bt-k">// NAVIGATE</span>
+    <button class="blast-close" id="blastClose" type="button">[ ESC ] CLOSE</button>
+  </div>
+  <ul class="blast-list" id="blastList"></ul>
+  <div class="spine" aria-hidden="true"><div class="spine-track" id="spineTrack"></div></div>
+  <div class="blast-cat-wrap" aria-hidden="true">
+    <svg class="blast-cat" viewBox="0 0 120 78" fill="currentColor">
+      <!-- cat lounging in the corner -->
+      <path d="M6 60 q0 -16 22 -16 h54 q26 0 26 16 q0 12 -16 12 H20 q-14 0 -14 -12 Z"/>
+      <path d="M14 46 l2 -12 l9 9 Z M28 45 l2 -12 l8 10 Z"/>
+      <path d="M104 56 q14 -2 14 -16 q0 -6 -5 -8 q4 5 1 11 q-3 7 -10 9 Z"/>
+      <rect x="20" y="51" width="6" height="2.6" rx="1.3" fill="#0a0a0a"/>
+      <rect x="33" y="51" width="6" height="2.6" rx="1.3" fill="#0a0a0a"/>
+    </svg>
+    <span class="meow" id="catMeow"></span>
+  </div>
+</div>
+
+<!-- ░░░░░░░░ COMMAND PALETTE (idea 2) ░░░░░░░░ -->
+<div class="cmd-wrap" id="cmdWrap">
+  <div class="cmd-back" id="cmdBack"></div>
+  <div class="cmd" role="dialog" aria-modal="true" aria-label="Command palette">
+    <div class="cmd-input-row">
+      <span class="cmd-prompt">&gt;</span>
+      <input class="cmd-input" id="cmdInput" type="text" autocomplete="off" spellcheck="false"
+             placeholder="jump to a section…" aria-label="Search sections" />
+      <span class="cmd-esc">ESC</span>
+    </div>
+    <ul class="cmd-list" id="cmdList"></ul>
+  </div>
+</div>
+
+<!-- ░░░░░░░░ DEMO PAGE ░░░░░░░░ -->
+<main id="main">
+  <header class="demo-hero" id="top">
+    <p class="sec-kicker">portfolio '26 · nav mockup</p>
+    <h1>SANTOSH<br><em>CHEETHIRALA</em></h1>
+    <p class="lead">The monogram is literally Saturn — so the nav <b>orbits it</b>. This is one instrument with four
+      states: a live HUD that always knows where you are, an orbital menu, a full-screen detonation, and a command palette.</p>
+    <div class="legend" aria-hidden="true">
+      <kbd>TAP <b>◐</b> ORBIT</kbd>
+      <kbd><b>⌘K</b> / <b>/</b> SEARCH</kbd>
+      <kbd><b>1</b>–<b>5</b> JUMP</kbd>
+      <kbd>TAP <b>CORE</b> DETONATE</kbd>
+      <kbd><b>ESC</b> CLOSE</kbd>
+    </div>
+  </header>
+
+  <section class="demo-sec" id="work">
+    <p class="sec-kicker">selected work</p>
+    <div class="sec-row"><span class="sec-num">01</span><h2 class="sec-title">Work</h2></div>
+    <p class="sec-body">Four things I took apart until every layer was visible: <b>Orbit</b>, a local-first focus engine;
+      <b>Gradient</b>, a neural net that trains in the browser on raw GPU shaders; <b>GlassBox</b>, the internals of GPT-2
+      made legible; and <b>pes-vcs</b>, version control rebuilt from scratch in C.</p>
+    <div class="chips"><span class="chip">Orbit</span><span class="chip">Gradient</span><span class="chip">GlassBox</span><span class="chip">pes-vcs</span></div>
+  </section>
+
+  <section class="demo-sec" id="experience">
+    <p class="sec-kicker">where i've been</p>
+    <div class="sec-row"><span class="sec-num">02</span><h2 class="sec-title">Experience</h2></div>
+    <p class="sec-body">Incoming research intern at <b>PESU Intelligence Labs</b>, tracing LLM hallucinations to their
+      source — caring as much about <b>why</b> a system fails as <b>whether</b> it works.</p>
+    <div class="chips"><span class="chip">RAG reliability</span><span class="chip">interpretability</span><span class="chip">attribution</span></div>
+  </section>
+
+  <section class="demo-sec" id="stack">
+    <p class="sec-kicker">tools of the trade</p>
+    <div class="sec-row"><span class="sec-num">03</span><h2 class="sec-title">Stack</h2></div>
+    <p class="sec-body">Comfortable from the metal up to the model: <b>C</b> and systems work, <b>Python</b> for ML,
+      <b>TypeScript</b> and <b>WebGPU</b> on the web, <b>React</b> + <b>FastAPI</b> to stitch it together.</p>
+    <div class="chips"><span class="chip">TypeScript</span><span class="chip">Python</span><span class="chip">C</span><span class="chip">WebGPU</span><span class="chip">React</span><span class="chip">FastAPI</span></div>
+  </section>
+
+  <section class="demo-sec" id="school">
+    <p class="sec-kicker">the paperwork</p>
+    <div class="sec-row"><span class="sec-num">04</span><h2 class="sec-title">School</h2></div>
+    <p class="sec-body"><b>B.Tech, Computer Science</b> at <b>PES University</b>, Bengaluru. The place where the black box
+      first looked like something worth opening.</p>
+    <div class="chips"><span class="chip">PES University</span><span class="chip">B.Tech CSE</span><span class="chip">Bengaluru</span></div>
+  </section>
+
+  <section class="demo-sec" id="contact">
+    <p class="sec-kicker">say hello</p>
+    <div class="sec-row"><span class="sec-num">05</span><h2 class="sec-title">Contact</h2></div>
+    <p class="sec-body">Open to <b>SWE / ML internships</b> for Summer 2026. The fastest line is email — or pick any
+      handle and the cat will pretend not to notice you leaving.</p>
+    <div class="chips"><span class="chip">Email ▸</span><span class="chip">GitHub ▸</span><span class="chip">LinkedIn ▸</span></div>
+  </section>
+
+  <p class="foot">// mockup — orbital HUD nav · synthesises orbit (1) · command/dial (2) · live instrument (3) · detonate (4)</p>
+</main>
+
+<script>
+(function(){
+  "use strict";
+  var REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var $ = function(id){ return document.getElementById(id); };
+
+  /* ===================== model ===================== */
+  // 01–05 are in-page sections (tracked + key-bound); 06 RÉSUMÉ is an external action moon.
+  var SECTIONS = [
+    { id:'work',       n:'01', label:'WORK' },
+    { id:'experience', n:'02', label:'EXPERIENCE' },
+    { id:'stack',      n:'03', label:'STACK' },
+    { id:'school',     n:'04', label:'SCHOOL' },
+    { id:'contact',    n:'05', label:'CONTACT' }
+  ];
+  var MOONS = SECTIONS.concat([{ id:'__resume', n:'06', label:'RÉSUMÉ', ext:'↗', href:'#' }]);
+
+  /* ===================== decode (scramble → resolve), shared site vocabulary ===================== */
+  var GLYPHS = 'ABCDEFGHJKLMNPQRSTUVWXYZ#@/[]0123456789'.split('');
+  function decode(el, text, dur){
+    dur = dur || 460;
+    if(REDUCE){ el.textContent = text; return; }
+    var start = null;
+    function f(now){
+      if(start === null) start = now;
+      var k = Math.min(1, (now - start) / dur), rev = Math.floor(k * text.length), out = '';
+      for(var i=0;i<text.length;i++){
+        var c = text[i];
+        out += (i < rev || c === ' ' || c === '·' || c === '↗') ? c : GLYPHS[(Math.random()*GLYPHS.length)|0];
+      }
+      el.textContent = out;
+      if(k < 1) requestAnimationFrame(f); else el.textContent = text;
+    }
+    requestAnimationFrame(f);
+  }
+
+  /* ===================== build orbital moons ===================== */
+  var orbitMoons = $('orbitMoons'), orbitRing = $('orbitRing'), orbitCenter = $('orbitCenter');
+  var moonEls = [];
+  MOONS.forEach(function(m, i){
+    var li = document.createElement('li'); li.setAttribute('role','none');
+    var a = document.createElement(m.ext ? 'a' : 'button');
+    a.className = 'moon'; a.style.setProperty('--i', i);
+    a.dataset.id = m.id; a.setAttribute('role','menuitem');
+    if(m.ext){ a.href = m.href; a.setAttribute('aria-label', m.label + ' (opens résumé)'); }
+    else { a.type = 'button'; a.setAttribute('aria-label', 'Go to ' + m.label); }
+    a.innerHTML =
+      '<span class="moon-cr"><span class="moon-box">' +
+        '<b class="moon-n">' + m.n + '</b>' +
+        '<span class="moon-l" data-label="' + m.label + '">' + m.label + '</span>' +
+        (m.ext ? '<span class="moon-ext">' + m.ext + '</span>' : '') +
+      '</span></span>';
+    li.appendChild(a); orbitMoons.appendChild(li);
+    moonEls.push(a);
+  });
+  var moonCRs = Array.prototype.map.call(orbitMoons.querySelectorAll('.moon-cr'), function(x){ return x; });
+
+  /* ===================== ring + moon geometry (the −26° ellipse) ===================== */
+  var Rx = 320, Ry = 188;
+  function layout(){
+    Rx = Math.max(190, Math.min(window.innerWidth * 0.30, 340));
+    Ry = Math.max(120, Math.min(Rx * 0.60, window.innerHeight * 0.26));
+    // decorative ring graphic (drawn axis-aligned; the container rotates it to −26°)
+    var pad = 60, w = Rx*2 + pad, h = Ry*2 + pad;
+    orbitRing.setAttribute('width', w); orbitRing.setAttribute('height', h);
+    orbitRing.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+    orbitRing.innerHTML =
+      '<ellipse class="orbit-line solid" cx="' + (w/2) + '" cy="' + (h/2) + '" rx="' + Rx + '" ry="' + Ry + '"></ellipse>' +
+      '<ellipse class="orbit-line" cx="' + (w/2) + '" cy="' + (h/2) + '" rx="' + (Rx-10) + '" ry="' + (Ry-6) + '"></ellipse>';
+    // moons spaced around the ellipse, starting at the top, going clockwise
+    var N = moonEls.length;
+    moonEls.forEach(function(a, i){
+      var ang = (-90 + i * 360 / N) * Math.PI / 180;
+      a.style.setProperty('--mx', (Rx * Math.cos(ang)).toFixed(1) + 'px');
+      a.style.setProperty('--my', (Ry * Math.sin(ang)).toFixed(1) + 'px');
+    });
+  }
+  layout();
+  addEventListener('resize', layout);
+
+  /* ===================== orbit slow-rotation (rAF only while open) ===================== */
+  var theta = -26, spinning = false, paused = false, lastT = 0;
+  function applyTheta(){
+    orbitRing.style.transform = 'translate(-50%,-50%) rotate(' + theta + 'deg)';
+    orbitMoons.style.transform = 'rotate(' + theta + 'deg)';
+    for(var i=0;i<moonCRs.length;i++) moonCRs[i].style.transform = 'rotate(' + (-theta) + 'deg)';
+  }
+  function spin(ts){
+    if(!spinning) return;
+    if(!lastT) lastT = ts;
+    var dt = ts - lastT; lastT = ts;
+    if(paused){ /* frozen for clicking */ }
+    else if(!REDUCE) theta += dt * 0.005;   // ~72s / revolution
+    applyTheta();
+    requestAnimationFrame(spin);
+  }
+  // hovering the menu pauses the orbit so moons are easy to click
+  orbitCenter.addEventListener('pointerenter', function(){ paused = true; });
+  orbitCenter.addEventListener('pointerleave', function(){ paused = false; });
+
+  /* ===================== overlay open/close plumbing ===================== */
+  var orbitWrap = $('orbitWrap'), orbToggle = $('orbToggle'),
+      blast = $('blast'), cmdWrap = $('cmdWrap'), cmdInput = $('cmdInput');
+  var lastFocus = null;
+
+  function openOrbit(){
+    if(orbitWrap.classList.contains('open')) return;
+    lastFocus = document.activeElement;
+    orbitWrap.classList.add('open');
+    orbToggle.setAttribute('aria-expanded', 'true');
+    theta = -26; applyTheta();
+    requestAnimationFrame(function(){ orbitMoons.classList.add('open'); });
+    // labels decode in as the moons arrive
+    moonEls.forEach(function(a, i){
+      var lbl = a.querySelector('.moon-l');
+      setTimeout(function(){ decode(lbl, lbl.dataset.label, 380); }, REDUCE ? 0 : 180 + i * 60);
+    });
+    spinning = true; lastT = 0; if(!REDUCE) requestAnimationFrame(spin);
+    reflectActive();
+    setTimeout(function(){ (litMoon() || moonEls[0]).focus(); }, REDUCE ? 0 : 120);
+  }
+  function closeOrbit(){
+    orbitWrap.classList.remove('open');
+    orbitMoons.classList.remove('open');
+    orbToggle.setAttribute('aria-expanded', 'false');
+    spinning = false;
+  }
+  function openBlast(){
+    closeOrbit(); closeCmd();
+    lastFocus = lastFocus || document.activeElement;
+    blast.classList.add('open');
+    blastEls.forEach(function(el, i){
+      var nm = el.querySelector('.blast-name');
+      setTimeout(function(){ decode(nm, nm.dataset.label, 460); }, REDUCE ? 0 : 80 + i * 90);
+    });
+    decode($('catMeow'), 'still not impressed', 700);
+    reflectActive();
+    startSpine();
+    setTimeout(function(){ (litBlast() || blastEls[0]).focus(); }, REDUCE ? 0 : 120);
+  }
+  function closeBlast(){ blast.classList.remove('open'); stopSpine(); }
+
+  /* marquee spine — rAF (not a CSS infinite animation, so it never wedges) */
+  var spineTrack = $('spineTrack'), spineY = 0, spineH = 0, spineOn = false, spineLast = 0;
+  function spineLoop(ts){
+    if(!spineOn) return;
+    if(!spineLast) spineLast = ts;
+    var dt = ts - spineLast; spineLast = ts;
+    spineY -= dt * 0.03;
+    if(spineH && spineY <= -spineH / 2) spineY += spineH / 2;
+    spineTrack.style.transform = 'translateY(' + spineY.toFixed(1) + 'px)';
+    requestAnimationFrame(spineLoop);
+  }
+  function startSpine(){ if(REDUCE) return; spineH = spineTrack.scrollHeight; spineOn = true; spineLast = 0; requestAnimationFrame(spineLoop); }
+  function stopSpine(){ spineOn = false; }
+
+  function openCmd(){
+    closeOrbit();
+    lastFocus = document.activeElement;
+    cmdWrap.classList.add('open');
+    cmdInput.value = ''; renderCmd(''); cmdActive = 0; paintCmd();
+    setTimeout(function(){ cmdInput.focus(); }, 30);
+  }
+  function closeCmd(){ cmdWrap.classList.remove('open'); }
+
+  function anyOpen(){ return orbitWrap.classList.contains('open') || blast.classList.contains('open') || cmdWrap.classList.contains('open'); }
+  function closeAll(restoreFocus){
+    closeOrbit(); closeBlast(); closeCmd();
+    if(restoreFocus && lastFocus && lastFocus.focus){ lastFocus.focus(); lastFocus = null; }
+  }
+
+  /* ===================== travel ===================== */
+  function jump(id){
+    if(id === '__resume'){ flashResume(); return; }
+    var el = document.getElementById(id);
+    closeAll(false);
+    if(el){
+      el.scrollIntoView({ behavior: REDUCE ? 'auto' : 'smooth', block: 'start' });
+      setActive(id, true);
+    }
+  }
+  function flashResume(){
+    // demo: no PDF wired — pulse the readout instead of navigating
+    var r = $('readout'); r.style.transition = 'none'; r.style.background = 'var(--red)';
+    setTimeout(function(){ r.style.transition = 'background .5s'; r.style.background = ''; }, 30);
+  }
+
+  /* ===================== ACTIVE section — the live instrument (lightning round) ===================== */
+  var active = SECTIONS[0].id;
+  function litMoon(){ return moonEls.filter(function(a){ return a.dataset.id === active; })[0]; }
+  function litBlast(){ return blastEls.filter(function(b){ return b.dataset.id === active; })[0]; }
+  function setActive(id, force){
+    if(!force && id === active) return;
+    active = id;
+    reflectActive();
+  }
+  function reflectActive(){
+    var s = SECTIONS.filter(function(x){ return x.id === active; })[0] || SECTIONS[0];
+    // collapsed HUD readout
+    var roName = $('roName'); $('roNum').textContent = s.n;
+    if(roName.textContent !== s.label) decode(roName, s.label, 300);
+    orbToggle.setAttribute('aria-label', 'Open orbital menu — current section ' + s.label);
+    // lit moon
+    moonEls.forEach(function(a){
+      var on = a.dataset.id === active;
+      a.classList.toggle('lit', on);
+      if(on) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current');
+    });
+    // lit blast row
+    blastEls.forEach(function(b){
+      var on = b.dataset.id === active;
+      b.classList.toggle('lit', on);
+      if(on) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
+    });
+    // palette "here"
+    paintCmd();
+  }
+
+  // IntersectionObserver: the section crossing the viewport's middle band is "here"
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting) setActive(e.target.id, false); });
+  }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 });
+  SECTIONS.forEach(function(s){ var el = document.getElementById(s.id); if(el) io.observe(el); });
+
+  /* ===================== scroll progress → ring fill + walking cat (idea 3) ===================== */
+  var railFill = $('railFill'), catWalk = $('catWalk'), monoSvg = $('monoSvg');
+  var catTimer = null;
+  function onScroll(){
+    var doc = document.documentElement;
+    var max = doc.scrollHeight - doc.clientHeight;
+    var p = max > 0 ? Math.min(1, Math.max(0, doc.scrollTop / max)) : 0;
+    var pct = (p * 100).toFixed(2);
+    railFill.style.width = pct + '%';
+    monoSvg.style.setProperty('--pp', pct);            // Saturn ring completes its orbit
+    var x = p * (window.innerWidth - 8);
+    catWalk.style.setProperty('--px', x.toFixed(1) + 'px');
+    if(!REDUCE){
+      catWalk.classList.add('walking');
+      clearTimeout(catTimer);
+      catTimer = setTimeout(function(){ catWalk.classList.remove('walking'); }, 160);
+    }
+  }
+  addEventListener('scroll', onScroll, { passive:true });
+  addEventListener('resize', onScroll);
+  onScroll();
+
+  /* ===================== build full-screen blast rows ===================== */
+  var blastList = $('blastList'), blastEls = [];
+  MOONS.forEach(function(m){
+    var li = document.createElement('li'); li.className = 'blast-item'; li.dataset.id = m.id;
+    li.tabIndex = 0; li.setAttribute('role','link');
+    li.innerHTML =
+      '<span class="blast-n">' + m.n + '</span>' +
+      '<span class="blast-name" data-label="' + m.label + '">' + m.label + '</span>' +
+      (m.ext ? '<span class="blast-ext">OPENS ' + m.ext + '</span>' : '');
+    blastList.appendChild(li);
+    blastEls.push(li);
+  });
+  $('spineTrack').textContent = (SECTIONS.map(function(s){ return s.label; }).join(' · ') + ' · ').repeat(4);
+
+  /* ===================== command palette render ===================== */
+  var cmdList = $('cmdList'), cmdMatches = MOONS.slice(), cmdActive = 0;
+  function renderCmd(q){
+    q = (q || '').trim().toLowerCase();
+    cmdMatches = MOONS.filter(function(m){
+      return !q || m.label.toLowerCase().indexOf(q) >= 0 || m.n.indexOf(q) >= 0;
+    });
+    if(cmdActive >= cmdMatches.length) cmdActive = 0;
+    cmdList.innerHTML = '';
+    if(!cmdMatches.length){
+      var empty = document.createElement('li'); empty.className = 'cmd-empty'; empty.textContent = 'no section matches "' + q + '"';
+      cmdList.appendChild(empty); return;
+    }
+    cmdMatches.forEach(function(m, i){
+      var li = document.createElement('li'); li.className = 'cmd-item'; li.dataset.id = m.id; li.dataset.idx = i;
+      li.innerHTML =
+        '<span class="ci-n">' + m.n + '</span>' +
+        '<span class="ci-l">' + m.label + '</span>' +
+        '<span class="ci-tag">' + (m.ext ? 'open ↗' : (m.id === active ? 'here ◂' : 'jump ↵')) + '</span>';
+      if(m.id === active && !m.ext) li.classList.add('here');
+      cmdList.appendChild(li);
+    });
+    paintCmd();
+  }
+  function paintCmd(){
+    Array.prototype.forEach.call(cmdList.querySelectorAll('.cmd-item'), function(li, i){
+      li.classList.toggle('active', i === cmdActive);
+    });
+  }
+  cmdInput.addEventListener('input', function(){ cmdActive = 0; renderCmd(cmdInput.value); });
+  cmdList.addEventListener('click', function(e){
+    var li = e.target.closest('.cmd-item'); if(li) jump(li.dataset.id);
+  });
+
+  /* ===================== wiring ===================== */
+  orbToggle.addEventListener('click', function(e){ e.stopPropagation();
+    if(orbitWrap.classList.contains('open')) closeAll(true); else openOrbit(); });
+  $('orbitBackdrop').addEventListener('click', function(){ closeAll(true); });
+  $('satCore').addEventListener('click', function(e){ e.stopPropagation(); openBlast(); });
+  $('blastClose').addEventListener('click', function(){ closeAll(true); });
+  $('cmdBack').addEventListener('click', function(){ closeAll(true); });
+
+  moonEls.forEach(function(a){
+    a.addEventListener('click', function(e){ if(!a.dataset.id || a.dataset.id === '__resume'){ e.preventDefault(); } jump(a.dataset.id); });
+  });
+  blastEls.forEach(function(b){
+    b.addEventListener('click', function(){ jump(b.dataset.id); });
+    b.addEventListener('keydown', function(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); jump(b.dataset.id); } });
+  });
+
+  /* ===================== keyboard ===================== */
+  function typingInField(){
+    var el = document.activeElement;
+    return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
+  }
+  document.addEventListener('keydown', function(e){
+    // open palette
+    if((e.key === 'k' || e.key === 'K') && (e.metaKey || e.ctrlKey)){ e.preventDefault(); openCmd(); return; }
+    if(e.key === '/' && !typingInField() && !cmdWrap.classList.contains('open')){ e.preventDefault(); openCmd(); return; }
+
+    // palette navigation
+    if(cmdWrap.classList.contains('open')){
+      if(e.key === 'ArrowDown'){ e.preventDefault(); cmdActive = Math.min(cmdMatches.length - 1, cmdActive + 1); paintCmd(); }
+      else if(e.key === 'ArrowUp'){ e.preventDefault(); cmdActive = Math.max(0, cmdActive - 1); paintCmd(); }
+      else if(e.key === 'Enter'){ e.preventDefault(); var m = cmdMatches[cmdActive]; if(m) jump(m.id); }
+      else if(e.key === 'Escape'){ e.preventDefault(); closeAll(true); }
+      return;
+    }
+
+    // escape closes the rest
+    if(e.key === 'Escape' && anyOpen()){ e.preventDefault(); closeAll(true); return; }
+
+    // 1–5 jump straight to a section
+    if(!typingInField() && e.key >= '1' && e.key <= '5'){
+      var s = SECTIONS[parseInt(e.key, 10) - 1];
+      if(s){ e.preventDefault(); jump(s.id); }
+    }
+  });
+
+  // click-away closes the orbital menu
+  document.addEventListener('click', function(e){
+    if(orbitWrap.classList.contains('open') && !orbitCenter.contains(e.target) && !orbToggle.contains(e.target)) closeAll(true);
+  });
+
+  /* ===================== boot ===================== */
+  reflectActive();
+})();
+</script>
+</body>
+</html>

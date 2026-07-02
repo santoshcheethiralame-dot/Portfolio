@@ -1,0 +1,784 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>STACK / 06 — THE STACK</title>
+
+<!-- Fonts: Anton (display) + JetBrains Mono (everything else) -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+
+<style>
+  :root{
+    --red:#ed1c24;
+    --red-deep:#b3001b;
+    --red-dark:#7a0014;
+    --ink:#ffffff;
+    --black:#0a0a0a;
+    --line:rgba(255,255,255,0.26);
+    --lime:#c8e620;            /* THE single accent — active slab edge + support indicator */
+    --font-display:"Anton",sans-serif;
+    --font-mono:"JetBrains Mono",monospace;
+    --bar-h:64px;
+
+    /* slide spring */
+    --slide-dur:200ms;
+    --slide-ease:cubic-bezier(.2,.9,.2,1);
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ min-height:100%; }
+
+  body{
+    background:var(--red);
+    color:var(--ink);
+    font-family:var(--font-mono);
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    overflow-x:hidden;
+    min-height:100vh;
+  }
+
+  /* ---------------------------------------------------------------- TOP BAR */
+  .topbar{
+    position:fixed; top:0; left:0; right:0; height:var(--bar-h);
+    z-index:200;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 clamp(14px,4vw,40px);
+    background:var(--red);
+    border-bottom:2px solid var(--ink);
+  }
+  .index-btn{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--font-mono); font-weight:700;
+    font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--ink); text-decoration:none;
+    padding:9px 16px;
+    border:2px solid var(--ink);
+    background:transparent;
+    box-shadow:4px 4px 0 var(--black);
+    transition:transform 120ms var(--slide-ease),
+               box-shadow 120ms var(--slide-ease),
+               background 120ms steps(1,end),
+               color 120ms steps(1,end);
+  }
+  .index-btn:hover,.index-btn:focus-visible{
+    background:var(--ink); color:var(--red);
+    transform:translate(-2px,-2px);
+    box-shadow:6px 6px 0 var(--black);
+    outline:none;
+  }
+  .index-btn:active{ transform:translate(2px,2px); box-shadow:1px 1px 0 var(--black); }
+
+  .caption{ text-align:right; line-height:1.35; }
+  .caption .cap-id{
+    font-weight:700; font-size:12px; letter-spacing:.18em; text-transform:uppercase;
+  }
+  .caption .cap-hint{
+    font-weight:400; font-size:10.5px; letter-spacing:.06em;
+    color:rgba(255,255,255,.78);
+  }
+
+  /* ---------------------------------------------------------------- LAYOUT */
+  .page{
+    padding:calc(var(--bar-h) + clamp(22px,4vw,44px)) clamp(20px,6vw,90px) clamp(40px,8vw,90px);
+    max-width:1500px; margin:0 auto;
+  }
+  .kicker{
+    font-size:13px; font-weight:500; letter-spacing:.16em;
+    color:rgba(255,255,255,.85);
+    margin-bottom:10px;
+  }
+  .title{
+    font-family:var(--font-display); font-weight:400;
+    text-transform:uppercase; color:var(--ink);
+    line-height:.82; letter-spacing:.005em;
+    font-size:clamp(2.4rem,10vw,8rem);
+    margin-bottom:clamp(22px,3vw,34px);
+  }
+
+  /* ---------------------------------------------------------------- STACK SHELL */
+  /*
+     The slabs are stacked bottom->top by how low-level they are.
+     DOM order is bottom..top; we use flex-direction:column-reverse so the
+     first DOM child (LAYER 01) sits at the BOTTOM of the pile and visually
+     holds up the rest. Each slab is pulled in slightly (margin-left ladder)
+     to read as a leaning isometric pile, and casts a hard black shadow down
+     onto the slab below it.
+  */
+  .stack-shell{
+    position:relative;
+    display:flex;
+    flex-direction:column-reverse;   /* DOM[0] = bottom */
+    align-items:flex-start;
+    gap:0;
+    /* room for the rightward slide-out without clipping */
+    padding:6px 0 14px;
+    max-width:960px;
+  }
+
+  .slab{
+    position:relative;
+    width:min(100%, 720px);
+    border:2px solid var(--ink);
+    background:var(--red-deep);
+    color:var(--ink);
+    cursor:pointer;
+    /* hard solid black drop shadow — casts DOWN onto the slab below */
+    box-shadow:9px 9px 0 var(--black);
+    /* z so higher (later DOM) slabs sit visually above the ones beneath */
+    transition:transform var(--slide-dur) var(--slide-ease),
+               box-shadow var(--slide-dur) var(--slide-ease),
+               background 110ms steps(1,end),
+               border-color 110ms steps(1,end),
+               margin 220ms var(--slide-ease);
+    will-change:transform;
+    outline:none;
+  }
+  /* the leaning ladder: each slab up the pile is nudged right a touch */
+  .slab[data-depth="0"]{ margin-left:0;   z-index:1; }
+  .slab[data-depth="1"]{ margin-left:26px; z-index:2; }
+  .slab[data-depth="2"]{ margin-left:52px; z-index:3; }
+  .slab[data-depth="3"]{ margin-left:78px; z-index:4; }
+  .slab[data-depth="4"]{ margin-left:104px; z-index:5; }
+
+  /* alternating slab tone so the pile reads as distinct slabs (still red family) */
+  .slab[data-depth="1"],
+  .slab[data-depth="3"]{ background:var(--red-dark); }
+
+  /* collapsed face: name + layer index + count */
+  .slab-face{
+    display:flex; align-items:center; gap:16px;
+    padding:0 18px;
+    height:64px;
+    user-select:none;
+    position:relative;
+  }
+  .slab-num{
+    font-family:var(--font-display);
+    font-size:30px; line-height:1;
+    color:var(--ink);
+    letter-spacing:.01em;
+    flex:0 0 auto;
+    min-width:42px;
+  }
+  .slab-meta{ display:flex; flex-direction:column; gap:3px; min-width:0; }
+  .slab-name{
+    font-family:var(--font-mono); font-weight:700;
+    font-size:15px; letter-spacing:.12em; text-transform:uppercase;
+    white-space:nowrap;
+  }
+  .slab-sub{
+    font-weight:500; font-size:10px; letter-spacing:.14em; text-transform:uppercase;
+    color:rgba(255,255,255,.62);
+    white-space:nowrap;
+  }
+  .slab-count{
+    margin-left:auto;
+    font-family:var(--font-mono); font-weight:700;
+    font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+    border:2px solid var(--ink);
+    padding:5px 10px;
+    flex:0 0 auto;
+    white-space:nowrap;
+  }
+  /* little "tray pull" grip ticks on the right edge */
+  .slab-grip{
+    flex:0 0 auto;
+    display:flex; gap:3px; margin-left:14px;
+  }
+  .slab-grip i{ width:2px; height:18px; background:var(--line); }
+
+  /* the drawer that holds the chips — collapsed to 0 height by default */
+  .slab-tray{
+    overflow:hidden;
+    height:0;
+    border-top:0 solid var(--line);
+    transition:height var(--slide-dur) var(--slide-ease);
+    will-change:height;
+  }
+  .slab-tray-inner{
+    padding:14px 18px 18px;
+    display:flex; flex-wrap:wrap; gap:10px;
+    border-top:2px solid var(--line);
+  }
+
+  /* tech chip sitting on the layer */
+  .chip{
+    display:inline-flex; align-items:center; gap:9px;
+    height:32px; padding:0 12px;
+    background:var(--ink); color:var(--black);
+    border:2px solid var(--black);
+    box-shadow:3px 3px 0 var(--black);
+    font-family:var(--font-mono); font-weight:700;
+    font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+    white-space:nowrap;
+    cursor:default;
+    transition:transform 110ms var(--slide-ease),
+               box-shadow 110ms var(--slide-ease),
+               background 100ms steps(1,end),
+               color 100ms steps(1,end);
+  }
+  .chip:hover{
+    background:var(--red); color:var(--ink);
+    transform:translate(-2px,-2px);
+    box-shadow:5px 5px 0 var(--black);
+  }
+  .chip:hover .wt i{ background:var(--ink); }
+  .chip .wt{ display:inline-flex; gap:2px; }
+  .chip .wt i{ width:3px; height:11px; background:var(--black); opacity:.2; }
+  .chip .wt i.on{ opacity:1; }
+  .chip .nm{ line-height:1; }
+
+  /* ---- ACTIVE slab: pulled out of the pile + lime edge ---- */
+  .slab.is-active{
+    transform:translateX(56px);
+    box-shadow:14px 14px 0 var(--black);
+    border-color:var(--lime);          /* lime = the one accent: active slab edge */
+    z-index:60;
+  }
+  .slab.is-active .slab-grip i{ background:var(--lime); }
+  .slab.is-active .slab-count{ border-color:var(--lime); color:var(--lime); }
+
+  /* ---- supporting slabs (everything BELOW the active one) ---- */
+  .slab.is-support{
+    box-shadow:9px 9px 0 var(--black);
+  }
+  /* lime left edge marks the load-bearing stack under the active layer */
+  .slab.is-support::before{
+    content:"";
+    position:absolute; left:-2px; top:-2px; bottom:-2px;
+    width:4px; background:var(--lime);
+  }
+  /* tiny "load-bearing" tag that fades in on supports */
+  .support-tag{
+    position:absolute; right:10px; top:50%; transform:translateY(-50%);
+    font-family:var(--font-mono); font-weight:700;
+    font-size:9px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--lime);
+    opacity:0; pointer-events:none;
+    transition:opacity 120ms steps(1,end);
+    white-space:nowrap;
+  }
+  .slab.is-support .support-tag{ opacity:1; }
+  /* hide the count badge under the support tag so they don't overlap */
+  .slab.is-support .slab-count{ opacity:0; }
+
+  /* dim slabs that are neither active nor supporting (above the active one) */
+  .stack-shell.has-active .slab:not(.is-active):not(.is-support){
+    opacity:.55;
+  }
+
+  /* ---------------------------------------------------------------- READOUT */
+  .readout{
+    margin-top:clamp(22px,3vw,34px);
+    display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px;
+    font-family:var(--font-mono); font-size:12px; letter-spacing:.08em;
+    text-transform:uppercase; color:rgba(255,255,255,.85);
+    min-height:24px;
+    border-top:2px solid var(--line);
+    padding-top:16px;
+  }
+  .readout .prompt{ color:var(--lime); font-weight:700; }
+  .readout #readout-text b{ color:var(--ink); font-weight:700; }
+  .readout #readout-text .lime{ color:var(--lime); font-weight:700; }
+  .readout .blink{
+    display:inline-block; width:9px; height:14px; background:var(--ink);
+    margin-left:2px;
+    animation:blink 1s steps(2,start) infinite; vertical-align:-2px;
+  }
+  @keyframes blink{ 0%,50%{opacity:1;} 50.01%,100%{opacity:0;} }
+
+  .foot{
+    margin-top:clamp(26px,4vw,44px);
+    padding-top:14px;
+    border-top:2px solid var(--line);
+    font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+    color:rgba(255,255,255,.6);
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;
+  }
+
+  /* ---------------------------------------------------------------- JUDGING CAT */
+  .cat-corner{
+    position:fixed; right:clamp(14px,3vw,34px); bottom:clamp(14px,3vw,30px);
+    z-index:150;
+    display:flex; flex-direction:column; align-items:flex-end; gap:8px;
+    pointer-events:none;
+    max-width:230px;
+  }
+  .cat-bubble{
+    position:relative;
+    background:var(--ink); color:var(--black);
+    border:2px solid var(--black);
+    box-shadow:4px 4px 0 var(--black);
+    padding:8px 11px;
+    font-family:var(--font-mono); font-weight:700;
+    font-size:11px; letter-spacing:.04em; text-transform:uppercase;
+    line-height:1.25;
+    max-width:210px;
+    transition:transform 120ms var(--slide-ease), opacity 120ms steps(1,end);
+  }
+  .cat-bubble::after{
+    /* hard speech-bubble tail (no soft edges) */
+    content:""; position:absolute; right:22px; bottom:-9px;
+    width:11px; height:11px; background:var(--ink);
+    border-right:2px solid var(--black); border-bottom:2px solid var(--black);
+    transform:rotate(45deg);
+  }
+  .cat-bubble.pop{ transform:translateY(-3px); }
+  .cat-svg{
+    width:64px; height:64px; display:block;
+    filter:drop-shadow(4px 4px 0 var(--black));
+    pointer-events:auto;
+  }
+  .cat-svg .body{ fill:var(--black); }
+  .cat-svg .face{ fill:var(--ink); }
+  .cat-svg .pupil{ fill:var(--black); }
+  .cat-svg .nose{ fill:var(--red); }
+  /* tail flicks when the cat reacts */
+  .cat-svg .tail{
+    fill:var(--black); transform-origin:18px 52px;
+    transition:transform 160ms var(--slide-ease);
+  }
+  .cat-svg.react .tail{ transform:rotate(-14deg); }
+
+  /* ---------------------------------------------------------------- RESPONSIVE */
+  @media (max-width:760px){
+    .slab{ width:100%; }
+    .slab[data-depth="1"]{ margin-left:14px; }
+    .slab[data-depth="2"]{ margin-left:28px; }
+    .slab[data-depth="3"]{ margin-left:42px; }
+    .slab[data-depth="4"]{ margin-left:56px; }
+    .slab.is-active{ transform:translateX(24px); }
+    .slab-name{ font-size:13px; }
+    .slab-grip{ display:none; }
+    .support-tag{ font-size:8px; right:8px; }
+    .caption .cap-hint{ display:none; }
+    .cat-corner{ max-width:170px; }
+    .cat-svg{ width:52px; height:52px; }
+  }
+  @media (max-width:480px){
+    .slab-sub{ display:none; }
+    .slab-face{ gap:12px; padding:0 12px; height:60px; }
+  }
+
+  /* ---------------------------------------------------------------- REDUCED MOTION */
+  @media (prefers-reduced-motion:reduce){
+    .slab,.slab-tray,.chip,.index-btn,.cat-bubble,.cat-svg .tail{
+      transition:none !important;
+    }
+    .readout .blink{ animation:none; opacity:1; }
+    .slab.is-active{ transform:none; }  /* expand in place, no slide */
+  }
+</style>
+</head>
+<body>
+
+  <!-- ======================================================= TOP BAR -->
+  <header class="topbar">
+    <a class="index-btn" href="index.html">&larr;&nbsp;INDEX</a>
+    <div class="caption">
+      <div class="cap-id">STYLE 06 / THE STACK</div>
+      <div class="cap-hint">hover a layer — it slides out to reveal its tools</div>
+    </div>
+  </header>
+
+  <!-- ======================================================= PAGE -->
+  <main class="page">
+    <p class="kicker">// stack</p>
+    <h1 class="title">What I<br>Work With</h1>
+
+    <!-- the literal pile of slabs; built in JS bottom->top -->
+    <section class="stack-shell" id="stack" aria-label="technology stack, bottom to top"></section>
+
+    <div class="readout" id="readout">
+      <span class="prompt">&gt;</span>
+      <span id="readout-text">idle&hellip; hover a slab to pull a layer out of the stack</span>
+      <span class="blink" aria-hidden="true"></span>
+    </div>
+
+    <div class="foot">
+      <span>bottom = closest to the metal</span>
+      <span>each layer rests on the one below</span>
+    </div>
+  </main>
+
+  <!-- ======================================================= JUDGING CAT -->
+  <div class="cat-corner" aria-hidden="true">
+    <div class="cat-bubble" id="catBubble">just sitting here. judging your stack.</div>
+    <svg class="cat-svg" id="catSvg" viewBox="0 0 64 64" role="img" aria-label="a small judging cat">
+      <!-- tail -->
+      <path class="tail" d="M14 54 q-9 -4 -8 -16 q1 -7 6 -7 q3 0 3 4 q-1 8 4 12 z"/>
+      <!-- body -->
+      <path class="body" d="M16 60 q-2 -22 16 -22 q18 0 16 22 z"/>
+      <!-- head -->
+      <circle class="body" cx="32" cy="30" r="15"/>
+      <!-- ears -->
+      <path class="body" d="M19 20 l-3 -12 l12 6 z"/>
+      <path class="body" d="M45 20 l3 -12 l-12 6 z"/>
+      <!-- face plate -->
+      <ellipse class="face" cx="32" cy="33" rx="10" ry="8"/>
+      <!-- eyes (narrowed = judging) -->
+      <ellipse class="pupil" cx="27" cy="29" rx="1.7" ry="3.2"/>
+      <ellipse class="pupil" cx="37" cy="29" rx="1.7" ry="3.2"/>
+      <!-- nose -->
+      <path class="nose" d="M32 34 l-2.5 2 h5 z"/>
+    </svg>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ----------------------------------------------------------- DATA (verbatim) */
+  /* Mapped bottom->top by how low-level the layer is.
+     Array order here IS bottom->top (LAYER 01 first). */
+  var LAYERS = [
+    { group:"Tools / Systems", items:[
+      ["Git",4],["Linux",4],["OpenRouter API",3] ]},
+    { group:"Languages", items:[
+      ["C",4],["Python",5],["TypeScript",5],["JavaScript",4],
+      ["SQL",3],["HTML",4],["CSS",4],["WGSL",3] ]},
+    { group:"Backend / Data", items:[
+      ["FastAPI",4],["Pydantic",3],["Node.js",4],["Express",3],
+      ["MongoDB",3],["REST APIs",4] ]},
+    { group:"ML / AI", items:[
+      ["PyTorch",4],["TensorFlow",3],["scikit-learn",4],["NumPy",4],
+      ["Pandas",4],["TransformerLens",4],["LLM Evaluation",4],["RAG",4],
+      ["Failure Taxonomy",3],["Deep Learning",4] ]},
+    { group:"Web / Frontend", items:[
+      ["React",5],["Tailwind CSS",4],["Vite",4],["WebGPU",4],
+      ["PWA",4],["IndexedDB / Dexie.js",4],["Canvas",3],["Web Workers",3] ]}
+  ];
+
+  var REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var stack       = document.getElementById("stack");
+  var readoutText = document.getElementById("readout-text");
+  var catBubble   = document.getElementById("catBubble");
+  var catSvg      = document.getElementById("catSvg");
+
+  /* ----------------------------------------------------------- DECODE-IN labels */
+  /* Scramble a label through mono glyphs, then settle on the real text.
+     The per-character reveal order + glyph picks are derived from a seed so the
+     same element decodes identically every time (no per-frame global RNG soup). */
+  var GLYPHS = "ABCDEFGHJKLMNPQRSTUVWXYZ0123456789#%&/<>*+=";
+
+  function seededInt(seed){
+    var x = Math.sin(seed * 91.7 + 13.1) * 43758.5453;
+    return x - Math.floor(x);
+  }
+
+  function decode(el, finalText, seed, dur){
+    if(REDUCED){ el.textContent = finalText; return; }
+    dur = dur || 360;
+    var chars = finalText.split("");
+    var n = chars.length;
+    var start = performance.now();
+    // each char locks in at a staggered moment derived from its index+seed
+    var lockAt = chars.map(function(ch, i){
+      var jitter = seededInt(seed + i * 7.3) * 0.35;   // 0..0.35
+      return (i / Math.max(1,n)) * 0.6 + jitter;        // fraction of dur
+    });
+    el._decTok = (el._decTok || 0) + 1;
+    var tok = el._decTok;
+
+    function frame(now){
+      if(tok !== el._decTok) return;                    // superseded
+      var t = Math.min(1, (now - start) / dur);
+      var out = "";
+      for(var i=0;i<n;i++){
+        var ch = chars[i];
+        if(ch === " " || ch === "/"){ out += ch; continue; }
+        if(t >= lockAt[i]){
+          out += ch;                                     // settled
+        } else {
+          // deterministic-ish shuffle: glyph index advances with time
+          var gi = Math.floor((seededInt(seed + i*3.1 + Math.floor(now/40)) ) * GLYPHS.length);
+          out += GLYPHS.charAt(gi % GLYPHS.length);
+        }
+      }
+      el.textContent = out;
+      if(t < 1){ requestAnimationFrame(frame); }
+      else { el.textContent = finalText; }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  /* ----------------------------------------------------------- build slabs */
+  var slabs = []; // parallel to LAYERS, bottom->top
+
+  LAYERS.forEach(function(layer, depth){
+    var slab = document.createElement("div");
+    slab.className = "slab";
+    slab.setAttribute("data-depth", String(depth));
+    slab.setAttribute("tabindex", "0");
+    slab.setAttribute("role", "button");
+    slab.setAttribute("aria-expanded", "false");
+    var layerNo = depth + 1;
+    slab.setAttribute("aria-label", "Layer " + layerNo + ", " + layer.group);
+
+    // ---- collapsed face ----
+    var face = document.createElement("div");
+    face.className = "slab-face";
+
+    var num = document.createElement("span");
+    num.className = "slab-num";
+    num.textContent = (layerNo < 10 ? "0" : "") + layerNo;
+
+    var meta = document.createElement("div");
+    meta.className = "slab-meta";
+    var nameEl = document.createElement("span");
+    nameEl.className = "slab-name";
+    nameEl.textContent = layer.group;                  // decoded on boot
+    var subEl = document.createElement("span");
+    subEl.className = "slab-sub";
+    subEl.textContent = "LAYER " + (layerNo < 10 ? "0" : "") + layerNo;
+    meta.appendChild(nameEl);
+    meta.appendChild(subEl);
+
+    var count = document.createElement("span");
+    count.className = "slab-count";
+    count.textContent = layer.items.length + " TOOLS";
+
+    var supTag = document.createElement("span");
+    supTag.className = "support-tag";
+    supTag.textContent = "LOAD-BEARING";
+
+    var grip = document.createElement("span");
+    grip.className = "slab-grip";
+    grip.innerHTML = "<i></i><i></i><i></i>";
+
+    face.appendChild(num);
+    face.appendChild(meta);
+    face.appendChild(count);
+    face.appendChild(grip);
+    face.appendChild(supTag);
+
+    // ---- tray (chips) ----
+    var tray = document.createElement("div");
+    tray.className = "slab-tray";
+    var trayInner = document.createElement("div");
+    trayInner.className = "slab-tray-inner";
+
+    var chipLabels = []; // {el, text, seed} for decode-in on expand
+    layer.items.forEach(function(it, ci){
+      var chip = document.createElement("span");
+      chip.className = "chip";
+
+      var wt = document.createElement("span");
+      wt.className = "wt";
+      for(var k=0;k<5;k++){
+        var pip = document.createElement("i");
+        if(k < it[1]) pip.className = "on";
+        wt.appendChild(pip);
+      }
+      var nm = document.createElement("span");
+      nm.className = "nm";
+      nm.textContent = it[0];
+
+      chip.appendChild(wt);
+      chip.appendChild(nm);
+      trayInner.appendChild(chip);
+      chipLabels.push({ el:nm, text:it[0], seed:(depth+1)*100 + ci*9 });
+    });
+    tray.appendChild(trayInner);
+
+    slab.appendChild(face);
+    slab.appendChild(tray);
+    stack.appendChild(slab);
+
+    slabs.push({
+      el:slab, tray:tray, trayInner:trayInner,
+      nameEl:nameEl, name:layer.group,
+      count:layer.items.length, depth:depth, layerNo:layerNo,
+      chipLabels:chipLabels, decoded:false
+    });
+  });
+
+  /* ----------------------------------------------------------- cat commentary */
+  // per-layer dry remarks; plus a few generic fallbacks
+  var CAT_LINES = {
+    "Tools / Systems": "the basement. nobody claps for plumbing.",
+    "Languages": "C? bold. python? predictable.",
+    "Backend / Data": "where the bodies are buried. respectable.",
+    "ML / AI": "ten tools. one of them is just numpy. still.",
+    "Web / Frontend": "react again. of course react again."
+  };
+  var CAT_IDLE = [
+    "just sitting here. judging your stack.",
+    "go on. pull a layer. i dare you.",
+    "a whole pile and you hover nothing."
+  ];
+  var idleIdx = 0;
+
+  function catSay(text, react){
+    catBubble.textContent = text;
+    catBubble.classList.remove("pop");
+    void catBubble.offsetWidth;       // restart pop
+    catBubble.classList.add("pop");
+    if(react && !REDUCED){
+      catSvg.classList.remove("react");
+      void catSvg.offsetWidth;
+      catSvg.classList.add("react");
+    }
+  }
+
+  /* ----------------------------------------------------------- readout */
+  function setReadout(html){ readoutText.innerHTML = html; }
+
+  function readoutFor(s){
+    var below = (s.depth === 0)
+      ? "the metal"
+      : slabs[s.depth - 1].name;
+    var rest = s.depth === 0
+      ? "<span class=\"lime\">bottom layer</span> &mdash; nothing under it but silicon"
+      : "resting on <b>" + below + "</b>";
+    setReadout("layer: <b>" + s.name + "</b> &mdash; " +
+               s.count + " tools, " + rest);
+  }
+
+  /* ----------------------------------------------------------- open / close */
+  var activeIdx = -1;
+
+  function expand(s){
+    // measure tray content height for a clean height transition
+    s.tray.style.height = s.trayInner.offsetHeight + "px";
+    s.el.classList.add("is-active");
+    s.el.setAttribute("aria-expanded", "true");
+    // decode-in chip labels the first time this tray opens
+    if(!s.decoded){
+      s.chipLabels.forEach(function(cl){ decode(cl.el, cl.text, cl.seed, 320); });
+      s.decoded = true;
+    }
+  }
+
+  function collapse(s){
+    s.tray.style.height = "0px";
+    s.el.classList.remove("is-active");
+    s.el.setAttribute("aria-expanded", "false");
+  }
+
+  function clearSupports(){
+    slabs.forEach(function(s){ s.el.classList.remove("is-support"); });
+    stack.classList.remove("has-active");
+  }
+
+  function markSupports(activeDepth){
+    // every slab BELOW the active one is load-bearing
+    slabs.forEach(function(s){
+      if(s.depth < activeDepth) s.el.classList.add("is-support");
+    });
+    stack.classList.add("has-active");
+  }
+
+  function activate(idx){
+    if(idx === activeIdx) return;
+    // close previous
+    if(activeIdx >= 0) collapse(slabs[activeIdx]);
+    clearSupports();
+
+    activeIdx = idx;
+    if(idx < 0){
+      setReadout("idle&hellip; hover a slab to pull a layer out of the stack");
+      idleIdx = (idleIdx + 1) % CAT_IDLE.length;
+      catSay(CAT_IDLE[idleIdx], false);
+      return;
+    }
+    var s = slabs[idx];
+    expand(s);
+    markSupports(s.depth);
+    readoutFor(s);
+    catSay(CAT_LINES[s.name] || "respectable.", true);
+  }
+
+  /* ----------------------------------------------------------- wiring */
+  var hoverLock = false; // when true, clicks pin; hover won't override
+
+  slabs.forEach(function(s, idx){
+    // hover to pull out (unless a pin is active)
+    s.el.addEventListener("mouseenter", function(){
+      if(hoverLock) return;
+      activate(idx);
+    });
+    // click / tap = pin open (toggle). pin survives mouseleave.
+    s.el.addEventListener("click", function(){
+      if(activeIdx === idx && hoverLock){
+        hoverLock = false;
+        activate(-1);
+      } else {
+        hoverLock = true;
+        activate(idx);
+      }
+    });
+    // keyboard: Enter/Space toggles pin, Esc closes
+    s.el.addEventListener("keydown", function(e){
+      if(e.key === "Enter" || e.key === " "){
+        e.preventDefault();
+        s.el.click();
+      } else if(e.key === "Escape"){
+        hoverLock = false;
+        activate(-1);
+        s.el.blur();
+      } else if(e.key === "ArrowUp" || e.key === "ArrowDown"){
+        e.preventDefault();
+        var dir = e.key === "ArrowUp" ? 1 : -1; // up = higher in pile (later DOM)
+        var next = Math.min(slabs.length-1, Math.max(0, idx + dir));
+        slabs[next].el.focus();
+      }
+    });
+  });
+
+  // leaving the whole pile while not pinned -> back to idle
+  stack.addEventListener("mouseleave", function(){
+    if(hoverLock) return;
+    activate(-1);
+  });
+
+  // clicking empty page space unpins
+  document.addEventListener("click", function(e){
+    if(hoverLock && !stack.contains(e.target)){
+      hoverLock = false;
+      activate(-1);
+    }
+  });
+
+  /* ----------------------------------------------------------- recalc tray height on resize */
+  var rzTimer = null;
+  window.addEventListener("resize", function(){
+    if(rzTimer) clearTimeout(rzTimer);
+    rzTimer = setTimeout(function(){
+      if(activeIdx >= 0){
+        var s = slabs[activeIdx];
+        s.tray.style.height = s.trayInner.offsetHeight + "px";
+      }
+    }, 120);
+  });
+
+  /* ----------------------------------------------------------- boot: decode layer names */
+  function boot(){
+    slabs.forEach(function(s, i){
+      decode(s.nameEl, s.name, (s.layerNo) * 41 + 7, 460 + i * 40);
+    });
+  }
+  if(document.fonts && document.fonts.ready){
+    document.fonts.ready.then(boot);
+    setTimeout(function(){ if(slabs[0].nameEl.textContent.indexOf("/") === -1 &&
+                              slabs[0].nameEl.textContent !== slabs[0].name) boot(); }, 900);
+  } else {
+    boot();
+  }
+
+  // gentle idle nudge: cycle a cat remark every so often while untouched
+  setInterval(function(){
+    if(activeIdx === -1 && !REDUCED){
+      idleIdx = (idleIdx + 1) % CAT_IDLE.length;
+      catSay(CAT_IDLE[idleIdx], false);
+    }
+  }, 6000);
+})();
+</script>
+</body>
+</html>

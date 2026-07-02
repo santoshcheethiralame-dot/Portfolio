@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>STYLE 03 / CGPA HARD METER + COUNT-UP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --red:#ed1c24;
+    --red-deep:#b3001b;
+    --red-dark:#7a0014;
+    --ink:#ffffff;
+    --black:#0a0a0a;
+    --line:rgba(255,255,255,0.26);
+    --muted:rgba(255,255,255,0.72);
+    --font-display:"Anton",sans-serif;
+    --font-mono:"JetBrains Mono",monospace;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  html{overflow-y:scroll;}
+  body{
+    background:var(--red);
+    color:var(--ink);
+    font-family:var(--font-mono);
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+    min-height:100vh;
+  }
+
+  /* ---------------- TOP BAR ---------------- */
+  .topbar{
+    position:fixed;
+    top:0;left:0;right:0;
+    z-index:50;
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:16px;
+    padding:clamp(14px,2.4vw,22px) clamp(20px,6vw,90px);
+    background:var(--red);
+    border-bottom:2px solid var(--ink);
+  }
+  .index-btn{
+    display:inline-block;
+    font-family:var(--font-mono);
+    font-weight:700;
+    font-size:12px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    text-decoration:none;
+    color:var(--ink);
+    background:transparent;
+    border:2px solid var(--ink);
+    padding:9px 16px;
+    box-shadow:5px 5px 0 var(--black);
+    transition:transform 120ms cubic-bezier(.2,.9,.2,1),
+               background-color 120ms cubic-bezier(.2,.9,.2,1),
+               color 120ms cubic-bezier(.2,.9,.2,1),
+               box-shadow 120ms cubic-bezier(.2,.9,.2,1);
+  }
+  .index-btn:hover,.index-btn:focus-visible{
+    background:var(--ink);
+    color:var(--red);
+    transform:translate(2px,2px);
+    box-shadow:3px 3px 0 var(--black);
+    outline:none;
+  }
+  .index-btn:active{
+    transform:translate(5px,5px);
+    box-shadow:0 0 0 var(--black);
+  }
+  .caption{ text-align:right; line-height:1.45; }
+  .caption .c-style{
+    font-weight:700; font-size:12px; letter-spacing:.16em; text-transform:uppercase;
+  }
+  .caption .c-hint{
+    font-weight:400; font-size:11px; letter-spacing:.06em;
+    text-transform:uppercase; opacity:.78;
+  }
+
+  /* ---------------- SECTION HEADER ---------------- */
+  .wrap{
+    padding:0 clamp(20px,6vw,90px);
+    padding-top:clamp(120px,16vh,180px);
+    padding-bottom:clamp(40px,6vw,80px);
+    max-width:1180px;
+    margin:0 auto;
+  }
+  .kicker{
+    font-family:var(--font-mono);
+    font-weight:500; font-size:13px; letter-spacing:.18em;
+    text-transform:lowercase; opacity:.85; margin:0 0 14px 2px;
+  }
+  .kicker::before{ content:"// "; }
+  .title{
+    font-family:var(--font-display);
+    font-weight:400; text-transform:uppercase; color:var(--ink);
+    line-height:.82; letter-spacing:.005em;
+    font-size:clamp(2.6rem,11vw,8.5rem);
+    margin:0 0 10px -3px;
+  }
+  .sub{
+    font-weight:400; font-size:13px; letter-spacing:.04em;
+    color:var(--muted); margin:0 0 clamp(28px,4vw,46px) 2px;
+    max-width:60ch; line-height:1.5;
+  }
+
+  /* ---------------- EDUCATION CARD ---------------- */
+  .card{
+    position:relative;
+    background:var(--red);
+    border:2px solid var(--ink);
+    box-shadow:8px 8px 0 var(--black);
+    padding:clamp(20px,3vw,36px);
+    transition:transform .12s cubic-bezier(.2,.9,.2,1),
+               box-shadow .12s cubic-bezier(.2,.9,.2,1);
+    transform-style:preserve-3d;
+  }
+  .card:hover{
+    transform:translate(-4px,-4px);
+    box-shadow:14px 14px 0 var(--black);
+  }
+  .card:active{
+    transform:translate(2px,2px);
+    box-shadow:4px 4px 0 var(--black);
+  }
+
+  .card-head{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:16px;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:18px;
+    margin-bottom:22px;
+  }
+  .school{ display:flex; flex-direction:column; gap:7px; }
+  /* PES wordmark — decode-on-hover */
+  .wordmark{
+    font-family:var(--font-display);
+    font-weight:400;
+    font-size:clamp(1.5rem,3.6vw,2.5rem);
+    line-height:.9;
+    letter-spacing:.01em;
+    text-transform:uppercase;
+    color:var(--ink);
+    cursor:pointer;
+    user-select:none;
+    white-space:nowrap;
+    background:transparent;
+    border:none;
+    padding:0;
+    text-align:left;
+    display:inline-block;
+  }
+  .wordmark:focus-visible{ outline:2px solid var(--ink); outline-offset:4px; }
+  .meta-line{
+    display:flex; flex-wrap:wrap; gap:8px 14px;
+    font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--muted);
+  }
+  .meta-line b{ color:var(--ink); font-weight:700; }
+  .tag{
+    display:inline-block;
+    border:1.5px solid var(--ink);
+    padding:3px 9px;
+    font-size:10px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--ink);
+  }
+
+  /* progress block readout (live) */
+  .progress-box{
+    text-align:right;
+    display:flex; flex-direction:column; gap:6px; align-items:flex-end;
+  }
+  .block-readout{
+    font-size:14px; letter-spacing:.08em; white-space:nowrap;
+    color:var(--ink); font-weight:500;
+  }
+  .live-dot{
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:10px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--ink);
+    border:1.5px solid var(--ink);
+    padding:4px 10px;
+  }
+  .live-dot .dot{
+    width:8px; height:8px; background:var(--ink); display:inline-block;
+    animation:pulse 1.1s steps(2,end) infinite;
+  }
+  @keyframes pulse{ 0%,49%{opacity:1;} 50%,100%{opacity:.2;} }
+
+  /* ---------------- METER GRID ---------------- */
+  .meter-grid{
+    display:grid;
+    grid-template-columns:minmax(220px,0.85fr) 1.15fr;
+    gap:clamp(22px,3vw,40px);
+    align-items:stretch;
+  }
+  @media (max-width:780px){
+    .meter-grid{ grid-template-columns:1fr; }
+  }
+
+  .panel{ display:flex; flex-direction:column; }
+  .panel-label{
+    font-size:10px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--muted); margin-bottom:12px;
+    border-bottom:1px solid var(--line); padding-bottom:7px;
+  }
+
+  /* HERO CGPA NUMERAL */
+  .cgpa-hero{ display:flex; align-items:baseline; gap:10px; margin-bottom:18px; }
+  .cgpa-num{
+    font-family:var(--font-display);
+    font-weight:400;
+    font-size:clamp(3.6rem,9vw,6.2rem);
+    line-height:.82;
+    color:var(--ink);
+    font-variant-numeric:tabular-nums;
+    font-feature-settings:"tnum" 1;
+    letter-spacing:.01em;
+  }
+  .cgpa-den{
+    font-family:var(--font-display);
+    font-weight:400;
+    font-size:clamp(1.4rem,3vw,2.1rem);
+    line-height:1;
+    color:var(--muted);
+    letter-spacing:.02em;
+  }
+  .cgpa-cap{
+    font-size:10px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--muted); margin-bottom:18px;
+  }
+
+  /* 10-SEGMENT DISCRETE BAR */
+  .segbar{
+    display:flex; gap:5px; margin-bottom:8px;
+  }
+  .seg{
+    position:relative;
+    flex:1 1 0;
+    height:34px;
+    border:2px solid var(--ink);
+    overflow:hidden;
+    background:transparent;
+  }
+  .seg .fill{
+    position:absolute;
+    left:0; top:0; bottom:0;
+    width:100%;
+    background:var(--ink);
+    transform:scaleX(0);
+    transform-origin:left center;
+    /* stamped in by JS via class; hard snap */
+    transition:transform 90ms steps(2,end);
+  }
+  .seg.on .fill{ transform:scaleX(1); }
+  .seg.partial .fill{ transform:scaleX(var(--p,0.95)); }
+  .seg-scale{
+    display:flex; justify-content:space-between;
+    font-size:9px; letter-spacing:.1em; color:var(--muted);
+  }
+
+  /* ---------------- HARD BAR CHART ---------------- */
+  .chart{
+    position:relative;
+    border-left:2px solid var(--ink);
+    border-bottom:2px solid var(--ink);
+    padding:0;
+    height:230px;
+    display:flex;
+    align-items:flex-end;
+    gap:clamp(4px,1vw,10px);
+    margin-bottom:8px;
+  }
+  /* gridlines */
+  .chart .gridline{
+    position:absolute; left:0; right:0;
+    border-top:1px dashed var(--line);
+    pointer-events:none;
+  }
+  .chart .gridline span{
+    position:absolute; left:-26px; top:-7px;
+    font-size:9px; color:var(--muted);
+  }
+  .bar-col{
+    position:relative;
+    flex:1 1 0;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-end;
+    align-items:center;
+    z-index:2;
+  }
+  .bar{
+    position:relative;
+    width:78%;
+    max-width:40px;
+    background:var(--ink);
+    border:2px solid var(--ink);
+    height:0;          /* set by JS as % */
+    transform-origin:bottom center;
+    transition:height 60ms steps(3,end);
+  }
+  /* upcoming/empty bars = dashed outline, no fill */
+  .bar.upcoming{
+    background:transparent;
+    border:2px dashed var(--line);
+    height:8% !important;  /* tiny stub so the dashed outline is visible at zero */
+    transition:none;
+  }
+  .bar .val{
+    position:absolute;
+    top:-17px; left:50%; transform:translateX(-50%);
+    font-size:9px; font-weight:700; letter-spacing:.04em;
+    color:var(--ink); white-space:nowrap;
+    opacity:0;
+    transition:opacity 100ms steps(2,end);
+  }
+  .bar.shown .val{ opacity:1; }
+  .bar.upcoming .val{ opacity:.55; color:var(--muted); top:-15px; }
+  .bar .star{
+    position:absolute;
+    top:-32px; left:50%; transform:translateX(-50%);
+    font-size:12px; line-height:1; color:var(--ink);
+    opacity:0;
+    transition:opacity 110ms steps(2,end);
+  }
+  .bar.shown .star{ opacity:1; }
+  .bar-name{
+    margin-top:6px;
+    font-size:9px; letter-spacing:.06em; color:var(--muted);
+  }
+  .bar-col.current .bar-name{ color:var(--ink); font-weight:700; }
+  /* today-marker pulse for current sem column */
+  .bar-col.current::after{
+    content:"";
+    position:absolute;
+    bottom:-2px; left:50%; transform:translateX(-50%);
+    width:6px; height:6px; background:var(--ink);
+    animation:pulse 1.1s steps(2,end) infinite;
+  }
+  .chart-note{
+    font-size:9px; letter-spacing:.08em; color:var(--muted);
+    margin-top:4px;
+  }
+
+  /* ---------------- HONORS ---------------- */
+  .honors{
+    margin-top:26px;
+    border-top:2px solid var(--ink);
+    padding-top:18px;
+    display:flex; flex-direction:column; gap:9px;
+  }
+  .honor{
+    display:flex; align-items:baseline; gap:10px;
+    font-size:12px; letter-spacing:.03em;
+  }
+  .honor .star{ color:var(--ink); font-size:13px; line-height:1; }
+  .honor .h-name{ color:var(--ink); font-weight:500; }
+  .honor .h-sem{
+    color:var(--muted); font-size:10px; letter-spacing:.1em;
+    text-transform:uppercase;
+  }
+
+  /* ---------------- COURSEWORK CHIPS ---------------- */
+  .coursework{ margin-top:26px; }
+  .cw-label{
+    font-size:10px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--muted); margin-bottom:14px;
+  }
+  .chips{
+    display:flex; flex-wrap:wrap; gap:9px;
+  }
+  .chip{
+    position:relative;
+    border:1.5px solid var(--ink);
+    border-radius:100px;
+    padding:5px 11px;
+    font-family:var(--font-mono);
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:.12em;
+    color:#fff;
+    background:transparent;
+    overflow:hidden;
+    cursor:pointer;
+    line-height:1.1;
+    /* button reset */
+    font-weight:500;
+  }
+  .chip:focus-visible{ outline:2px solid var(--ink); outline-offset:3px; }
+  .chip .wipe{
+    position:absolute;
+    inset:0;
+    background:var(--ink);
+    clip-path:inset(0 100% 0 0);
+    transition:clip-path 180ms steps(6,end);
+    z-index:0;
+  }
+  .chip label{
+    position:relative;
+    z-index:1;
+    pointer-events:none;
+    display:inline-block;
+    white-space:nowrap;
+  }
+  .chip.inv .wipe{ clip-path:inset(0 0 0 0); }
+  .chip.inv label{ color:var(--red); }
+
+  /* ---------------- RE-RUN BUTTON ---------------- */
+  .controls{
+    margin-top:26px;
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+  }
+  .rerun{
+    font-family:var(--font-mono);
+    font-weight:700; font-size:12px;
+    letter-spacing:.12em; text-transform:uppercase;
+    color:var(--red);
+    background:var(--ink);
+    border:2px solid var(--ink);
+    padding:10px 18px;
+    cursor:pointer;
+    box-shadow:5px 5px 0 var(--black);
+    transition:transform 120ms cubic-bezier(.2,.9,.2,1),
+               box-shadow 120ms cubic-bezier(.2,.9,.2,1);
+  }
+  .rerun:hover,.rerun:focus-visible{
+    transform:translate(-2px,-2px);
+    box-shadow:7px 7px 0 var(--black);
+    outline:none;
+  }
+  .rerun:active{
+    transform:translate(3px,3px);
+    box-shadow:1px 1px 0 var(--black);
+  }
+  .illus{
+    font-size:10px; letter-spacing:.08em; color:var(--muted);
+    text-transform:uppercase;
+  }
+
+  /* ---------------- FOOTER ---------------- */
+  .foot{
+    margin-top:clamp(34px,5vw,60px);
+    border-top:2px solid var(--ink);
+    padding-top:18px;
+    display:flex; flex-wrap:wrap; gap:8px 26px;
+    font-size:10px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--muted);
+  }
+  .foot b{ color:var(--ink); font-weight:700; }
+
+  /* ---------------- REDUCED MOTION ---------------- */
+  @media (prefers-reduced-motion:reduce){
+    .seg .fill,
+    .bar,
+    .bar .val,
+    .bar .star,
+    .chip .wipe{ transition:none !important; }
+    .live-dot .dot,
+    .bar-col.current::after{ animation:none !important; opacity:1 !important; }
+  }
+
+  @media (max-width:640px){
+    .caption .c-hint{ display:none; }
+    .card-head{ flex-direction:column; }
+    .progress-box{ text-align:left; align-items:flex-start; }
+  }
+</style>
+</head>
+<body>
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <a class="index-btn" href="index.html">&larr; INDEX</a>
+    <div class="caption">
+      <div class="c-style">STYLE 03 / CGPA HARD METER + COUNT-UP</div>
+      <div class="c-hint">the 7.95 earns itself &middot; segments stamp in, SGPA bars draw</div>
+    </div>
+  </div>
+
+  <!-- SECTION -->
+  <main class="wrap">
+    <p class="kicker">education &middot; school</p>
+    <h1 class="title">SCHOOL</h1>
+    <p class="sub">The CGPA counts itself up from zero, a ten-segment meter stamps in left to right, and each semester's SGPA draws from the floor.</p>
+
+    <!-- EDUCATION CARD -->
+    <section class="card" id="card" aria-label="PES University education">
+      <div class="card-head">
+        <div class="school">
+          <button class="wordmark" id="wordmark" type="button" aria-label="PES University">PES UNIVERSITY</button>
+          <div class="meta-line">
+            <span><b>B.Tech Computer Science Engineering</b></span>
+          </div>
+          <div class="meta-line">
+            <span>Bengaluru, India</span>
+            <span>&middot;</span>
+            <span>Sep 2024 &ndash; May 2028</span>
+            <span class="tag">8 semesters</span>
+          </div>
+        </div>
+        <div class="progress-box">
+          <div class="block-readout" id="blockReadout" aria-live="polite">&#9633;&#9633;&#9633;&#9633;&#9633;&#9633;&#9633;&#9633;  0% &middot; SEMESTER 1</div>
+          <div class="live-dot"><span class="dot" aria-hidden="true"></span><span id="liveSem">&#9679; CURRENTLY: SEMESTER 1</span></div>
+        </div>
+      </div>
+
+      <!-- METER GRID -->
+      <div class="meter-grid">
+        <!-- LEFT: CGPA hero + 10-segment bar -->
+        <div class="panel">
+          <div class="panel-label">cumulative gpa</div>
+          <div class="cgpa-hero">
+            <span class="cgpa-num" id="cgpaNum">0.00</span>
+            <span class="cgpa-den">/ 10</span>
+          </div>
+          <div class="cgpa-cap">10-segment meter &middot; 1 segment = 1.0 gpa</div>
+          <div class="segbar" id="segbar" aria-hidden="true">
+            <!-- 10 segments built by JS -->
+          </div>
+          <div class="seg-scale"><span>0</span><span>5</span><span>10</span></div>
+        </div>
+
+        <!-- RIGHT: per-semester SGPA hard bar chart -->
+        <div class="panel">
+          <div class="panel-label">sgpa by semester</div>
+          <div class="chart" id="chart" aria-label="per-semester SGPA bar chart">
+            <!-- gridlines + bars built by JS -->
+          </div>
+          <div class="chart-note" id="chartNote">y-axis 6&ndash;9 &middot; &#9733; = academic distinction (sgpa 7.75+)</div>
+          <div class="illus">* illustrative SGPAs &middot; S5&ndash;S8 not yet graded</div>
+        </div>
+      </div>
+
+      <!-- HONORS -->
+      <div class="honors">
+        <div class="honor"><span class="star">&#9733;</span><span class="h-name">CNR Merit Scholarship</span><span class="h-sem">Semester 1</span></div>
+        <div class="honor"><span class="star">&#9733;</span><span class="h-name">Academic Distinction &mdash; SGPA 7.75+</span><span class="h-sem">Semester 2</span></div>
+        <div class="honor"><span class="star">&#9733;</span><span class="h-name">Academic Distinction &mdash; SGPA 7.75+</span><span class="h-sem">Semester 4</span></div>
+      </div>
+
+      <!-- COURSEWORK -->
+      <div class="coursework">
+        <div class="cw-label">relevant coursework &middot; click to invert</div>
+        <div class="chips" id="chips" aria-label="relevant coursework">
+          <!-- chips built by JS -->
+        </div>
+      </div>
+
+      <!-- CONTROLS -->
+      <div class="controls">
+        <button class="rerun" id="rerun" type="button">RE-RUN</button>
+        <span class="illus">replays count-up + segment stamp + bar draw</span>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <div class="foot">
+      <span>palette <b>#ED1C24 &middot; #FFFFFF &middot; #0A0A0A</b></span>
+      <span>type <b>Anton + JetBrains Mono</b></span>
+      <span>style <b>neo-brutalism</b></span>
+      <span>technique <b>cgpa count-up + segment stamp + bar draw</b></span>
+    </div>
+  </main>
+
+<script>
+(function(){
+  "use strict";
+
+  var prefersReduced = window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // ===================== CONTENT DATA =====================
+  var CGPA = 7.95;
+  var CGPA_MAX = 10;
+
+  // per-semester SGPA (illustrative placeholders)
+  // graded: S1..S4 ; upcoming: S5..S8
+  var SEMS = [
+    {name:"S1", sgpa:7.55, graded:true,  star:false},
+    {name:"S2", sgpa:8.30, graded:true,  star:true },
+    {name:"S3", sgpa:7.62, graded:true,  star:false},
+    {name:"S4", sgpa:8.33, graded:true,  star:true },
+    {name:"S5", sgpa:null, graded:false, star:false},
+    {name:"S6", sgpa:null, graded:false, star:false},
+    {name:"S7", sgpa:null, graded:false, star:false},
+    {name:"S8", sgpa:null, graded:false, star:false}
+  ];
+
+  var COURSEWORK = [
+    "DSA",
+    "Design & Analysis of Algorithms",
+    "Operating Systems",
+    "Computer Networks",
+    "DBMS",
+    "Linear Algebra",
+    "Math for ML",
+    "Data Science"
+  ];
+
+  // chart y-axis range so differences read
+  var Y_MIN = 6, Y_MAX = 9;
+
+  // ===================== LIVE DATE MATH =====================
+  var DEGREE_START = new Date(2024, 8, 1);   // Sep 1 2024
+  var DEGREE_END   = new Date(2028, 4, 31);  // May 31 2028
+
+  // semester windows: [startInclusive, endInclusive(last day of last month)]
+  // S1 2024-09..2024-12 ; S2 2025-01..2025-05 ; S3 2025-09..2025-12 ; S4 2026-01..2026-05
+  // S5 2026-09..2026-12 ; S6 2027-01..2027-05 ; S7 2027-09..2027-12 ; S8 2028-01..2028-05
+  function dEnd(y, m){ // last day of month m (0-based) of year y, end of day
+    return new Date(y, m+1, 0, 23, 59, 59, 999);
+  }
+  var SEM_WINDOWS = [
+    {s:new Date(2024,8,1),  e:dEnd(2024,11)}, // S1
+    {s:new Date(2025,0,1),  e:dEnd(2025,4) }, // S2
+    {s:new Date(2025,8,1),  e:dEnd(2025,11)}, // S3
+    {s:new Date(2026,0,1),  e:dEnd(2026,4) }, // S4
+    {s:new Date(2026,8,1),  e:dEnd(2026,11)}, // S5
+    {s:new Date(2027,0,1),  e:dEnd(2027,4) }, // S6
+    {s:new Date(2027,8,1),  e:dEnd(2027,11)}, // S7
+    {s:new Date(2028,0,1),  e:dEnd(2028,4) }  // S8
+  ];
+
+  function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
+
+  function computeProgress(){
+    var now = new Date(); // fresh at call time -> advances over real time
+    var span = DEGREE_END - DEGREE_START;
+    var pct = clamp((now - DEGREE_START) / span * 100, 0, 100);
+
+    var completed = 0;
+    for (var i=0; i<SEM_WINDOWS.length; i++){
+      if (SEM_WINDOWS[i].e < now) completed++;
+    }
+
+    // current semester: window now falls in; else most recently completed
+    var current = 0;
+    for (var j=0; j<SEM_WINDOWS.length; j++){
+      if (now >= SEM_WINDOWS[j].s && now <= SEM_WINDOWS[j].e){ current = j+1; break; }
+    }
+    if (current === 0){
+      // in a break (or before/after) -> most recently completed, min 1, max 8
+      current = clamp(completed, 1, 8);
+      if (now < SEM_WINDOWS[0].s) current = 1;
+    }
+
+    return { now:now, pct:pct, completed:completed, current:current };
+  }
+
+  function blockReadoutString(p){
+    var filled = "■".repeat(p.completed);
+    var empty  = "□".repeat(8 - p.completed);
+    return filled + empty + "  " + Math.round(p.pct) + "% · SEMESTER " + p.current;
+  }
+
+  var blockEl = document.getElementById("blockReadout");
+  var liveSemEl = document.getElementById("liveSem");
+
+  function refreshLive(){
+    var p = computeProgress();
+    blockEl.textContent = blockReadoutString(p);
+    liveSemEl.textContent = "● CURRENTLY: SEMESTER " + p.current;
+    return p;
+  }
+  var liveProgress = refreshLive();
+  // keep it honest over real time (cheap, recomputes the marked column too)
+  setInterval(function(){
+    liveProgress = refreshLive();
+    markCurrentColumn();
+  }, 60000);
+
+  // ===================== BUILD: 10-SEGMENT BAR =====================
+  var segbarEl = document.getElementById("segbar");
+  var segEls = [];
+  // 7.95 / 10 -> fill 7 full + 1 partial (~0.95). Discrete, no gradient.
+  var SEG_FULL = Math.floor(CGPA);          // 7 full
+  var SEG_PARTIAL_FRAC = CGPA - SEG_FULL;   // 0.95
+  for (var s=0; s<10; s++){
+    var seg = document.createElement("div");
+    seg.className = "seg";
+    var fill = document.createElement("span");
+    fill.className = "fill";
+    seg.appendChild(fill);
+    if (s < SEG_FULL){
+      seg.dataset.kind = "full";
+    } else if (s === SEG_FULL && SEG_PARTIAL_FRAC > 0.02){
+      seg.dataset.kind = "partial";
+      fill.style.setProperty("--p", SEG_PARTIAL_FRAC.toFixed(3));
+    } else {
+      seg.dataset.kind = "empty";
+    }
+    segbarEl.appendChild(seg);
+    segEls.push(seg);
+  }
+
+  function clearSegments(){
+    segEls.forEach(function(seg){ seg.classList.remove("on","partial"); });
+  }
+  function fillSegmentsTo(gpaValue){
+    // light up segments whose index < floor(gpaValue); partial for the fractional one
+    var fullCount = Math.floor(gpaValue);
+    segEls.forEach(function(seg, idx){
+      if (idx < fullCount){
+        seg.classList.add("on");
+        seg.classList.remove("partial");
+      } else if (idx === fullCount && seg.dataset.kind !== "empty" && (gpaValue - fullCount) > 0.02){
+        // only the designated partial segment fills partially
+        if (seg.dataset.kind === "partial" || idx === SEG_FULL){
+          seg.classList.add("partial");
+        }
+        seg.classList.remove("on");
+      } else {
+        seg.classList.remove("on","partial");
+      }
+    });
+  }
+  function fillSegmentsFinal(){
+    segEls.forEach(function(seg, idx){
+      seg.classList.remove("on","partial");
+      if (seg.dataset.kind === "full") seg.classList.add("on");
+      else if (seg.dataset.kind === "partial") seg.classList.add("partial");
+    });
+  }
+
+  // ===================== BUILD: HARD BAR CHART =====================
+  var chartEl = document.getElementById("chart");
+  var barEls = []; // {col, bar, sem}
+
+  // gridlines at 6,7,8,9 mapped into Y_MIN..Y_MAX
+  (function buildGrid(){
+    for (var g=Y_MIN; g<=Y_MAX; g++){
+      var line = document.createElement("div");
+      line.className = "gridline";
+      var frac = (g - Y_MIN) / (Y_MAX - Y_MIN); // 0..1 from bottom
+      line.style.bottom = (frac * 100) + "%";
+      var lbl = document.createElement("span");
+      lbl.textContent = g.toFixed(0);
+      line.appendChild(lbl);
+      chartEl.appendChild(line);
+    }
+  })();
+
+  function sgpaToHeightPct(sgpa){
+    // map sgpa into Y_MIN..Y_MAX -> 0..100% of chart height
+    var v = clamp((sgpa - Y_MIN) / (Y_MAX - Y_MIN), 0, 1);
+    // keep a small floor so a bar is always visible above the axis
+    return (v * 100);
+  }
+
+  SEMS.forEach(function(sem){
+    var col = document.createElement("div");
+    col.className = "bar-col";
+
+    var bar = document.createElement("div");
+    if (sem.graded){
+      bar.className = "bar";
+    } else {
+      bar.className = "bar upcoming";
+    }
+
+    if (sem.star){
+      var star = document.createElement("span");
+      star.className = "star";
+      star.textContent = "★";
+      bar.appendChild(star);
+    }
+
+    var val = document.createElement("span");
+    val.className = "val";
+    val.textContent = sem.graded ? sem.sgpa.toFixed(2) : "—";
+    bar.appendChild(val);
+
+    var name = document.createElement("span");
+    name.className = "bar-name";
+    name.textContent = sem.name;
+
+    col.appendChild(bar);
+    col.appendChild(name);
+    chartEl.appendChild(col);
+
+    barEls.push({col:col, bar:bar, name:name, sem:sem});
+  });
+
+  function markCurrentColumn(){
+    barEls.forEach(function(b, idx){
+      b.col.classList.toggle("current", (idx+1) === liveProgress.current);
+    });
+  }
+  markCurrentColumn();
+
+  function clearBars(){
+    barEls.forEach(function(b){
+      if (b.sem.graded){
+        b.bar.style.height = "0px";
+        b.bar.classList.remove("shown");
+      }
+    });
+  }
+  function drawBarsFinal(){
+    barEls.forEach(function(b){
+      if (b.sem.graded){
+        b.bar.style.height = sgpaToHeightPct(b.sem.sgpa) + "%";
+        b.bar.classList.add("shown");
+      }
+    });
+  }
+
+  // ===================== COUNT-UP + STAMP ANIMATION =====================
+  var cgpaNumEl = document.getElementById("cgpaNum");
+  var rafCount = null;
+
+  function setNumber(v){
+    cgpaNumEl.textContent = v.toFixed(2);
+  }
+
+  // ease-out cubic
+  function easeOut(t){ return 1 - Math.pow(1 - t, 3); }
+
+  function runCountUp(){
+    if (rafCount){ cancelAnimationFrame(rafCount); rafCount = null; }
+    clearSegments();
+    var DURATION = 1100; // ~1.1s
+    var start = performance.now();
+
+    function step(now){
+      var t = clamp((now - start) / DURATION, 0, 1);
+      var e = easeOut(t);
+      var val = CGPA * e;
+      setNumber(val);
+      fillSegmentsTo(val);
+      if (t < 1){
+        rafCount = requestAnimationFrame(step);
+      } else {
+        setNumber(CGPA);
+        fillSegmentsFinal();
+        rafCount = null;
+      }
+    }
+    rafCount = requestAnimationFrame(step);
+  }
+
+  function runBarDraw(){
+    clearBars();
+    // staggered stamp-in, graded bars only, left to right
+    var gradedIdx = 0;
+    barEls.forEach(function(b){
+      if (!b.sem.graded) return;
+      var delay = 380 + gradedIdx * 130; // start after count is underway, ~130ms apart
+      gradedIdx++;
+      setTimeout(function(){
+        b.bar.style.height = sgpaToHeightPct(b.sem.sgpa) + "%";
+        // value + star pop on landing (after the height step settles)
+        setTimeout(function(){ b.bar.classList.add("shown"); }, 70);
+      }, delay);
+    });
+  }
+
+  // ===================== COURSEWORK CHIPS =====================
+  var chipsEl = document.getElementById("chips");
+  var CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/#*<>";
+  var chipObjs = [];
+
+  COURSEWORK.forEach(function(text){
+    var chip = document.createElement("button");
+    chip.className = "chip";
+    chip.type = "button";
+
+    var wipe = document.createElement("span");
+    wipe.className = "wipe";
+    chip.appendChild(wipe);
+
+    var label = document.createElement("label");
+    label.textContent = text;
+    chip.appendChild(label);
+
+    // PRESS-TO-INVERT (toggle .inv -> hard left->right wipe)
+    chip.addEventListener("click", function(){
+      chip.classList.toggle("inv");
+    });
+
+    chipsEl.appendChild(chip);
+    chipObjs.push({chip:chip, label:label, text:text});
+  });
+
+  function randGlyph(){
+    return CHARSET.charAt(Math.floor(Math.random() * CHARSET.length));
+  }
+
+  // DECODE-IN: scramble random glyphs, resolve left->right over ~450ms, staggered ~45ms
+  function decodeChip(obj, startDelay){
+    var text = obj.text;
+    var label = obj.label;
+    var n = text.length;
+    var RESOLVE = 450;
+    var startTime = performance.now() + startDelay;
+    var raf;
+
+    function frame(now){
+      var elapsed = now - startTime;
+      if (elapsed < 0){
+        // pre-start: show full scramble (preserve spaces/punct as themselves for width)
+        var pre = "";
+        for (var k=0; k<n; k++){
+          var ch = text.charAt(k);
+          pre += (ch === " ") ? " " : randGlyph();
+        }
+        label.textContent = pre;
+        raf = requestAnimationFrame(frame);
+        return;
+      }
+      var prog = clamp(elapsed / RESOLVE, 0, 1);
+      var resolvedCount = Math.floor(prog * n);
+      var out = "";
+      for (var i=0; i<n; i++){
+        var c = text.charAt(i);
+        if (i < resolvedCount || c === " "){
+          out += c;
+        } else {
+          out += randGlyph();
+        }
+      }
+      label.textContent = out;
+      if (prog < 1){
+        raf = requestAnimationFrame(frame);
+      } else {
+        label.textContent = text;
+      }
+    }
+    raf = requestAnimationFrame(frame);
+  }
+
+  var chipsDecoded = false;
+  function decodeAllChips(){
+    if (prefersReduced){
+      chipObjs.forEach(function(o){ o.label.textContent = o.text; });
+      return;
+    }
+    chipObjs.forEach(function(o, i){
+      decodeChip(o, i * 45); // ~45ms stagger
+    });
+  }
+
+  // ===================== WORDMARK DECODE-ON-HOVER =====================
+  var wordmark = document.getElementById("wordmark");
+  var WM_TEXT = "PES UNIVERSITY";
+  var wmRaf = null;
+  function wordmarkDecode(){
+    if (prefersReduced) return;
+    if (wmRaf){ cancelAnimationFrame(wmRaf); wmRaf = null; }
+    var RESOLVE = 420;
+    var start = performance.now();
+    var n = WM_TEXT.length;
+    function frame(now){
+      var prog = clamp((now - start) / RESOLVE, 0, 1);
+      var resolved = Math.floor(prog * n);
+      var out = "";
+      for (var i=0; i<n; i++){
+        var c = WM_TEXT.charAt(i);
+        if (i < resolved || c === " "){ out += c; }
+        else { out += randGlyph(); }
+      }
+      wordmark.textContent = out;
+      if (prog < 1){ wmRaf = requestAnimationFrame(frame); }
+      else { wordmark.textContent = WM_TEXT; }
+    }
+    wmRaf = requestAnimationFrame(frame);
+  }
+  wordmark.addEventListener("pointerenter", wordmarkDecode);
+  wordmark.addEventListener("focus", wordmarkDecode);
+
+  // ===================== CARD TILT-PRESS =====================
+  // subtle pointer-driven tilt; resets on leave. (Hard transitions, small angles.)
+  var card = document.getElementById("card");
+  var tiltRaf = null;
+  if (!prefersReduced){
+    card.addEventListener("pointermove", function(e){
+      if (tiltRaf) return;
+      tiltRaf = requestAnimationFrame(function(){
+        tiltRaf = null;
+        var r = card.getBoundingClientRect();
+        var cx = (e.clientX - r.left) / r.width - 0.5;   // -0.5..0.5
+        var cy = (e.clientY - r.top) / r.height - 0.5;
+        var rotY = cx * 4;   // small
+        var rotX = -cy * 4;
+        card.style.transform =
+          "translate(-4px,-4px) perspective(900px) rotateX(" + rotX.toFixed(2) +
+          "deg) rotateY(" + rotY.toFixed(2) + "deg)";
+      });
+    });
+    card.addEventListener("pointerleave", function(){
+      card.style.transform = "";
+    });
+    // press -> snap down
+    card.addEventListener("pointerdown", function(){
+      card.style.transition = "transform .09s steps(2,end), box-shadow .09s steps(2,end)";
+      card.style.transform = "translate(2px,2px)";
+    });
+    card.addEventListener("pointerup", function(){
+      card.style.transition = "";
+      card.style.transform = "";
+    });
+  }
+
+  // ===================== ORCHESTRATION =====================
+  function renderFinalStatic(){
+    setNumber(CGPA);
+    fillSegmentsFinal();
+    drawBarsFinal();
+    barEls.forEach(function(b){ if (b.sem.graded) b.bar.classList.add("shown"); });
+    chipObjs.forEach(function(o){ o.label.textContent = o.text; });
+  }
+
+  function runSequence(){
+    if (prefersReduced){
+      renderFinalStatic();
+      return;
+    }
+    runCountUp();
+    runBarDraw();
+    if (!chipsDecoded){
+      chipsDecoded = true;
+      decodeAllChips();
+    }
+  }
+
+  // RE-RUN
+  var rerunBtn = document.getElementById("rerun");
+  rerunBtn.addEventListener("click", function(){
+    refreshLive();
+    markCurrentColumn();
+    if (prefersReduced){
+      // just re-set values, no animation
+      renderFinalStatic();
+      return;
+    }
+    runCountUp();
+    runBarDraw();
+    // chips re-decode on every re-run too (loud, on purpose)
+    decodeAllChips();
+  });
+
+  // ===================== INTERSECTION OBSERVER =====================
+  var played = false;
+  function trigger(){
+    if (played) return;
+    played = true;
+    runSequence();
+  }
+
+  if (prefersReduced){
+    renderFinalStatic();
+  } else if ("IntersectionObserver" in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if (entry.isIntersecting){
+          trigger();
+          io.disconnect();
+        }
+      });
+    }, { threshold: 0.35 });
+    io.observe(card);
+  } else {
+    // no IO support -> just run
+    trigger();
+  }
+
+  // if fonts load late, segment/bar widths are % based so no remeasure needed.
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>STYLE 02 / TIMELINE AS SCROLL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --red:#ed1c24;
+    --red-deep:#b3001b;
+    --red-dark:#7a0014;
+    --ink:#ffffff;
+    --black:#0a0a0a;
+    --line:rgba(255,255,255,0.26);
+    --muted:rgba(255,255,255,0.72);
+    --font-display:"Anton",sans-serif;
+    --font-mono:"JetBrains Mono",monospace;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--red);
+    color:var(--ink);
+    font-family:var(--font-mono);
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+
+  /* ---------------- TOP BAR ---------------- */
+  .topbar{
+    position:fixed;
+    top:0;left:0;right:0;
+    z-index:80;
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:16px;
+    padding:clamp(12px,2.2vw,20px) clamp(18px,5vw,72px);
+    background:var(--red);
+    border-bottom:2px solid var(--ink);
+  }
+  .index-btn{
+    display:inline-block;
+    font-family:var(--font-mono);
+    font-weight:700;
+    font-size:12px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    text-decoration:none;
+    color:var(--ink);
+    background:transparent;
+    border:2px solid var(--ink);
+    padding:9px 16px;
+    box-shadow:5px 5px 0 var(--black);
+    transition:transform 120ms cubic-bezier(.2,.9,.2,1),
+               background-color 120ms cubic-bezier(.2,.9,.2,1),
+               color 120ms cubic-bezier(.2,.9,.2,1),
+               box-shadow 120ms cubic-bezier(.2,.9,.2,1);
+  }
+  .index-btn:hover,.index-btn:focus-visible{
+    background:var(--ink);
+    color:var(--red);
+    transform:translate(2px,2px);
+    box-shadow:3px 3px 0 var(--black);
+    outline:none;
+  }
+  .index-btn:active{
+    transform:translate(5px,5px);
+    box-shadow:0 0 0 var(--black);
+  }
+  .caption{ text-align:right; line-height:1.45; }
+  .caption .c-style{
+    font-weight:700;
+    font-size:12px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+  }
+  .caption .c-hint{
+    font-weight:400;
+    font-size:11px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    opacity:.78;
+  }
+
+  /* ---------------- SCROLL PROGRESS (top hairline) ---------------- */
+  .scrollbar-top{
+    position:fixed;
+    top:0;left:0;
+    height:4px;
+    width:0%;
+    background:var(--ink);
+    z-index:90;
+    pointer-events:none;
+  }
+
+  /* ---------------- PINNED SCROLLYTELLING SECTION ---------------- */
+  /* .scroller is the TALL element ScrollTrigger pins against. */
+  .scroller{
+    position:relative;
+    /* JS sets a tall height; fallback keeps it usable pre-JS */
+    min-height:100vh;
+  }
+
+  /* .stage is what gets pinned: a full-viewport panel */
+  .stage{
+    height:100vh;
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    padding:clamp(74px,11vh,108px) clamp(18px,5vw,72px) clamp(14px,2.5vh,26px);
+    overflow:hidden;
+  }
+
+  /* ---------------- SECTION HEADER ---------------- */
+  .kicker{
+    font-family:var(--font-mono);
+    font-weight:500;
+    font-size:13px;
+    letter-spacing:.18em;
+    text-transform:lowercase;
+    opacity:.85;
+    margin:0 0 8px 2px;
+  }
+  .kicker::before{ content:"// "; }
+  .title{
+    font-family:var(--font-display);
+    font-weight:400;
+    text-transform:uppercase;
+    color:var(--ink);
+    line-height:.82;
+    letter-spacing:.01em;
+    font-size:clamp(2.6rem,9vw,7rem);
+    margin:0 0 6px -2px;
+  }
+  .subline{
+    font-size:12px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin:0 0 clamp(12px,2vh,20px) 2px;
+  }
+
+  /* ---------------- BODY GRID (card + timeline) ---------------- */
+  .body{
+    flex:1 1 auto;
+    display:grid;
+    grid-template-columns:minmax(280px,360px) 1fr;
+    gap:clamp(18px,2.4vw,34px);
+    min-height:0;
+  }
+
+  /* ----- LEFT: EDUCATION CARD ----- */
+  .card{
+    align-self:start;
+    background:var(--red);
+    border:2px solid var(--ink);
+    box-shadow:8px 8px 0 var(--black);
+    padding:clamp(16px,1.6vw,22px);
+    transition:transform .12s cubic-bezier(.2,.9,.2,1),
+               box-shadow .12s cubic-bezier(.2,.9,.2,1);
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .card:hover{
+    transform:translate(-4px,-4px);
+    box-shadow:14px 14px 0 var(--black);
+  }
+  .card:active{
+    transform:translate(2px,2px);
+    box-shadow:4px 4px 0 var(--black);
+  }
+  .card .school{
+    font-family:var(--font-display);
+    font-size:clamp(1.7rem,2.6vw,2.5rem);
+    line-height:.9;
+    text-transform:uppercase;
+    letter-spacing:.01em;
+    margin:0;
+  }
+  .card .loc{
+    font-size:11px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+  .card .degree{
+    font-size:12px;
+    line-height:1.5;
+    letter-spacing:.04em;
+    border-top:2px solid var(--ink);
+    padding-top:10px;
+  }
+  .card .meta{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .card .tag{
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    border:2px solid var(--ink);
+    padding:4px 8px;
+  }
+  .card .tag.invblk{
+    background:var(--ink);
+    color:var(--red);
+  }
+
+  /* live block readout inside card */
+  .readout{
+    border-top:2px solid var(--ink);
+    padding-top:10px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .readout .blocks{
+    font-size:clamp(13px,1.3vw,16px);
+    letter-spacing:.18em;
+    line-height:1;
+    white-space:nowrap;
+    font-weight:700;
+  }
+  .readout .pctrow{
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+  }
+  .readout .pct{
+    font-family:var(--font-display);
+    font-size:clamp(2.2rem,4vw,3.4rem);
+    line-height:.85;
+  }
+  .readout .pctlbl{
+    font-size:10px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+  .live-dot{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+  }
+  .live-dot .dot{
+    width:9px;height:9px;
+    background:var(--ink);
+    border-radius:50%;
+    display:inline-block;
+    flex:0 0 auto;
+  }
+  .pulse{ animation:pulse 1.1s steps(2,end) infinite; }
+  @keyframes pulse{
+    0%,49%{ transform:scale(1); opacity:1; }
+    50%,100%{ transform:scale(1.55); opacity:.25; }
+  }
+
+  /* ----- RIGHT: TIMELINE TRACK ----- */
+  .timeline{
+    position:relative;
+    border:2px solid var(--ink);
+    box-shadow:8px 8px 0 var(--black);
+    background:var(--red);
+    padding:clamp(16px,2vh,26px) clamp(16px,2vw,28px) clamp(14px,2vh,22px);
+    display:flex;
+    flex-direction:column;
+    min-height:0;
+    overflow:hidden;
+  }
+  .tl-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    font-size:10px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:clamp(14px,2vh,22px);
+  }
+  .tl-head b{ color:var(--ink); }
+
+  /* the horizontal track */
+  .track-wrap{
+    position:relative;
+    margin:0 6px clamp(14px,2vh,22px);
+    padding-top:30px; /* room for floating sem labels */
+  }
+  .track{
+    position:relative;
+    height:6px;
+    background:rgba(255,255,255,0.22);
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+  }
+  /* filled progress portion of the track */
+  .track .fill{
+    position:absolute;
+    top:0;left:0;bottom:0;
+    width:0%;
+    background:var(--ink);
+  }
+  /* semester ticks */
+  .tick{
+    position:absolute;
+    top:-7px;
+    width:2px;
+    height:20px;
+    background:var(--ink);
+    transform:translateX(-1px);
+  }
+  .tick .lbl{
+    position:absolute;
+    bottom:24px;
+    left:50%;
+    transform:translateX(-50%);
+    font-size:9px;
+    font-weight:700;
+    letter-spacing:.08em;
+    white-space:nowrap;
+    color:var(--muted);
+  }
+  .tick.done .lbl{ color:var(--ink); }
+  /* the today marker */
+  .marker{
+    position:absolute;
+    top:-12px;
+    left:0%;
+    width:0;
+    height:0;
+    z-index:4;
+    transform:translateX(-50%);
+  }
+  .marker .stem{
+    position:absolute;
+    left:50%;
+    top:0;
+    transform:translateX(-50%);
+    width:3px;
+    height:30px;
+    background:var(--ink);
+  }
+  .marker .head{
+    position:absolute;
+    left:50%;
+    top:-14px;
+    transform:translateX(-50%);
+    width:14px;height:14px;
+    background:var(--ink);
+    border:2px solid var(--black);
+  }
+  .marker .head.at-today{ animation:markpulse 1s steps(3,end) infinite; }
+  @keyframes markpulse{
+    0%,60%{ box-shadow:0 0 0 0 var(--ink); }
+    61%,100%{ box-shadow:0 0 0 6px rgba(255,255,255,0.0); }
+  }
+  .marker .tagdate{
+    position:absolute;
+    left:50%;
+    top:32px;
+    transform:translateX(-50%);
+    background:var(--ink);
+    color:var(--red);
+    font-size:9px;
+    font-weight:700;
+    letter-spacing:.08em;
+    padding:2px 6px;
+    white-space:nowrap;
+  }
+
+  /* SGPA bars under the track */
+  .sgpa-wrap{
+    margin:0 6px clamp(8px,1.4vh,14px);
+  }
+  .sgpa-head{
+    font-size:9px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:8px;
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .sgpa-row{
+    display:grid;
+    grid-template-columns:repeat(8,1fr);
+    gap:6px;
+    align-items:end;
+    height:clamp(54px,9vh,86px);
+  }
+  .sgpa-col{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-end;
+    height:100%;
+    gap:5px;
+  }
+  .sgpa-bar{
+    width:100%;
+    border:2px solid var(--ink);
+    background:transparent;
+    height:0%;
+    position:relative;
+  }
+  .sgpa-bar.graded{ background:var(--ink); }
+  .sgpa-bar.distinction{ background:var(--ink); }
+  .sgpa-bar.empty{
+    background:repeating-linear-gradient(
+      45deg,
+      transparent, transparent 4px,
+      var(--line) 4px, var(--line) 5px
+    );
+    height:18% !important;
+    opacity:.8;
+  }
+  .sgpa-num{
+    font-size:9px;
+    font-weight:700;
+    letter-spacing:.04em;
+    color:var(--ink);
+    line-height:1;
+  }
+  .sgpa-num.up{ color:var(--muted); }
+  .sgpa-lbl{
+    font-size:8px;
+    letter-spacing:.06em;
+    color:var(--muted);
+    line-height:1;
+  }
+
+  /* ----- HONORS STARS ----- */
+  .honors{
+    margin:clamp(8px,1.4vh,14px) 6px clamp(10px,1.6vh,16px);
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px 12px;
+  }
+  .honor{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    border:2px solid var(--ink);
+    background:transparent;
+    padding:5px 10px;
+    font-size:10px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    white-space:nowrap;
+  }
+  .honor .star{
+    font-size:14px;
+    line-height:1;
+    display:inline-block;
+    transform-origin:center;
+  }
+  .honor .sem{
+    font-weight:700;
+    color:var(--red);
+    background:var(--ink);
+    padding:1px 5px;
+    font-size:9px;
+    letter-spacing:.06em;
+  }
+
+  /* ----- COURSEWORK CHIPS ----- */
+  .coursework{
+    margin:0 6px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    flex:1 1 auto;
+    min-height:0;
+  }
+  .cw-head{
+    font-size:9px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+  .chips{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    align-content:flex-start;
+  }
+
+  /* PILL CHIP (house chip language) */
+  .chip{
+    position:relative;
+    border:1.5px solid var(--ink);
+    border-radius:100px;
+    padding:5px 11px;
+    font-family:var(--font-mono);
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:.12em;
+    color:#fff;
+    background:transparent;
+    overflow:hidden;
+    cursor:pointer;
+    white-space:nowrap;
+    /* start hidden for STAMP reveal; JS/GSAP brings them in */
+    transform:scale(1.25);
+    visibility:hidden;
+  }
+  .chip.shown{ visibility:visible; }
+  .chip .wipe{
+    position:absolute;
+    inset:0;
+    background:var(--ink);
+    clip-path:inset(0 100% 0 0);
+    transition:clip-path 180ms steps(6,end);
+    z-index:0;
+  }
+  .chip label{
+    position:relative;
+    z-index:1;
+    pointer-events:none;
+    display:inline-block;
+  }
+  .chip.inv .wipe{ clip-path:inset(0 0 0 0); }
+  .chip.inv label{ color:var(--red); }
+  .chip:focus-visible{ outline:2px solid var(--ink); outline-offset:2px; }
+  /* hard shadow that snaps on as the chip stamps in */
+  .chip.stamp-shadow{ box-shadow:4px 4px 0 var(--black); }
+
+  /* ---------------- FOOT ---------------- */
+  .foot{
+    flex:0 0 auto;
+    margin-top:clamp(8px,1.4vh,14px);
+    padding-top:10px;
+    border-top:2px solid var(--line);
+    font-size:10px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--muted);
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px 22px;
+  }
+  .foot b{ color:#fff; font-weight:700; }
+
+  /* scroll hint pinned to stage */
+  .scrollcue{
+    position:absolute;
+    right:clamp(18px,5vw,72px);
+    bottom:clamp(14px,2.5vh,26px);
+    font-size:10px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--muted);
+    display:flex;
+    align-items:center;
+    gap:8px;
+    pointer-events:none;
+  }
+  .scrollcue .arr{
+    font-family:var(--font-display);
+    font-size:14px;
+    animation:bob .9s steps(2,end) infinite;
+  }
+  @keyframes bob{ 0%,50%{transform:translateY(0);} 51%,100%{transform:translateY(3px);} }
+
+  /* ---------------- RESPONSIVE ---------------- */
+  @media (max-width:880px){
+    .body{ grid-template-columns:1fr; }
+    .caption .c-hint{ display:none; }
+    /* No pin on narrow screens (JS skips it): let everything flow naturally
+       so overflowed content (chips, foot) stays reachable. */
+    .scroller{ min-height:auto; }
+    .stage{ height:auto; min-height:auto; overflow:visible; }
+  }
+
+  /* ---------------- REDUCED MOTION ----------------
+     Static, fully-resolved layout: no pin, no scrub, no scrambles,
+     no infinite pulses, no stamps. Everything shown at final state. */
+  @media (prefers-reduced-motion:reduce){
+    .scroller{ min-height:auto !important; height:auto !important; }
+    .stage{ height:auto; min-height:auto; overflow:visible; }
+    .chip{ transform:none !important; visibility:visible !important; }
+    .pulse, .marker .head.at-today, .scrollcue .arr{ animation:none !important; }
+    .scrollcue{ display:none; }
+  }
+</style>
+</head>
+<body>
+  <!-- scroll progress hairline -->
+  <div class="scrollbar-top" id="scrollProgress" aria-hidden="true"></div>
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <a class="index-btn" href="index.html">&larr; INDEX</a>
+    <div class="caption">
+      <div class="c-style">STYLE 02 / TIMELINE AS SCROLL</div>
+      <div class="c-hint">scroll to scrub your degree &middot; chips stamp in, stars punch in</div>
+    </div>
+  </div>
+
+  <!-- TALL SCROLLER -> pins the stage -->
+  <section class="scroller" id="scroller">
+    <div class="stage" id="stage">
+      <p class="kicker">education &middot; school</p>
+      <h1 class="title">SCHOOL</h1>
+      <p class="subline">scroll-scrubbed degree timeline &mdash; the marker scrubs from sep 2024 to today, semesters stamp in as you pass them.</p>
+
+      <div class="body">
+        <!-- LEFT CARD -->
+        <article class="card" tabindex="0" aria-label="PES University education summary">
+          <h2 class="school">PES<br />University</h2>
+          <div class="loc">Bengaluru, India</div>
+          <div class="degree">B.Tech in Computer Science Engineering<br />Sep 2024 &ndash; May 2028 &middot; 8 semesters</div>
+          <div class="meta">
+            <span class="tag invblk">CGPA 7.95 / 10</span>
+            <span class="tag">4 YR &middot; 8 SEM</span>
+          </div>
+          <div class="readout">
+            <div class="blocks" id="blocksReadout">&#9633;&#9633;&#9633;&#9633;&#9633;&#9633;&#9633;&#9633;</div>
+            <div class="pctrow">
+              <span class="pct" id="pctNum">0%</span>
+              <span class="pctlbl" id="semLbl">&middot; SEMESTER 1</span>
+            </div>
+            <div class="live-dot">
+              <span class="dot pulse" id="liveDot"></span>
+              <span id="liveText">&#9679; CURRENTLY: SEMESTER 1</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- RIGHT TIMELINE -->
+        <div class="timeline">
+          <div class="tl-head">
+            <span>degree track <b>SEP 2024 &rarr; MAY 2028</b></span>
+            <span>now at <b id="tlPct">0%</b></span>
+          </div>
+
+          <!-- horizontal track with ticks + marker -->
+          <div class="track-wrap">
+            <div class="track" id="track">
+              <div class="fill" id="trackFill"></div>
+              <!-- ticks injected by JS -->
+              <div class="marker" id="marker">
+                <span class="head" id="markerHead"></span>
+                <span class="stem"></span>
+                <span class="tagdate" id="markerDate">SEP 2024</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- SGPA bars -->
+          <div class="sgpa-wrap">
+            <div class="sgpa-head">
+              <span>SGPA per semester</span>
+              <span>* S1 &ndash; S4 illustrative / placeholder values</span>
+            </div>
+            <div class="sgpa-row" id="sgpaRow"><!-- bars injected --></div>
+          </div>
+
+          <!-- HONORS STARS -->
+          <div class="honors" id="honors"><!-- stars injected --></div>
+
+          <!-- COURSEWORK CHIPS -->
+          <div class="coursework">
+            <div class="cw-head">coursework &middot; unlocked as you progress</div>
+            <div class="chips" id="chips"><!-- chips injected --></div>
+          </div>
+
+          <!-- FOOT -->
+          <div class="foot">
+            <span>palette <b>#ED1C24 &middot; #FFFFFF &middot; #0A0A0A</b></span>
+            <span>type <b>Anton + JetBrains Mono</b></span>
+            <span>style <b>neo-brutalism</b></span>
+            <span>technique <b>pinned scroll-scrub timeline</b></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="scrollcue" id="scrollcue"><span>scroll to scrub</span><span class="arr">&darr;</span></div>
+    </div>
+  </section>
+
+<!-- GSAP + ScrollTrigger -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  var prefersReduced = window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ============================================================
+     LIVE DATE MATH  (fresh Date at runtime -> advances over time)
+     ============================================================ */
+  var NOW = new Date();
+
+  var DEGREE_START = new Date(2024, 8, 1);    // Sep 1 2024 (month idx 8)
+  var DEGREE_END   = new Date(2028, 4, 31);   // May 31 2028 (month idx 4)
+
+  // Semester windows: [startInclusive, endInclusive]
+  // S{n}: number, start Date, end Date
+  var SEMS = [
+    {n:1, start:new Date(2024,8,1),  end:new Date(2024,11,31,23,59,59)}, // 2024-09..2024-12
+    {n:2, start:new Date(2025,0,1),  end:new Date(2025,4,31,23,59,59)},  // 2025-01..2025-05
+    {n:3, start:new Date(2025,8,1),  end:new Date(2025,11,31,23,59,59)}, // 2025-09..2025-12
+    {n:4, start:new Date(2026,0,1),  end:new Date(2026,4,31,23,59,59)},  // 2026-01..2026-05
+    {n:5, start:new Date(2026,8,1),  end:new Date(2026,11,31,23,59,59)}, // 2026-09..2026-12
+    {n:6, start:new Date(2027,0,1),  end:new Date(2027,4,31,23,59,59)},  // 2027-01..2027-05
+    {n:7, start:new Date(2027,8,1),  end:new Date(2027,11,31,23,59,59)}, // 2027-09..2027-12
+    {n:8, start:new Date(2028,0,1),  end:new Date(2028,4,31,23,59,59)}   // 2028-01..2028-05
+  ];
+
+  function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
+
+  var spanMs = DEGREE_END - DEGREE_START;
+  var completionPct = clamp((NOW - DEGREE_START) / spanMs * 100, 0, 100);
+
+  // completedSemesters = number whose END is before now
+  var completedSemesters = 0;
+  SEMS.forEach(function(s){ if (s.end < NOW) completedSemesters++; });
+
+  // currentSemester = the semester now falls in; if in a break, use last completed
+  var currentSemester;
+  (function(){
+    var inSem = null;
+    for (var i=0;i<SEMS.length;i++){
+      if (NOW >= SEMS[i].start && NOW <= SEMS[i].end){ inSem = SEMS[i].n; break; }
+    }
+    if (inSem !== null){
+      currentSemester = inSem;
+    } else if (NOW < SEMS[0].start){
+      currentSemester = 1;            // before degree begins
+    } else {
+      currentSemester = Math.max(1, completedSemesters); // between terms -> last completed
+    }
+  })();
+
+  // Block readout helpers
+  var FILLED = "■", EMPTY = "□";
+  function blocksFor(done){
+    return FILLED.repeat(done) + EMPTY.repeat(8 - done);
+  }
+  function readoutString(done, pct, sem){
+    return blocksFor(done) + "  " + Math.round(pct) + "% · SEMESTER " + sem;
+  }
+
+  // Date -> position 0..100 along the degree span
+  function dateToPct(d){
+    return clamp((d - DEGREE_START) / spanMs * 100, 0, 100);
+  }
+  // pct 0..100 -> approximate calendar date label
+  function pctToDate(pct){
+    var t = DEGREE_START.getTime() + (pct/100) * spanMs;
+    var d = new Date(t);
+    var mon = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"][d.getMonth()];
+    return mon + " " + d.getFullYear();
+  }
+  // pct 0..100 -> how many semesters are fully completed by that point
+  function completedAtPct(pct){
+    var t = DEGREE_START.getTime() + (pct/100) * spanMs;
+    var marker = new Date(t);
+    var c = 0;
+    SEMS.forEach(function(s){ if (s.end <= marker) c++; });
+    return c;
+  }
+  // pct 0..100 -> which semester that point sits in (1..8), break -> last completed
+  function semAtPct(pct){
+    var t = DEGREE_START.getTime() + (pct/100) * spanMs;
+    var marker = new Date(t);
+    for (var i=0;i<SEMS.length;i++){
+      if (marker >= SEMS[i].start && marker <= SEMS[i].end) return SEMS[i].n;
+    }
+    return Math.max(1, completedAtPct(pct));
+  }
+
+  /* ============================================================
+     COURSEWORK -> grouped across semesters (degree progression)
+     Exactly the 8 required chips, foundational early -> advanced late.
+     ============================================================ */
+  var COURSEWORK = [
+    {name:"DSA",                              sem:1},
+    {name:"Linear Algebra",                   sem:1},
+    {name:"Design & Analysis of Algorithms",  sem:2},
+    {name:"DBMS",                             sem:2},
+    {name:"Operating Systems",                sem:3},
+    {name:"Math for ML",                      sem:3},
+    {name:"Computer Networks",                sem:4},
+    {name:"Data Science",                     sem:4}
+  ];
+
+  /* HONORS -> star + semester (S2 and S4 distinction; S1 scholarship) */
+  var HONORS = [
+    {label:"CNR Merit Scholarship",            sem:1},
+    {label:"Academic Distinction · SGPA 7.75+", sem:2},
+    {label:"Academic Distinction · SGPA 7.75+", sem:4}
+  ];
+
+  /* SGPA placeholder values (illustrative). S5-S8 not yet graded. */
+  var SGPA = {1:7.55, 2:8.30, 3:7.62, 4:8.33}; // S5..S8 -> upcoming
+
+  /* ============================================================
+     BUILD DOM
+     ============================================================ */
+  var track = document.getElementById("track");
+  var marker = document.getElementById("marker");
+  var markerHead = document.getElementById("markerHead");
+  var markerDate = document.getElementById("markerDate");
+  var trackFill = document.getElementById("trackFill");
+  var chipsEl = document.getElementById("chips");
+  var honorsEl = document.getElementById("honors");
+  var sgpaRow = document.getElementById("sgpaRow");
+
+  // ---- ticks: place each semester's START on the track ----
+  SEMS.forEach(function(s){
+    var p = dateToPct(s.start);
+    var tick = document.createElement("div");
+    tick.className = "tick" + (s.end < NOW ? " done" : "");
+    tick.style.left = p + "%";
+    var lbl = document.createElement("span");
+    lbl.className = "lbl";
+    lbl.textContent = "S" + s.n;
+    tick.appendChild(lbl);
+    track.appendChild(tick);
+  });
+
+  // ---- SGPA bars (8) ----
+  var GPA_MAX = 10;
+  var sgpaBars = [];
+  SEMS.forEach(function(s){
+    var col = document.createElement("div");
+    col.className = "sgpa-col";
+
+    var val = SGPA[s.n];
+    var graded = (val !== undefined);
+
+    var num = document.createElement("div");
+    num.className = "sgpa-num" + (graded ? "" : " up");
+    num.textContent = graded ? val.toFixed(2) : "—";
+
+    var bar = document.createElement("div");
+    if (graded){
+      bar.className = "sgpa-bar graded" + (val >= 7.75 ? " distinction" : "");
+      bar.setAttribute("data-h", ((val/GPA_MAX)*100).toFixed(1));
+    } else {
+      bar.className = "sgpa-bar empty";
+      bar.setAttribute("data-h", "0");
+    }
+
+    var lbl = document.createElement("div");
+    lbl.className = "sgpa-lbl";
+    lbl.textContent = "S" + s.n;
+
+    col.appendChild(num);
+    col.appendChild(bar);
+    col.appendChild(lbl);
+    sgpaRow.appendChild(col);
+    sgpaBars.push({sem:s.n, el:bar, graded:graded});
+  });
+
+  // ---- honors stars ----
+  var honorEls = [];
+  HONORS.forEach(function(h){
+    var el = document.createElement("span");
+    el.className = "honor";
+    el.style.visibility = prefersReduced ? "visible" : "hidden";
+
+    var star = document.createElement("span");
+    star.className = "star";
+    star.textContent = "★";
+
+    var txt = document.createElement("span");
+    txt.textContent = h.label;
+
+    var sem = document.createElement("span");
+    sem.className = "sem";
+    sem.textContent = "S" + h.sem;
+
+    el.appendChild(star);
+    el.appendChild(txt);
+    el.appendChild(sem);
+    honorsEl.appendChild(el);
+    honorEls.push({sem:h.sem, el:el, star:star, fired:false});
+  });
+
+  // ---- coursework chips ----
+  var CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/#*<>";
+  var chipObjs = [];
+
+  COURSEWORK.forEach(function(c){
+    var chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "chip";
+    chip.setAttribute("data-sem", c.sem);
+    chip.setAttribute("aria-pressed", "false");
+
+    var wipe = document.createElement("span");
+    wipe.className = "wipe";
+
+    var label = document.createElement("label");
+    label.textContent = c.name;
+
+    chip.appendChild(wipe);
+    chip.appendChild(label);
+    chipsEl.appendChild(chip);
+
+    // PRESS-TO-INVERT
+    chip.addEventListener("click", function(){
+      var on = chip.classList.toggle("inv");
+      chip.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+
+    chipObjs.push({sem:c.sem, chip:chip, label:label, text:c.name, fired:false});
+  });
+
+  /* ---- DECODE-IN: scramble glyphs resolving L->R over ~450ms ---- */
+  function decodeChip(obj, delay){
+    var label = obj.label;
+    var text = obj.text;
+    var len = text.length;
+    var DUR = 450;
+    var start = null;
+    function frame(ts){
+      if (start === null) start = ts;
+      var t = (ts - start) / DUR; // 0..1
+      if (t < 0) t = 0;
+      // resolved chars grows left->right
+      var resolved = Math.floor(t * len);
+      var out = "";
+      for (var i=0;i<len;i++){
+        var ch = text[i];
+        if (i < resolved || ch === " "){
+          out += ch;
+        } else {
+          out += CHARSET[(Math.random()*CHARSET.length)|0];
+        }
+      }
+      label.textContent = out;
+      if (t < 1){
+        requestAnimationFrame(frame);
+      } else {
+        label.textContent = text;
+      }
+    }
+    setTimeout(function(){ requestAnimationFrame(frame); }, delay);
+  }
+
+  /* ---- STAMP a chip in: scale 1.25 -> 1 + hard shadow snap + decode ---- */
+  function stampChip(obj, staggerIndex){
+    if (obj.fired) return;
+    obj.fired = true;
+    var chip = obj.chip;
+    chip.classList.add("shown");
+    if (window.gsap){
+      gsap.fromTo(chip, {scale:1.25}, {
+        scale:1, duration:0.16, ease:"steps(4)",
+        onStart:function(){ chip.classList.add("stamp-shadow"); }
+      });
+    } else {
+      chip.style.transform = "scale(1)";
+      chip.classList.add("stamp-shadow");
+    }
+    decodeChip(obj, staggerIndex * 45);
+  }
+
+  /* ---- PUNCH a star in: scale 2 -> 1 with a few degrees rotation ---- */
+  function punchHonor(obj){
+    if (obj.fired) return;
+    obj.fired = true;
+    obj.el.style.visibility = "visible";
+    if (window.gsap){
+      gsap.fromTo(obj.el, {scale:2, rotation:-8}, {
+        scale:1, rotation:0, duration:0.18, ease:"steps(5)"
+      });
+      gsap.fromTo(obj.star, {rotation:-180}, {rotation:0, duration:0.22, ease:"back.out(2)"});
+    }
+  }
+
+  /* ============================================================
+     LIVE READOUTS (card)
+     ============================================================ */
+  var blocksReadout = document.getElementById("blocksReadout");
+  var pctNum = document.getElementById("pctNum");
+  var semLbl = document.getElementById("semLbl");
+  var tlPct  = document.getElementById("tlPct");
+  var liveText = document.getElementById("liveText");
+
+  // The live "CURRENTLY" dot reflects the REAL current semester (always honest)
+  liveText.textContent = "● CURRENTLY: SEMESTER " + currentSemester;
+
+  /* Update everything that is driven by a scrubbed pct (0..completionPct). */
+  function renderAt(pct){
+    pct = clamp(pct, 0, completionPct);
+    var doneC = completedAtPct(pct);
+    var semC  = semAtPct(pct);
+    var rounded = Math.round(pct);
+
+    blocksReadout.textContent = blocksFor(doneC);
+    pctNum.textContent = rounded + "%";
+    semLbl.textContent = "· SEMESTER " + semC;
+    tlPct.textContent = rounded + "%";
+
+    // marker + fill position
+    marker.style.left = pct + "%";
+    trackFill.style.width = pct + "%";
+    markerDate.textContent = pctToDate(pct);
+
+    // mark "at today" pulse once we reach completion
+    if (pct >= completionPct - 0.2){
+      markerHead.classList.add("at-today");
+    } else {
+      markerHead.classList.remove("at-today");
+    }
+
+    // fire stamps / punches for semesters reached at this pct.
+    // Use the SCRUB position (semC + doneC) to decide what is "unlocked".
+    var reachedSem = Math.max(semC, doneC); // the furthest semester the marker touched
+    var stampCounter = 0;
+    chipObjs.forEach(function(obj){
+      if (obj.sem <= reachedSem && !obj.fired){
+        stampChip(obj, stampCounter++);
+      }
+    });
+    honorEls.forEach(function(obj){
+      // honor punches when its semester is completed (its end passed in scrub terms)
+      if (obj.sem <= doneC && !obj.fired){
+        punchHonor(obj);
+      } else if (obj.sem <= reachedSem && obj.sem <= semC && !obj.fired){
+        // also allow punch when marker is inside that semester
+        punchHonor(obj);
+      }
+    });
+
+    // SGPA bars grow as their semester is reached
+    sgpaBars.forEach(function(b){
+      if (!b.graded) return;
+      var target = parseFloat(b.el.getAttribute("data-h"));
+      if (reachedSem >= b.sem){
+        b.el.style.height = target + "%";
+      }
+    });
+  }
+
+  /* ============================================================
+     STATIC RESOLVED STATE (reduced motion OR final fallback)
+     ============================================================ */
+  function renderResolvedStatic(){
+    // marker at today, counters at final, all chips + stars shown
+    marker.style.left = completionPct + "%";
+    trackFill.style.width = completionPct + "%";
+    markerDate.textContent = "NOW · " + pctToDate(completionPct);
+    blocksReadout.textContent = blocksFor(completedSemesters);
+    pctNum.textContent = Math.round(completionPct) + "%";
+    semLbl.textContent = "· SEMESTER " + currentSemester;
+    tlPct.textContent = Math.round(completionPct) + "%";
+
+    chipObjs.forEach(function(o){
+      o.chip.classList.add("shown","stamp-shadow");
+      o.chip.style.transform = "scale(1)";
+      o.label.textContent = o.text;
+      o.fired = true;
+    });
+    honorEls.forEach(function(o){ o.el.style.visibility = "visible"; o.fired = true; });
+    sgpaBars.forEach(function(b){
+      if (b.graded) b.el.style.height = b.el.getAttribute("data-h") + "%";
+    });
+    if (!prefersReduced) markerHead.classList.add("at-today");
+  }
+
+  /* ============================================================
+     WIRING
+     ============================================================ */
+  var scrollProgress = document.getElementById("scrollProgress");
+  var scroller = document.getElementById("scroller");
+  var stage = document.getElementById("stage");
+
+  function setScrollBar(p){ scrollProgress.style.width = (p*100).toFixed(2) + "%"; }
+
+  var isNarrow = window.matchMedia &&
+    window.matchMedia("(max-width:880px)").matches;
+
+  if (prefersReduced || isNarrow || !window.gsap || !window.ScrollTrigger){
+    // ---- Static, fully resolved. No pin, no scrub. ----
+    renderResolvedStatic();
+    setScrollBar(0);
+    // page-level scroll progress bar still works as decoration
+    window.addEventListener("scroll", function(){
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      setScrollBar(max > 0 ? clamp(window.scrollY/max,0,1) : 0);
+    }, {passive:true});
+  } else {
+    gsap.registerPlugin(ScrollTrigger);
+
+    // initial empty state
+    renderAt(0);
+
+    var st = ScrollTrigger.create({
+      trigger: scroller,
+      start: "top top",
+      end: "bottom bottom",
+      pin: stage,
+      pinSpacing: true,
+      scrub: 0.4,
+      onUpdate: function(self){
+        var p = self.progress; // 0..1 over the pinned scroll
+        setScrollBar(p);
+        // scrub maps 0..1 -> 0..completionPct (cannot exceed today)
+        renderAt(p * completionPct);
+      }
+    });
+
+    // make the scroller tall enough to drive a comfortable pin.
+    function sizeScroller(){
+      // ~ 2.6 viewport-heights of scroll travel for the pin
+      var h = Math.round(window.innerHeight * 2.6);
+      scroller.style.minHeight = (window.innerHeight + h) + "px";
+    }
+    sizeScroller();
+
+    // hide scroll cue once user is well into the scrub
+    var cue = document.getElementById("scrollcue");
+    ScrollTrigger.create({
+      trigger: scroller, start:"top top", end:"+=140",
+      onUpdate:function(self){ cue.style.opacity = self.progress > 0.5 ? "0" : "1"; }
+    });
+
+    function refreshAll(){ sizeScroller(); ScrollTrigger.refresh(); }
+
+    window.addEventListener("resize", refreshAll);
+
+    // refresh after fonts + layout settle so the pin height is correct
+    if (document.fonts && document.fonts.ready){
+      document.fonts.ready.then(refreshAll);
+    }
+    window.addEventListener("load", refreshAll);
+    // a couple of deferred refreshes catch late CDN/font layout shifts
+    setTimeout(refreshAll, 250);
+    setTimeout(refreshAll, 900);
+  }
+})();
+</script>
+</body>
+</html>

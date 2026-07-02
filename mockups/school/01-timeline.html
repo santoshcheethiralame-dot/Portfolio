@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SCHOOL / 01 — LIVE DEGREE TIMELINE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --red:#ed1c24;
+    --red-deep:#b3001b;
+    --red-dark:#7a0014;
+    --ink:#ffffff;
+    --black:#0a0a0a;
+    --line:rgba(255,255,255,0.26);
+    --muted:rgba(255,255,255,0.72);
+    --font-display:"Anton",sans-serif;
+    --font-mono:"JetBrains Mono",monospace;
+    --bar-h:64px;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+
+  body{
+    background:var(--red);
+    color:var(--ink);
+    font-family:var(--font-mono);
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    overflow-x:hidden;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:48px 48px;
+    background-position:-1px -1px;
+  }
+
+  /* ---------------------------------------------------------------- TOP BAR */
+  .topbar{
+    position:fixed; top:0; left:0; right:0; height:var(--bar-h);
+    z-index:200;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 clamp(14px,4vw,40px);
+    background:var(--red);
+    border-bottom:2px solid var(--ink);
+  }
+  .index-btn{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--font-mono); font-weight:700;
+    font-size:12px; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--ink); text-decoration:none;
+    padding:9px 16px;
+    border:2px solid var(--ink);
+    background:transparent;
+    box-shadow:4px 4px 0 var(--black);
+    transition:transform 120ms cubic-bezier(.2,.9,.2,1),
+               box-shadow 120ms cubic-bezier(.2,.9,.2,1),
+               background 120ms steps(1,end),
+               color 120ms steps(1,end);
+  }
+  .index-btn:hover,.index-btn:focus-visible{
+    background:var(--ink); color:var(--red);
+    transform:translate(2px,2px);
+    box-shadow:2px 2px 0 var(--black);
+    outline:none;
+  }
+  .caption{ text-align:right; line-height:1.35; }
+  .caption .c-style{
+    font-weight:700; font-size:12px; letter-spacing:.12em; text-transform:uppercase;
+  }
+  .caption .c-hint{
+    font-weight:400; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--muted);
+  }
+
+  /* ---------------------------------------------------------------- SECTION */
+  .section{
+    padding:calc(var(--bar-h) + clamp(22px,4vw,46px)) clamp(20px,6vw,90px) clamp(40px,7vw,90px);
+    max-width:1500px; margin:0 auto;
+  }
+  .kicker{
+    font-size:13px; font-weight:500; letter-spacing:.18em;
+    color:var(--muted);
+    margin-bottom:10px;
+    text-transform:lowercase;
+  }
+  .kicker::before{ content:"// "; color:#fff; }
+
+  .title{
+    font-family:var(--font-display);
+    text-transform:uppercase;
+    color:var(--ink);
+    line-height:.82;
+    font-size:clamp(3rem,15vw,11rem);
+    letter-spacing:.005em;
+    transform-origin:left center;
+    will-change:transform;
+  }
+  .subline{
+    margin-top:14px;
+    font-size:12.5px; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--muted);
+    max-width:60ch;
+  }
+
+  /* ---------------------------------------------------------------- READOUT */
+  .readout{
+    display:flex; flex-wrap:wrap; align-items:stretch; gap:14px;
+    margin-top:clamp(26px,4vw,40px);
+  }
+  .readout-block{
+    border:2px solid var(--ink);
+    background:rgba(0,0,0,0.12);
+    box-shadow:6px 6px 0 var(--black);
+    padding:14px 18px;
+    display:flex; flex-direction:column; gap:7px; justify-content:center;
+  }
+  .ro-label{
+    font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted);
+  }
+  .ro-blocks{
+    font-size:clamp(15px,2.4vw,24px); font-weight:700; letter-spacing:.14em;
+    color:var(--ink); white-space:nowrap; line-height:1;
+  }
+  .ro-pct{ color:var(--ink); }
+  .ro-sem{ color:var(--ink); }
+  .ro-counter{
+    font-family:var(--font-display);
+    font-size:clamp(34px,6vw,64px);
+    line-height:.82;
+    color:var(--ink);
+  }
+  .ro-counter small{
+    font-family:var(--font-mono); font-size:13px; letter-spacing:.1em; color:var(--muted);
+    font-weight:400;
+  }
+  .live-dot{
+    display:inline-flex; align-items:center; gap:9px;
+    font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--ink);
+  }
+  .live-dot .dot{
+    width:11px; height:11px; background:var(--ink); display:inline-block;
+    border-radius:100px;
+  }
+  .pulse{ animation:pulse 1.15s steps(2,end) infinite; }
+  @keyframes pulse{ 0%,55%{ opacity:1; transform:scale(1); } 56%,100%{ opacity:.18; transform:scale(.7); } }
+
+  /* ---------------------------------------------------------------- TRACK */
+  .track-wrap{
+    position:relative;
+    margin-top:clamp(54px,7vw,90px);
+    padding:0 6px;
+  }
+  /* the achievement-star row sits above the rail */
+  .track{
+    position:relative;
+    height:210px;
+  }
+  .rail{
+    position:absolute; left:0; right:0; top:118px;
+    height:14px;
+    border:2px solid var(--ink);
+    background:rgba(0,0,0,0.22);
+    overflow:hidden;
+  }
+  /* completed fill, hard left->right */
+  .rail-fill{
+    position:absolute; left:0; top:0; bottom:0;
+    width:0;
+    background:var(--ink);
+    transition:width 700ms cubic-bezier(.2,.9,.2,1);
+  }
+
+  .tick{
+    position:absolute; top:0; bottom:0;
+    width:0;
+    transform:translateX(-50%);
+  }
+  /* the vertical notch through the rail */
+  .tick .notch{
+    position:absolute; top:110px; height:30px; left:-1px; width:2px;
+    background:var(--ink);
+  }
+  /* tick node — a hard square sitting on the rail */
+  .tick .node{
+    position:absolute; top:114px; left:-9px;
+    width:18px; height:18px;
+    border:2px solid var(--ink);
+    background:var(--red);
+    z-index:4;
+    transition:transform 120ms cubic-bezier(.2,.9,.2,1), background 120ms steps(1,end);
+  }
+  .tick.done .node{ background:var(--ink); }
+  .tick.upcoming .node{ background:var(--red); border-style:dashed; }
+  .tick .hot{
+    position:absolute; top:96px; left:-26px; width:52px; height:64px;
+    background:transparent; border:0; cursor:pointer; z-index:6; padding:0;
+  }
+  .tick .hot:focus-visible{ outline:2px solid var(--ink); outline-offset:-2px; }
+  .tick:hover .node, .tick.show .node{ transform:scale(1.42) rotate(45deg); }
+
+  /* label below the rail */
+  .tick .lab{
+    position:absolute; top:150px; left:50%; transform:translateX(-50%);
+    text-align:center; white-space:nowrap; pointer-events:none;
+  }
+  .tick .lab .s{
+    font-weight:700; font-size:13px; letter-spacing:.1em; color:var(--ink);
+  }
+  .tick.upcoming .lab .s{ color:var(--muted); }
+  .tick .lab .rng{
+    font-size:8.5px; letter-spacing:.06em; color:var(--muted); margin-top:3px; text-transform:uppercase;
+  }
+
+  /* achievement star pinned above a tick */
+  .tick .star{
+    position:absolute; top:60px; left:50%; transform:translateX(-50%);
+    font-size:22px; line-height:1; color:var(--ink); pointer-events:none;
+    text-shadow:2px 2px 0 var(--black);
+  }
+  .tick .star::after{
+    content:""; position:absolute; left:50%; top:26px; transform:translateX(-50%);
+    width:2px; height:48px; background:var(--line);
+  }
+
+  /* TODAY marker — solid block, pulses */
+  .marker{
+    position:absolute; top:0; bottom:0;
+    width:0; transform:translateX(-50%); z-index:8;
+  }
+  .marker .stem{
+    position:absolute; top:80px; left:-2px; width:4px; height:74px; background:var(--ink);
+  }
+  .marker .blk{
+    position:absolute; top:96px; left:-13px;
+    width:26px; height:26px;
+    background:var(--ink);
+    border:2px solid var(--black);
+    box-shadow:4px 4px 0 var(--black);
+    z-index:9;
+  }
+  .marker .blk.beat{ animation:beat 1.15s steps(3,end) infinite; }
+  @keyframes beat{ 0%,60%{ transform:scale(1); } 61%,100%{ transform:scale(1.28); } }
+  .marker .flag{
+    position:absolute; top:36px; left:50%; transform:translateX(-50%);
+    background:var(--ink); color:var(--red);
+    font-weight:700; font-size:9.5px; letter-spacing:.12em; text-transform:uppercase;
+    padding:4px 8px; white-space:nowrap;
+    border:2px solid var(--black);
+    box-shadow:3px 3px 0 var(--black);
+  }
+
+  /* hover popover */
+  .pop{
+    position:absolute; z-index:60;
+    min-width:184px; max-width:240px;
+    background:var(--black); color:var(--ink);
+    border:2px solid var(--ink);
+    box-shadow:6px 6px 0 var(--black);
+    padding:11px 13px;
+    transform:translateX(-50%);
+    pointer-events:none;
+    opacity:0;
+    transition:opacity 1ms steps(1,end);
+  }
+  .pop.on{ opacity:1; }
+  .pop .pterm{ font-weight:700; font-size:13px; letter-spacing:.08em; text-transform:uppercase; }
+  .pop .prng{ font-size:9.5px; letter-spacing:.06em; color:var(--muted); margin-top:3px; text-transform:uppercase; }
+  .pop .prow{
+    display:flex; justify-content:space-between; gap:12px; align-items:baseline;
+    margin-top:9px; padding-top:9px; border-top:2px solid var(--line);
+    font-size:10.5px; letter-spacing:.06em; text-transform:uppercase;
+  }
+  .pop .prow b{ font-family:var(--font-display); font-size:20px; letter-spacing:.02em; color:var(--ink); }
+  .pop .pach{
+    margin-top:8px; font-size:9.5px; letter-spacing:.05em; text-transform:uppercase;
+    color:var(--ink); line-height:1.4;
+  }
+  .pop .pach .st{ color:var(--ink); margin-right:5px; }
+  .pop .pstatus{
+    margin-top:7px; font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);
+  }
+
+  .track-note{
+    margin-top:18px;
+    font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.5);
+  }
+
+  /* ---------------------------------------------------------------- EDU CARD */
+  .card{
+    margin-top:clamp(48px,6vw,80px);
+    background:var(--red);
+    border:2px solid var(--ink);
+    box-shadow:8px 8px 0 var(--black);
+    padding:clamp(20px,3vw,38px);
+    transform-origin:center center;
+    transition:transform .12s cubic-bezier(.2,.9,.2,1), box-shadow .12s cubic-bezier(.2,.9,.2,1);
+    will-change:transform;
+  }
+  .card-top{
+    display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-start; gap:22px;
+  }
+  .wordmark{
+    font-family:var(--font-display);
+    text-transform:uppercase;
+    line-height:.86;
+    font-size:clamp(2.2rem,6vw,4.6rem);
+    color:var(--ink);
+    letter-spacing:.01em;
+    cursor:default;
+    user-select:none;
+  }
+  .meta{
+    font-size:12px; letter-spacing:.07em; text-transform:uppercase; color:var(--ink);
+    line-height:1.7; margin-top:6px;
+  }
+  .meta .mm{ color:var(--muted); }
+
+  .cgpa{
+    flex:0 0 auto;
+    border:2px solid var(--ink);
+    background:var(--ink);
+    color:var(--red);
+    box-shadow:4px 4px 0 var(--black);
+    padding:12px 18px;
+    text-align:center;
+    min-width:142px;
+  }
+  .cgpa .lbl{ font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--red-deep); }
+  .cgpa .val{ font-family:var(--font-display); font-size:42px; line-height:.9; margin-top:4px; }
+  .cgpa .val small{ font-family:var(--font-mono); font-size:14px; color:var(--red-deep); }
+
+  /* honors line */
+  .honors{
+    margin-top:clamp(18px,2.5vw,26px);
+    padding-top:16px; border-top:2px solid var(--line);
+    display:flex; flex-direction:column; gap:7px;
+  }
+  .honor{
+    display:flex; align-items:baseline; gap:10px;
+    font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink);
+  }
+  .honor .st{ color:var(--ink); font-size:14px; line-height:1; }
+  .honor .where{ color:var(--muted); }
+
+  /* coursework chips */
+  .chips-head{
+    margin-top:clamp(20px,2.5vw,28px);
+    font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted);
+    margin-bottom:12px;
+  }
+  .chips{ display:flex; flex-wrap:wrap; gap:9px; }
+  .chip{
+    position:relative; overflow:hidden;
+    border:1.5px solid var(--ink);
+    border-radius:100px;
+    padding:5px 11px;
+    font-family:var(--font-mono);
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:.12em;
+    color:#fff;
+    background:transparent;
+    cursor:pointer;
+    line-height:1.1;
+    transition:transform 110ms cubic-bezier(.2,.9,.2,1);
+  }
+  .chip .wipe{
+    position:absolute; inset:0;
+    background:var(--ink);
+    clip-path:inset(0 100% 0 0);
+    transition:clip-path 180ms steps(6,end);
+    z-index:0;
+  }
+  .chip label{
+    position:relative; z-index:1; pointer-events:none;
+    display:inline-block; white-space:nowrap;
+    transition:color 1ms steps(1,end);
+  }
+  .chip.inv .wipe{ clip-path:inset(0 0 0 0); }
+  .chip.inv label{ color:var(--red); }
+  .chip:active{ transform:translate(1px,1px); }
+  .chip:focus-visible{ outline:2px solid var(--ink); outline-offset:2px; }
+
+  /* ---------------------------------------------------------------- FOOTER */
+  .foot{
+    margin-top:clamp(34px,5vw,60px);
+    padding-top:16px;
+    border-top:2px solid var(--line);
+    font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+    color:rgba(255,255,255,0.6);
+    display:flex; flex-wrap:wrap; gap:8px 26px;
+  }
+  .foot b{ color:#fff; font-weight:700; }
+
+  /* ---------------------------------------------------------------- RESPONSIVE */
+  @media (max-width:760px){
+    .caption .c-hint{ display:none; }
+    .tick .lab .rng{ display:none; }
+    .tick .star::after{ height:36px; top:24px; }
+  }
+  @media (max-width:560px){
+    .track{ height:190px; }
+    .tick .lab .s{ font-size:11px; }
+    .cgpa{ min-width:120px; }
+  }
+
+  /* ---------------------------------------------------------------- REDUCED MOTION */
+  @media (prefers-reduced-motion: reduce){
+    .pulse, .marker .blk.beat{ animation:none !important; }
+    .rail-fill{ transition:none !important; }
+    .title{ transition:none !important; }
+    .card{ transition:none !important; }
+    .pop{ transition:none !important; }
+  }
+</style>
+</head>
+
+<body>
+
+  <!-- =================================================== TOP BAR -->
+  <header class="topbar">
+    <a class="index-btn" href="index.html">&larr; INDEX</a>
+    <div class="caption">
+      <div class="c-style">STYLE 01 / LIVE DEGREE TIMELINE</div>
+      <div class="c-hint">hover a semester to see what happened there &middot; marker is computed from today</div>
+    </div>
+  </header>
+
+  <!-- =================================================== SECTION -->
+  <main class="section">
+    <p class="kicker">education &middot; school</p>
+    <h1 class="title" id="title">SCHOOL</h1>
+    <p class="subline">a live degree timeline — the today-marker is computed from the real date and advances on its own. completed semesters fill solid; upcoming ones stay ghosted.</p>
+
+    <!-- READOUT -->
+    <div class="readout">
+      <div class="readout-block">
+        <div class="ro-label">DEGREE PROGRESS // COMPUTED LIVE</div>
+        <div class="ro-blocks" id="blockReadout">&#9632;&#9632;&#9632;&#9632;&#9633;&#9633;&#9633;&#9633;&nbsp;&nbsp;0% &middot; SEMESTER 1</div>
+      </div>
+      <div class="readout-block">
+        <div class="ro-label">COMPLETE</div>
+        <div class="ro-counter"><span id="pctCounter">0</span><small>%</small></div>
+      </div>
+      <div class="readout-block">
+        <div class="ro-label">STATUS</div>
+        <div class="live-dot"><span class="dot pulse" aria-hidden="true"></span><span id="liveText">&#9679; CURRENTLY: SEMESTER 1</span></div>
+      </div>
+    </div>
+
+    <!-- TRACK -->
+    <div class="track-wrap">
+      <div class="track" id="track" aria-label="Degree timeline Sep 2024 to May 2028">
+        <div class="rail"><div class="rail-fill" id="railFill"></div></div>
+        <!-- ticks + marker injected by JS -->
+      </div>
+      <div class="pop" id="pop" role="status" aria-live="polite"></div>
+      <div class="track-note">// sep 2024 &rarr; may 2028 &middot; 8 semesters &middot; sgpa values are illustrative placeholders</div>
+    </div>
+
+    <!-- EDUCATION CARD -->
+    <section class="card" id="card" aria-label="PES University degree card">
+      <div class="card-top">
+        <div>
+          <div class="wordmark" id="wordmark" data-text="PES UNIVERSITY">PES UNIVERSITY</div>
+          <div class="meta">
+            B.Tech in Computer Science Engineering<br>
+            <span class="mm">Bengaluru, India &middot; Sep 2024 &ndash; May 2028 &middot; 8 semesters</span>
+          </div>
+        </div>
+        <div class="cgpa" aria-label="CGPA 7.95 out of 10">
+          <div class="lbl">CGPA</div>
+          <div class="val">7.95<small>/10</small></div>
+        </div>
+      </div>
+
+      <div class="honors" aria-label="Honors">
+        <div class="honor"><span class="st">&#9733;</span><span>CNR Merit Scholarship</span><span class="where">&mdash; Semester 1</span></div>
+        <div class="honor"><span class="st">&#9733;</span><span>Academic Distinction &mdash; SGPA 7.75+</span><span class="where">&mdash; Semester 2</span></div>
+        <div class="honor"><span class="st">&#9733;</span><span>Academic Distinction &mdash; SGPA 7.75+</span><span class="where">&mdash; Semester 4</span></div>
+      </div>
+
+      <div class="chips-head">// relevant coursework</div>
+      <div class="chips" id="chips"></div>
+    </section>
+
+    <!-- FOOTER -->
+    <div class="foot">
+      <span>palette <b>#ED1C24 &middot; #FFFFFF &middot; #0A0A0A</b></span>
+      <span>type <b>Anton + JetBrains Mono</b></span>
+      <span>style <b>neo-brutalism</b></span>
+      <span>technique <b>live date-math timeline + decode chips</b></span>
+    </div>
+  </main>
+
+<script>
+(function(){
+  "use strict";
+
+  var REDUCE = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ============================================================ DATE MATH */
+  var DEGREE_START = new Date(2024, 8, 1);    // Sep 1 2024
+  var DEGREE_END   = new Date(2028, 4, 31);   // May 31 2028
+
+  // semester windows: [label, start, end, sgpa(null=ungraded), achievement(null)]
+  var SEMS = [
+    { id:1, term:"S1", name:"SEM 1 / FALL 2024",   start:new Date(2024,8,1),  end:new Date(2024,11,31), sgpa:7.55, ach:"CNR Merit Scholarship" },
+    { id:2, term:"S2", name:"SEM 2 / SPRING 2025", start:new Date(2025,0,1),  end:new Date(2025,4,31),  sgpa:8.30, ach:"Academic Distinction — SGPA 7.75+" },
+    { id:3, term:"S3", name:"SEM 3 / FALL 2025",   start:new Date(2025,8,1),  end:new Date(2025,11,31), sgpa:7.62, ach:null },
+    { id:4, term:"S4", name:"SEM 4 / SPRING 2026", start:new Date(2026,0,1),  end:new Date(2026,4,31),  sgpa:8.33, ach:"Academic Distinction — SGPA 7.75+" },
+    { id:5, term:"S5", name:"SEM 5 / FALL 2026",   start:new Date(2026,8,1),  end:new Date(2026,11,31), sgpa:null, ach:null },
+    { id:6, term:"S6", name:"SEM 6 / SPRING 2027", start:new Date(2027,0,1),  end:new Date(2027,4,31),  sgpa:null, ach:null },
+    { id:7, term:"S7", name:"SEM 7 / FALL 2027",   start:new Date(2027,8,1),  end:new Date(2027,11,31), sgpa:null, ach:null },
+    { id:8, term:"S8", name:"SEM 8 / SPRING 2028", start:new Date(2028,0,1),  end:new Date(2028,4,31),  sgpa:null, ach:null }
+  ];
+
+  var MON = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+  function rangeLabel(s){
+    var a = MON[s.start.getMonth()] + " " + s.start.getFullYear();
+    var b = MON[s.end.getMonth()]   + " " + s.end.getFullYear();
+    return a + " – " + b;
+  }
+
+  function clamp(v,lo,hi){ return Math.max(lo, Math.min(hi, v)); }
+
+  function computeState(){
+    var now = new Date(); // FRESH each call -> advances over real time
+    var pct = clamp((now - DEGREE_START) / (DEGREE_END - DEGREE_START) * 100, 0, 100);
+
+    var completed = 0;
+    for(var i=0;i<SEMS.length;i++){ if(SEMS[i].end < now) completed++; }
+
+    // current semester: the one now falls in; else most recently completed (break)
+    var current = 0;
+    for(var j=0;j<SEMS.length;j++){
+      if(now >= SEMS[j].start && now <= SEMS[j].end){ current = SEMS[j].id; break; }
+    }
+    if(current === 0){ current = completed > 0 ? completed : 1; }
+
+    var block = repeat("■", completed) + repeat("□", 8 - completed)
+              + "  " + Math.round(pct) + "% · SEMESTER " + current;
+
+    return { now:now, pct:pct, completed:completed, current:current, block:block };
+  }
+  function repeat(ch,n){ var s=""; for(var k=0;k<n;k++) s+=ch; return s; }
+
+  // position 0..100 of a semester's MIDPOINT along the START->END span
+  function semPct(s){
+    var mid = (s.start.getTime() + s.end.getTime())/2;
+    return clamp((mid - DEGREE_START) / (DEGREE_END - DEGREE_START) * 100, 0, 100);
+  }
+
+  /* ============================================================ BUILD TRACK */
+  var track = document.getElementById("track");
+  var railFill = document.getElementById("railFill");
+  var pop = document.getElementById("pop");
+
+  var state = computeState();
+
+  // ticks
+  SEMS.forEach(function(s){
+    var done = s.end < state.now;
+    var isCurrent = (s.id === state.current);
+    var tick = document.createElement("div");
+    tick.className = "tick " + (done ? "done" : "upcoming") + (isCurrent ? " current" : "");
+    tick.style.left = semPct(s) + "%";
+
+    var starHTML = s.ach ? '<div class="star" aria-hidden="true">★</div>' : "";
+    tick.innerHTML =
+      starHTML +
+      '<div class="notch"></div>' +
+      '<div class="node"></div>' +
+      '<div class="lab"><div class="s">'+s.term+'</div><div class="rng">'+rangeLabel(s)+'</div></div>' +
+      '<button class="hot" type="button" aria-label="'+s.name+'"></button>';
+
+    track.appendChild(tick);
+
+    var hot = tick.querySelector(".hot");
+    function show(){ openPop(s, tick); tick.classList.add("show"); }
+    function hide(){ closePop(); tick.classList.remove("show"); }
+    hot.addEventListener("mouseenter", show);
+    hot.addEventListener("mouseleave", hide);
+    hot.addEventListener("focus", show);
+    hot.addEventListener("blur", hide);
+  });
+
+  // marker
+  var marker = document.createElement("div");
+  marker.className = "marker";
+  marker.style.left = state.pct + "%";
+  marker.innerHTML =
+    '<div class="flag">TODAY</div>' +
+    '<div class="stem"></div>' +
+    '<div class="blk'+(REDUCE?"":" beat")+'" id="markerBlk"></div>';
+  track.appendChild(marker);
+
+  // marker hover popover (acts like the current semester)
+  var mblk = marker.querySelector(".blk");
+  marker.style.pointerEvents = "none";
+  mblk.style.pointerEvents = "auto";
+  mblk.style.cursor = "pointer";
+  mblk.setAttribute("tabindex","0");
+  mblk.setAttribute("role","button");
+  mblk.setAttribute("aria-label","Today, semester " + state.current);
+  function semById(id){ for(var i=0;i<SEMS.length;i++){ if(SEMS[i].id===id) return SEMS[i]; } return SEMS[0]; }
+  function showMarker(){ openPop(semById(state.current), marker, true); }
+  mblk.addEventListener("mouseenter", showMarker);
+  mblk.addEventListener("mouseleave", closePop);
+  mblk.addEventListener("focus", showMarker);
+  mblk.addEventListener("blur", closePop);
+
+  // fill the rail up to today
+  function paintFill(){
+    if(REDUCE){ railFill.style.transition = "none"; }
+    railFill.style.width = state.pct + "%";
+  }
+
+  /* ---------- popover ---------- */
+  function openPop(s, anchorEl, isToday){
+    var sgpa = (s.sgpa == null) ? "—" : s.sgpa.toFixed(2);
+    var statusTxt;
+    if(s.end < state.now) statusTxt = "COMPLETED";
+    else if(s.id === state.current) statusTxt = "IN PROGRESS";
+    else statusTxt = "UPCOMING · NOT YET GRADED";
+
+    var achHTML = s.ach ? '<div class="pach"><span class="st">★</span>'+s.ach+'</div>' : "";
+    var todayHTML = isToday ? '<div class="pstatus">● TODAY-MARKER · COMPUTED FROM LIVE DATE</div>' : "";
+
+    pop.innerHTML =
+      '<div class="pterm">'+s.name+'</div>' +
+      '<div class="prng">'+rangeLabel(s)+'</div>' +
+      '<div class="prow"><span>SGPA</span><b>'+sgpa+'</b></div>' +
+      achHTML +
+      '<div class="pstatus">'+statusTxt+'</div>' +
+      todayHTML;
+
+    // position relative to track-wrap
+    var wrap = track.parentNode; // .track-wrap (positioned)
+    var aRect = anchorEl.getBoundingClientRect();
+    var wRect = wrap.getBoundingClientRect();
+    var cx = aRect.left + aRect.width/2 - wRect.left;
+
+    pop.style.display = "block";
+    pop.classList.add("on");
+    // measure then clamp horizontally inside wrap
+    var pw = pop.offsetWidth;
+    var minX = pw/2 + 4, maxX = wRect.width - pw/2 - 4;
+    cx = clamp(cx, minX, maxX);
+    pop.style.left = cx + "px";
+    // place above the stars / tick
+    pop.style.top = "-2px";
+    pop.style.transform = "translate(-50%, -100%)";
+  }
+  function closePop(){
+    pop.classList.remove("on");
+    pop.style.display = "none";
+  }
+  closePop();
+
+  /* ============================================================ READOUT FILL */
+  var blockReadout = document.getElementById("blockReadout");
+  var pctCounter = document.getElementById("pctCounter");
+  var liveText = document.getElementById("liveText");
+
+  function setReadoutFinal(){
+    blockReadout.textContent = state.block;
+    pctCounter.textContent = Math.round(state.pct);
+    liveText.textContent = "● CURRENTLY: SEMESTER " + state.current;
+  }
+
+  function countUp(target){
+    if(REDUCE){ pctCounter.textContent = target; return; }
+    var dur = 700, t0 = performance.now();
+    function step(t){
+      var k = clamp((t - t0)/dur, 0, 1);
+      // snappy ease
+      var e = 1 - Math.pow(1-k, 3);
+      pctCounter.textContent = Math.round(target * e);
+      if(k < 1) requestAnimationFrame(step);
+      else pctCounter.textContent = target;
+    }
+    requestAnimationFrame(step);
+  }
+
+  /* ============================================================ CHIPS */
+  var COURSES = ["DSA","Design & Analysis of Algorithms","Operating Systems","Computer Networks","DBMS","Linear Algebra","Math for ML","Data Science"];
+  var GLYPHS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/#*<>";
+  var chipsEl = document.getElementById("chips");
+
+  COURSES.forEach(function(name){
+    var chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "chip";
+    chip.setAttribute("aria-pressed","false");
+    chip.setAttribute("aria-label", name);
+
+    var wipe = document.createElement("span");
+    wipe.className = "wipe";
+    var lab = document.createElement("label");
+    lab.textContent = REDUCE ? name.toUpperCase() : "";
+    chip._real = name.toUpperCase();
+
+    chip.appendChild(wipe);
+    chip.appendChild(lab);
+    chip._lab = lab;
+
+    chip.addEventListener("click", function(){
+      var inv = chip.classList.toggle("inv");
+      chip.setAttribute("aria-pressed", inv ? "true" : "false");
+    });
+
+    chipsEl.appendChild(chip);
+  });
+
+  // DECODE-IN: scramble glyphs, resolve left->right over ~450ms, staggered ~45ms
+  function decodeChip(chip, delay){
+    var real = chip._real, lab = chip._lab, len = real.length;
+    var dur = 450, t0;
+    function frame(t){
+      if(!t0) t0 = t;
+      var k = clamp((t - t0)/dur, 0, 1);
+      var resolved = Math.floor(k * len);
+      var out = "";
+      for(var i=0;i<len;i++){
+        var ch = real[i];
+        if(i < resolved || ch === " " || ch === "&"){ out += ch; }
+        else { out += GLYPHS[(Math.random()*GLYPHS.length)|0]; }
+      }
+      lab.textContent = out;
+      if(k < 1) requestAnimationFrame(frame);
+      else lab.textContent = real;
+    }
+    setTimeout(function(){ requestAnimationFrame(frame); }, delay);
+  }
+
+  /* ============================================================ WORDMARK GLITCH */
+  var wordmark = document.getElementById("wordmark");
+  (function(){
+    var real = wordmark.dataset.text, len = real.length, raf = null, t0 = null;
+    function run(){
+      if(REDUCE) return;
+      cancelAnimationFrame(raf); t0 = null;
+      function frame(t){
+        if(!t0) t0 = t;
+        var dur = 360, k = clamp((t - t0)/dur, 0, 1);
+        var resolved = Math.floor(k * len);
+        var out = "";
+        for(var i=0;i<len;i++){
+          var ch = real[i];
+          if(i < resolved || ch === " "){ out += ch; }
+          else { out += GLYPHS[(Math.random()*GLYPHS.length)|0]; }
+        }
+        wordmark.textContent = out;
+        if(k < 1){ raf = requestAnimationFrame(frame); }
+        else { wordmark.textContent = real; }
+      }
+      raf = requestAnimationFrame(frame);
+    }
+    wordmark.addEventListener("mouseenter", run);
+    wordmark.addEventListener("focus", run);
+    wordmark.setAttribute("tabindex","0");
+  })();
+
+  /* ============================================================ CARD TILT-PRESS */
+  var card = document.getElementById("card");
+  (function(){
+    if(REDUCE) return;
+    var pressed = false;
+    var raf = null, tx = 0, ty = 0, tScale = 1; // targets
+    var cx = 0, cy = 0, cScale = 1;             // current
+    var CAP = 6; // deg
+
+    function loop(){
+      cx += (tx - cx) * 0.25;
+      cy += (ty - cy) * 0.25;
+      cScale += (tScale - cScale) * 0.30;
+      card.style.transform = "perspective(900px) rotateX("+cy.toFixed(2)+"deg) rotateY("+cx.toFixed(2)+"deg) scale("+cScale.toFixed(3)+")";
+      // hard shadow shifts with lean direction
+      var sx = (8 - cx*0.9).toFixed(1);
+      var sy = (8 + cy*0.9).toFixed(1);
+      if(pressed){ sx = 4; sy = 4; }
+      card.style.boxShadow = sx + "px " + sy + "px 0 var(--black)";
+      if(Math.abs(tx-cx) > 0.05 || Math.abs(ty-cy) > 0.05 || Math.abs(tScale-cScale) > 0.002){
+        raf = requestAnimationFrame(loop);
+      } else { raf = null; }
+    }
+    function kick(){ if(!raf) raf = requestAnimationFrame(loop); }
+
+    card.addEventListener("mousemove", function(e){
+      // don't tilt while interacting with a chip / wordmark
+      var r = card.getBoundingClientRect();
+      var px = (e.clientX - r.left)/r.width - 0.5;   // -0.5..0.5
+      var py = (e.clientY - r.top)/r.height - 0.5;
+      tx = clamp(px * 2 * CAP, -CAP, CAP);           // rotateY (lean toward cursor X)
+      ty = clamp(-py * 2 * CAP, -CAP, CAP);          // rotateX
+      kick();
+    });
+    card.addEventListener("mouseleave", function(){ tx = 0; ty = 0; tScale = 1; pressed = false; kick(); });
+    card.addEventListener("mousedown", function(){ pressed = true; tScale = 0.97; kick(); });
+    window.addEventListener("mouseup", function(){ if(pressed){ pressed = false; tScale = 1; kick(); } });
+  })();
+
+  /* ============================================================ HEADING SQUASH ON SCROLL VELOCITY */
+  var title = document.getElementById("title");
+  (function(){
+    if(REDUCE) return;
+    var lastY = window.scrollY, lastT = performance.now();
+    var scaleX = 1, target = 1, raf = null;
+
+    function spring(){
+      scaleX += (target - scaleX) * 0.18;
+      target += (1 - target) * 0.12; // target relaxes back to 1
+      title.style.transform = "scaleX(" + scaleX.toFixed(3) + ")";
+      if(Math.abs(scaleX - 1) > 0.002 || Math.abs(target - 1) > 0.002){
+        raf = requestAnimationFrame(spring);
+      } else { title.style.transform = "scaleX(1)"; raf = null; }
+    }
+    window.addEventListener("scroll", function(){
+      var now = performance.now();
+      var dy = Math.abs(window.scrollY - lastY);
+      var dt = Math.max(1, now - lastT);
+      var v = dy / dt; // px per ms
+      lastY = window.scrollY; lastT = now;
+      // map velocity to squash: fast scroll -> toward 0.8
+      var squash = clamp(1 - v * 0.10, 0.8, 1);
+      target = Math.min(target, squash);
+      if(!raf) raf = requestAnimationFrame(spring);
+    }, { passive:true });
+  })();
+
+  /* ============================================================ LIVE TICK (advance over real time) */
+  function refreshLive(){
+    var s = computeState();
+    state = s;
+    blockReadout.textContent = s.block;
+    pctCounter.textContent = Math.round(s.pct);
+    liveText.textContent = "● CURRENTLY: SEMESTER " + s.current;
+    railFill.style.width = s.pct + "%";
+    marker.style.left = s.pct + "%";
+  }
+
+  /* ============================================================ INIT / REVEAL ON LOAD */
+  function init(){
+    paintFill();
+    if(REDUCE){
+      setReadoutFinal();
+      return;
+    }
+    // snappy reveal: count up + decode chips, staggered
+    setReadoutFinal();           // block readout + live dot resolve immediately
+    pctCounter.textContent = "0";
+    // small delay so layout settles, then animate
+    requestAnimationFrame(function(){
+      countUp(Math.round(state.pct));
+      var els = chipsEl.querySelectorAll(".chip");
+      els.forEach(function(c, i){ decodeChip(c, 120 + i*45); });
+    });
+  }
+
+  // fonts can shift tick widths; recompute marker/tick positions on resize
+  function reposition(){
+    var s = computeState();
+    state = s;
+    var ticks = track.querySelectorAll(".tick");
+    ticks.forEach(function(t, i){ t.style.left = semPct(SEMS[i]) + "%"; });
+    marker.style.left = s.pct + "%";
+  }
+  var rTO = null;
+  window.addEventListener("resize", function(){ clearTimeout(rTO); rTO = setTimeout(reposition, 120); });
+
+  if(document.fonts && document.fonts.ready){
+    document.fonts.ready.then(function(){ /* labels already absolute-centered; nothing to do */ });
+  }
+
+  init();
+
+  // advance live values every 30s (and once a minute the marker visibly creeps over months)
+  setInterval(refreshLive, 30000);
+
+})();
+</script>
+</body>
+</html>

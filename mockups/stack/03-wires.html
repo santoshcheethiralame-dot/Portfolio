@@ -1,0 +1,603 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>STYLE 03 / EXPOSED WIRING</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --red:#ed1c24;
+    --red-deep:#b3001b;
+    --red-dark:#7a0014;
+    --ink:#ffffff;
+    --black:#0a0a0a;
+    --lime:#c8e620;            /* single accent: the PINNED/LOCKED status mark */
+    --line:rgba(255,255,255,0.26);
+    --font-display:"Anton",sans-serif;
+    --font-mono:"JetBrains Mono",monospace;
+    --bar-h:64px;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{
+    background:var(--red);
+    color:var(--ink);
+    font-family:var(--font-mono);
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+
+  /* ----------  FIXED TOP BAR  ---------- */
+  .topbar{
+    position:fixed; top:0; left:0; right:0;
+    height:var(--bar-h); z-index:60;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 clamp(14px,4vw,34px);
+    background:var(--red);
+    border-bottom:2px solid var(--ink);
+  }
+  .index-btn{
+    display:inline-flex; align-items:center; gap:.5em;
+    font-family:var(--font-mono); font-weight:700; font-size:11px;
+    letter-spacing:.14em; text-transform:uppercase;
+    color:var(--ink); text-decoration:none;
+    padding:9px 16px; border:2px solid var(--ink); background:transparent;
+    box-shadow:4px 4px 0 var(--black);
+    transition:transform 120ms cubic-bezier(.2,.9,.2,1),
+               background-color 120ms cubic-bezier(.2,.9,.2,1),
+               color 120ms cubic-bezier(.2,.9,.2,1),
+               box-shadow 120ms cubic-bezier(.2,.9,.2,1);
+  }
+  .index-btn:hover,.index-btn:focus-visible{
+    background:var(--ink); color:var(--red);
+    transform:translate(2px,2px); box-shadow:2px 2px 0 var(--black); outline:none;
+  }
+  .index-btn:active{transform:translate(4px,4px); box-shadow:0 0 0 var(--black);}
+  .caption{text-align:right; line-height:1.35;}
+  .caption .style-no{font-weight:700; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink);}
+  .caption .hint{font-weight:400; font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,0.72);}
+
+  /* ----------  PAGE / SECTION  ---------- */
+  .wrap{
+    position:relative;
+    padding:calc(var(--bar-h) + clamp(26px,5vw,60px)) clamp(20px,6vw,90px) clamp(40px,8vw,110px);
+    max-width:1500px; margin:0 auto;
+  }
+  .kicker{
+    font-family:var(--font-mono); font-weight:500; font-size:13px;
+    letter-spacing:.04em; text-transform:lowercase;
+    color:rgba(255,255,255,0.78); margin-bottom:10px;
+  }
+  .title{
+    font-family:var(--font-display); font-weight:400; text-transform:uppercase;
+    color:var(--ink); line-height:.82; letter-spacing:.005em;
+    font-size:clamp(2.4rem,10vw,8rem); margin-bottom:clamp(26px,4vw,52px);
+  }
+
+  /* ----------  STACK / WIRING AREA  ---------- */
+  .stack{ position:relative; }
+
+  /* faint PCB dot-grid behind everything */
+  .pcb{
+    position:absolute; inset:-6px;
+    z-index:0; pointer-events:none;
+    background-image:
+      radial-gradient(rgba(255,255,255,0.085) 1.2px, transparent 1.2px),
+      radial-gradient(rgba(255,255,255,0.05) 1.2px, transparent 1.2px);
+    background-size:24px 24px, 24px 24px;
+    background-position:0 0, 12px 12px;
+    -webkit-mask-image:linear-gradient(180deg, transparent, #000 6%, #000 94%, transparent);
+            mask-image:linear-gradient(180deg, transparent, #000 6%, #000 94%, transparent);
+  }
+
+  /* traces sit UNDER the chips; pads/vias sit OVER them */
+  .layer{ position:absolute; inset:0; width:100%; height:100%; overflow:visible; pointer-events:none; }
+  #trace{ z-index:1; }
+  #pads { z-index:7; }
+
+  .grid{ position:relative; z-index:2; border-top:2px solid var(--ink); }
+  .row{
+    display:grid; grid-template-columns:minmax(140px,210px) 1fr;
+    gap:clamp(14px,3vw,40px); align-items:start;
+    padding:clamp(18px,2.6vw,30px) 0; border-bottom:1px solid var(--line);
+  }
+  .row:last-child{border-bottom:2px solid var(--ink);}
+
+  .row-label{
+    font-family:var(--font-mono); font-weight:700; font-size:12px;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--ink);
+    padding-top:7px; position:relative;
+  }
+  .row-label::before{
+    content:""; display:inline-block; width:9px; height:9px;
+    background:var(--ink); margin-right:9px; vertical-align:middle; transform:translateY(-2px);
+  }
+  .row-num{
+    display:block; font-weight:400; font-size:10px; letter-spacing:.18em;
+    color:rgba(255,255,255,0.55); margin-top:6px; padding-left:18px;
+  }
+
+  .chips{ display:flex; flex-wrap:wrap; gap:10px; }
+
+  /* SOLID-DARK chip = default node (dark fill so white text clears AA on the red board) */
+  .chip{
+    position:relative; display:inline-flex; align-items:center;
+    height:34px; padding:0 14px;
+    border:2px solid var(--ink); background:var(--red-dark); color:var(--ink);
+    font-family:var(--font-mono); font-weight:500; font-size:11px;
+    letter-spacing:.1em; text-transform:uppercase; white-space:nowrap;
+    cursor:pointer; touch-action:manipulation; user-select:none; border-radius:0;
+    transition:background-color 110ms cubic-bezier(.2,.9,.2,1),
+               color 110ms cubic-bezier(.2,.9,.2,1),
+               border-color 110ms cubic-bezier(.2,.9,.2,1),
+               opacity 130ms cubic-bezier(.2,.9,.2,1),
+               box-shadow 110ms cubic-bezier(.2,.9,.2,1),
+               transform 110ms cubic-bezier(.2,.9,.2,1);
+  }
+  .chip:focus{outline:none;}
+  .chip:focus-visible{box-shadow:0 0 0 2px var(--red),0 0 0 4px var(--ink);}
+
+  /* proficiency dots inside chip */
+  .chip .dots{ display:inline-flex; gap:3px; margin-left:10px; align-items:center; }
+  .chip .dots i{ width:5px; height:5px; background:var(--ink); display:block; transition:background-color 110ms,opacity 110ms; }
+  .chip .dots i.off{ opacity:.28; }
+
+  /* ---- WIRING STATES ---- */
+  .stack.wiring .chip{ opacity:.4; }
+  .stack.wiring .chip.lit{ opacity:1; }
+
+  /* hovered / active source — inverted to black */
+  .chip.active{
+    background:var(--black); color:var(--ink); border-color:var(--black);
+    box-shadow:5px 5px 0 var(--red-dark); transform:translate(-1px,-1px); z-index:5;
+  }
+  .chip.active .dots i{ background:var(--ink); }
+
+  /* pinned source — black + locked ring + corner mark */
+  .chip.pinned{
+    background:var(--black); color:var(--ink); border-color:var(--black);
+    box-shadow:5px 5px 0 var(--red-dark); transform:translate(-1px,-1px); z-index:5;
+    outline:2px solid var(--ink); outline-offset:3px;
+  }
+  .chip.pinned .dots i{ background:var(--ink); }
+  .chip.pinned::after{
+    content:""; position:absolute; top:-7px; right:-7px;
+    width:8px; height:8px; background:var(--lime);
+    transform:rotate(45deg); box-shadow:0 0 0 2px var(--black);
+  }
+
+  /* related nodes — highlighted (brighter fill so they pop clear of the dark resting chips) */
+  .chip.related{
+    border-color:var(--ink); background:var(--red); color:var(--ink);
+    box-shadow:3px 3px 0 var(--black);
+  }
+
+  /* ----------  READOUT (bottom status line)  ---------- */
+  .readout{
+    position:relative; z-index:8;
+    margin-top:clamp(20px,3vw,34px);
+    display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px;
+    font-family:var(--font-mono); font-size:11px; letter-spacing:.1em;
+    text-transform:uppercase; color:rgba(255,255,255,0.8); min-height:24px;
+  }
+  .readout .tag{ border:2px solid var(--ink); padding:4px 9px; color:var(--ink); font-weight:700; }
+  .readout .tag.pin{ background:var(--ink); color:var(--red); }
+  .readout .count{ color:var(--ink); font-weight:700; }
+  .readout .blink{
+    display:inline-block; width:9px; height:14px; background:var(--ink);
+    animation:blink 1s steps(2,start) infinite; vertical-align:middle;
+  }
+  .readout .sep{ color:rgba(255,255,255,0.45); }
+  @keyframes blink{0%,50%{opacity:1;}50.01%,100%{opacity:0;}}
+
+  /* ----------  SVG primitives  ---------- */
+  .wire{ fill:none; stroke:var(--ink); stroke-width:2; stroke-linecap:butt; stroke-linejoin:miter; }
+  .wire-back{ fill:none; stroke:var(--black); stroke-width:5; stroke-linecap:butt; stroke-linejoin:miter; opacity:.30; }
+  .via{ fill:var(--ink); stroke:var(--red-dark); stroke-width:1; }
+  .pad{ fill:var(--ink); stroke:var(--black); stroke-width:2; }
+  .pad-src{ fill:var(--black); stroke:var(--ink); stroke-width:2; }
+
+  /* ----------  RESPONSIVE  ---------- */
+  @media (max-width:760px){
+    .row{grid-template-columns:1fr; gap:12px;}
+    .row-label{padding-top:0;}
+    .row-num{display:inline-block; margin-top:0; padding-left:10px;}
+    .caption .hint{display:none;}
+  }
+
+  /* ----------  REDUCED MOTION  ---------- */
+  @media (prefers-reduced-motion:reduce){
+    *{animation-duration:.001ms !important; animation-iteration-count:1 !important;}
+    .chip,.index-btn{transition:background-color 1ms,color 1ms,opacity 1ms,border-color 1ms;}
+  }
+</style>
+</head>
+<body>
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <a class="index-btn" href="index.html">&larr;&nbsp;INDEX</a>
+    <div class="caption">
+      <div class="style-no">STYLE 03 / EXPOSED WIRING</div>
+      <div class="hint">hover to trace &middot; click to pin</div>
+    </div>
+  </header>
+
+  <!-- SECTION -->
+  <main class="wrap">
+    <div class="kicker">// stack</div>
+    <h1 class="title">WHAT I<br>WORK WITH</h1>
+
+    <section class="stack" id="stack">
+      <div class="pcb" aria-hidden="true"></div>
+      <svg class="layer" id="trace" aria-hidden="true"></svg>
+      <div class="grid" id="grid"></div>
+      <svg class="layer" id="pads" aria-hidden="true"></svg>
+
+      <div class="readout" id="readout">
+        <span class="blink" aria-hidden="true"></span>
+        <span id="readout-text" aria-live="polite">IDLE &mdash; HOVER A NODE TO EXPOSE ITS WIRING</span>
+      </div>
+    </section>
+  </main>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ----------  DATA  ---------- */
+  const GROUPS = [
+    { group:"Languages", items:[["C",4],["Python",5],["TypeScript",5],["JavaScript",4],["SQL",3],["HTML",4],["CSS",4],["WGSL",3]] },
+    { group:"ML / AI", items:[["PyTorch",4],["TensorFlow",3],["scikit-learn",4],["NumPy",4],["Pandas",4],["TransformerLens",4],["LLM Evaluation",4],["RAG",4],["Failure Taxonomy",3],["Deep Learning",4]] },
+    { group:"Web / Frontend", items:[["React",5],["Tailwind CSS",4],["Vite",4],["WebGPU",4],["PWA",4],["IndexedDB / Dexie.js",4],["Canvas",3],["Web Workers",3]] },
+    { group:"Backend / Data", items:[["FastAPI",4],["Pydantic",3],["Node.js",4],["Express",3],["MongoDB",3],["REST APIs",4]] },
+    { group:"Tools / Systems", items:[["Git",4],["Linux",4],["OpenRouter API",3]] }
+  ];
+
+  const RELATED = {
+    "C":["WGSL","Linux","Git"],
+    "Python":["NumPy","Pandas","PyTorch","scikit-learn","FastAPI","TensorFlow"],
+    "TypeScript":["JavaScript","React","Vite","Node.js","WebGPU"],
+    "JavaScript":["TypeScript","React","Node.js","Canvas"],
+    "SQL":["MongoDB","Pandas","REST APIs"],
+    "HTML":["CSS","React","Canvas"],
+    "CSS":["HTML","Tailwind CSS","React"],
+    "WGSL":["WebGPU","Canvas","C"],
+    "PyTorch":["TensorFlow","NumPy","scikit-learn","Deep Learning","TransformerLens","Python"],
+    "TensorFlow":["PyTorch","NumPy","Deep Learning","Python"],
+    "scikit-learn":["NumPy","Pandas","Python","PyTorch"],
+    "NumPy":["Pandas","PyTorch","scikit-learn","Python"],
+    "Pandas":["NumPy","SQL","scikit-learn","Python"],
+    "TransformerLens":["PyTorch","Deep Learning","LLM Evaluation","RAG"],
+    "LLM Evaluation":["RAG","Failure Taxonomy","TransformerLens","OpenRouter API"],
+    "RAG":["LLM Evaluation","Failure Taxonomy","FastAPI","OpenRouter API"],
+    "Failure Taxonomy":["LLM Evaluation","RAG"],
+    "Deep Learning":["PyTorch","TensorFlow","TransformerLens","WebGPU"],
+    "React":["TypeScript","JavaScript","Tailwind CSS","Vite","Canvas"],
+    "Tailwind CSS":["CSS","React","HTML"],
+    "Vite":["React","TypeScript","WebGPU"],
+    "WebGPU":["WGSL","Deep Learning","Canvas","TypeScript"],
+    "PWA":["IndexedDB / Dexie.js","Web Workers","React"],
+    "IndexedDB / Dexie.js":["PWA","Web Workers","SQL","MongoDB"],
+    "Canvas":["WebGPU","WGSL","JavaScript","HTML"],
+    "Web Workers":["PWA","IndexedDB / Dexie.js","WebGPU"],
+    "FastAPI":["Pydantic","Python","REST APIs","RAG"],
+    "Pydantic":["FastAPI","Python"],
+    "Node.js":["Express","TypeScript","JavaScript","REST APIs"],
+    "Express":["Node.js","REST APIs","MongoDB"],
+    "MongoDB":["Express","SQL","IndexedDB / Dexie.js"],
+    "REST APIs":["FastAPI","Express","Node.js","OpenRouter API"],
+    "Git":["Linux","C"],
+    "Linux":["Git","C","Python"],
+    "OpenRouter API":["RAG","LLM Evaluation","REST APIs"]
+  };
+
+  /* symmetric adjacency: hovering X lights RELATED[X] plus any Y listing X */
+  const ADJ = {};
+  const ensure = k => { if(!ADJ[k]) ADJ[k] = new Set(); };
+  Object.keys(RELATED).forEach(ensure);
+  Object.keys(RELATED).forEach(k => RELATED[k].forEach(v => { ensure(v); ADJ[k].add(v); ADJ[v].add(k); }));
+
+  const SVGNS = "http://www.w3.org/2000/svg";
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const grid = document.getElementById("grid");
+  const stack = document.getElementById("stack");
+  const trace = document.getElementById("trace");
+  const pads  = document.getElementById("pads");
+  const readoutText = document.getElementById("readout-text");
+
+  const chipEls = {};      // name -> element
+  let currentName = null;  // what's drawn right now
+  let pinnedName  = null;  // locked node (click-to-pin)
+  let drawTimers  = [];    // in-flight wire-draw setTimeout ids
+
+  function clearDrawTimers(){
+    for(let i=0;i<drawTimers.length;i++) clearTimeout(drawTimers[i]);
+    drawTimers.length = 0;
+  }
+
+  /* ----------  BUILD GRID  ---------- */
+  GROUPS.forEach((g, gi) => {
+    const row = document.createElement("div");
+    row.className = "row";
+
+    const label = document.createElement("div");
+    label.className = "row-label";
+    label.innerHTML = escapeHtml(g.group) +
+      '<span class="row-num">[' + String(gi+1).padStart(2,"0") + " / " + String(g.items.length).padStart(2,"0") + " NODES]</span>";
+
+    const chips = document.createElement("div");
+    chips.className = "chips";
+
+    g.items.forEach(it => {
+      const name = it[0], weight = it[1];
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "chip";
+      chip.dataset.name = name;
+      chip.setAttribute("aria-label", name + ", proficiency " + weight + " of 5");
+
+      const span = document.createElement("span");
+      span.textContent = name;
+      chip.appendChild(span);
+
+      const dots = document.createElement("span");
+      dots.className = "dots";
+      for(let d=0; d<5; d++){ const i = document.createElement("i"); if(d >= weight) i.className = "off"; dots.appendChild(i); }
+      chip.appendChild(dots);
+
+      chipEls[name] = chip;
+
+      chip.addEventListener("mouseenter", () => activate(name, false));
+      chip.addEventListener("focus",      () => activate(name, false));
+      chip.addEventListener("mouseleave", () => { if(pinnedName) activate(pinnedName, false); else deactivate(); });
+      chip.addEventListener("blur",       () => { if(pinnedName) activate(pinnedName, false); else deactivate(); });
+      chip.addEventListener("click", (e) => {
+        e.preventDefault();
+        if(pinnedName === name){ pinnedName = null; activate(name, false); }   // unpin, keep showing (mouse is on it)
+        else { pinnedName = name; activate(name, true); }
+      });
+
+      chips.appendChild(chip);
+    });
+
+    row.appendChild(label);
+    row.appendChild(chips);
+    grid.appendChild(row);
+  });
+
+  /* release pin when clicking empty space, or on Escape */
+  document.addEventListener("click", (e) => {
+    if(e.target.closest && e.target.closest(".chip")) return;
+    if(pinnedName){ pinnedName = null; deactivate(); }
+  });
+  document.addEventListener("keydown", (e) => {
+    if(e.key === "Escape" && pinnedName){ pinnedName = null; deactivate(); }
+  });
+
+  /* ----------  GEOMETRY HELPERS  ---------- */
+  function box(el){
+    const r = el.getBoundingClientRect();
+    const s = stack.getBoundingClientRect();
+    return {
+      l:r.left-s.left, t:r.top-s.top, r:r.right-s.left, b:r.bottom-s.top,
+      cx:r.left + r.width/2 - s.left, cy:r.top + r.height/2 - s.top,
+      w:r.width, h:r.height
+    };
+  }
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+  /* spread N pins around a center with a gap; if they'd overflow [lo,hi], distribute evenly */
+  function spread(center, count, gap, lo, hi){
+    if(count <= 0) return [];
+    if(count === 1) return [clamp(center, lo, hi)];
+    const span = (count-1) * gap;
+    if(span > (hi-lo)) return Array.from({length:count}, (_,i) => lo + (hi-lo)*i/(count-1));
+    let arr = Array.from({length:count}, (_,i) => center + (i-(count-1)/2)*gap);
+    const min = Math.min.apply(null, arr), max = Math.max.apply(null, arr);
+    if(min < lo) arr = arr.map(v => v + (lo-min));
+    const max2 = Math.max.apply(null, arr);
+    if(max2 > hi) arr = arr.map(v => v - (max2-hi));
+    return arr;
+  }
+
+  /* tunables */
+  const BASE = 13;   // stub depth out of the source edge before the first lane
+  const LANE = 8;    // gap between parallel bus lanes
+  const PIN  = 8;    // gap between pins on the source edge
+
+  /* Build orthogonal routes from a source node to its related nodes.
+     - below/above targets: pins on the source's bottom/top edge, each wire gets its
+       own staggered horizontal lane (a bus), then drops into the target.
+     - side targets (vertically overlapping): pins on left/right edge, staggered
+       vertical channel, then into the target. */
+  function buildRoutes(srcEl, names){
+    const S = box(srcEl);
+    const targets = names.map(n => ({ n, b: box(chipEls[n]) }));
+    const below = [], above = [], side = [];
+    targets.forEach(t => {
+      if(t.b.t >= S.b - 3) below.push(t);
+      else if(t.b.b <= S.t + 3) above.push(t);
+      else side.push(t);
+    });
+    below.sort((a,b) => a.b.cx - b.b.cx);
+    above.sort((a,b) => a.b.cx - b.b.cx);
+    side.sort((a,b)  => a.b.cy - b.b.cy);
+
+    const routes = [];
+
+    if(below.length){
+      const xs = spread(S.cx, below.length, PIN, S.l+9, S.r-9);
+      below.forEach((t, j) => {
+        const px = xs[j];
+        const ych = S.b + BASE + j*LANE;
+        const ex = clamp(t.b.cx, t.b.l+8, t.b.r-8);
+        const p0 = {x:px, y:S.b}, p1 = {x:px, y:ych}, p2 = {x:ex, y:ych}, p3 = {x:ex, y:t.b.t};
+        routes.push({ name:t.n, pts:[p0,p1,p2,p3], vias:[p1,p2], src:p0, tgt:p3 });
+      });
+    }
+    if(above.length){
+      const xs = spread(S.cx, above.length, PIN, S.l+9, S.r-9);
+      above.forEach((t, j) => {
+        const px = xs[j];
+        const ych = S.t - BASE - j*LANE;
+        const ex = clamp(t.b.cx, t.b.l+8, t.b.r-8);
+        const p0 = {x:px, y:S.t}, p1 = {x:px, y:ych}, p2 = {x:ex, y:ych}, p3 = {x:ex, y:t.b.b};
+        routes.push({ name:t.n, pts:[p0,p1,p2,p3], vias:[p1,p2], src:p0, tgt:p3 });
+      });
+    }
+    if(side.length){
+      const ys = spread(S.cy, side.length, PIN, S.t+7, S.b-7);
+      side.forEach((t, j) => {
+        const py = ys[j];
+        const ey = clamp(t.b.cy, t.b.t+7, t.b.b-7);
+        if(t.b.cx >= S.cx){
+          const xch = S.r + BASE + j*LANE;
+          const p0 = {x:S.r, y:py}, p1 = {x:xch, y:py}, p2 = {x:xch, y:ey}, p3 = {x:t.b.l, y:ey};
+          routes.push({ name:t.n, pts:[p0,p1,p2,p3], vias:[p1,p2], src:p0, tgt:p3 });
+        } else {
+          const xch = S.l - BASE - j*LANE;
+          const p0 = {x:S.l, y:py}, p1 = {x:xch, y:py}, p2 = {x:xch, y:ey}, p3 = {x:t.b.r, y:ey};
+          routes.push({ name:t.n, pts:[p0,p1,p2,p3], vias:[p1,p2], src:p0, tgt:p3 });
+        }
+      });
+    }
+    return routes;
+  }
+
+  function pathFrom(pts){
+    return "M " + pts.map(p => p.x.toFixed(1) + " " + p.y.toFixed(1)).join(" L ");
+  }
+  function square(p, size, cls){
+    const el = document.createElementNS(SVGNS, "rect");
+    el.setAttribute("x", (p.x - size/2).toFixed(1));
+    el.setAttribute("y", (p.y - size/2).toFixed(1));
+    el.setAttribute("width", size);
+    el.setAttribute("height", size);
+    el.setAttribute("class", cls);
+    return el;
+  }
+  function clearLayers(){
+    while(trace.firstChild) trace.removeChild(trace.firstChild);
+    while(pads.firstChild)  pads.removeChild(pads.firstChild);
+  }
+
+  function render(name, related, animate){
+    clearDrawTimers();
+    clearLayers();
+    const routes = buildRoutes(chipEls[name], related);
+    const wireEls = [];
+
+    routes.forEach(rt => {
+      const d = pathFrom(rt.pts);
+      const back = document.createElementNS(SVGNS, "path");
+      back.setAttribute("d", d); back.setAttribute("class", "wire-back");
+      trace.appendChild(back);
+      const wire = document.createElementNS(SVGNS, "path");
+      wire.setAttribute("d", d); wire.setAttribute("class", "wire");
+      trace.appendChild(wire);
+      wireEls.push({ wire, back });
+      // vias at bends + pad at target (over chips)
+      rt.vias.forEach(v => pads.appendChild(square(v, 5, "via")));
+      pads.appendChild(square(rt.tgt, 9, "pad"));
+      pads.appendChild(square(rt.src, 7, "pad-src"));
+    });
+
+    if(animate && !reduceMotion){
+      wireEls.forEach((o, idx) => {
+        const len = o.wire.getTotalLength();
+        [o.wire, o.back].forEach(p => { p.style.strokeDasharray = len; p.style.strokeDashoffset = len; });
+        void o.wire.getBoundingClientRect();
+        const dur = 180, delay = idx * 26;
+        [o.wire, o.back].forEach(p => p.style.transition = "stroke-dashoffset " + dur + "ms cubic-bezier(.2,.9,.2,1) " + delay + "ms");
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          o.wire.style.strokeDashoffset = "0"; o.back.style.strokeDashoffset = "0";
+        }));
+        drawTimers.push(setTimeout(() => { o.wire.style.strokeDashoffset = "0"; o.back.style.strokeDashoffset = "0"; }, dur + delay + 140));
+      });
+    }
+  }
+
+  /* ----------  STATE  ---------- */
+  function setClasses(name, related){
+    Object.keys(chipEls).forEach(k => chipEls[k].classList.remove("active","related","lit","pinned"));
+    const a = chipEls[name];
+    a.classList.add(pinnedName === name ? "pinned" : "active", "lit");
+    related.forEach(r => { chipEls[r].classList.add("related","lit"); });
+  }
+
+  function activate(name, animate){
+    const related = (ADJ[name] ? Array.from(ADJ[name]) : []).filter(r => chipEls[r]);
+    const changed = currentName !== name;
+    currentName = name;
+    stack.classList.add("wiring");
+    setClasses(name, related);
+    render(name, related, animate || changed);
+    updateReadout(name, related.length);
+  }
+
+  function deactivate(){
+    if(pinnedName) return; // pinned stays drawn
+    currentName = null;
+    stack.classList.remove("wiring");
+    Object.keys(chipEls).forEach(k => chipEls[k].classList.remove("active","related","lit","pinned"));
+    clearDrawTimers();
+    clearLayers();
+    readoutText.innerHTML = "IDLE &mdash; HOVER A NODE TO EXPOSE ITS WIRING";
+  }
+
+  function updateReadout(name, count){
+    const pinTag = pinnedName === name
+      ? '<span class="tag pin">&#9670; PINNED</span> <span class="sep">/</span> '
+      : '';
+    readoutText.innerHTML =
+      pinTag +
+      '<span class="tag">' + escapeHtml(name.toUpperCase()) + '</span> &rarr; ' +
+      '<span class="count">' + count + '</span> CONNECTION' + (count === 1 ? '' : 'S') +
+      (pinnedName === name ? ' <span class="sep">&middot;</span> CLICK AGAIN OR [ESC] TO RELEASE' : ' ACROSS THE STACK');
+  }
+
+  /* ----------  RESIZE / FONTS  ---------- */
+  function redrawCurrent(){
+    if(!currentName) return;
+    const related = (ADJ[currentName] ? Array.from(ADJ[currentName]) : []).filter(r => chipEls[r]);
+    render(currentName, related, false);
+  }
+  let resizeRAF = null;
+  window.addEventListener("resize", () => {
+    if(resizeRAF) cancelAnimationFrame(resizeRAF);
+    resizeRAF = requestAnimationFrame(() => { sizeLayers(); redrawCurrent(); });
+  });
+
+  function sizeLayers(){
+    const r = stack.getBoundingClientRect();
+    [trace, pads].forEach(svg => {
+      svg.setAttribute("viewBox", "0 0 " + r.width + " " + r.height);
+      svg.setAttribute("width", r.width);
+      svg.setAttribute("height", r.height);
+    });
+  }
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, m => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]));
+  }
+
+  function init(){
+    sizeLayers();
+    if(document.fonts && document.fonts.ready){
+      document.fonts.ready.then(() => { sizeLayers(); redrawCurrent(); });
+    }
+  }
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+</body>
+</html>

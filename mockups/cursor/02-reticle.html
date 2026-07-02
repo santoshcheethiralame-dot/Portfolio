@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en" data-mock="reticle">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>INSPECTION RETICLE — rifle scope × spreadsheet selector</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --red:#ed1c24; --red-hot:#ff5247; --red-deep:#a8001a;
+    --ink:#0d0d0d; --paper:#f7f5f1; --lime:#c8e620;
+    --fd:"Anton",sans-serif; --fm:"JetBrains Mono",monospace;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  html{ -webkit-font-smoothing:antialiased; }
+  body{ background:var(--red); color:var(--paper); font-family:var(--fm); overflow:hidden; cursor:none; }
+  ::selection{ background:var(--ink); color:var(--lime); }
+
+  #grid,#reticle{ position:fixed; inset:0; display:block; }
+  #reticle{ z-index:5; pointer-events:none; }
+
+  /* coordinate readout pinned to the crosshair */
+  #read{ position:fixed; z-index:8; pointer-events:none; display:none; align-items:center; gap:0;
+    font-size:11px; font-weight:700; letter-spacing:.1em; }
+  #read .xy{ background:var(--lime); color:var(--ink); padding:5px 9px; border:1.5px solid var(--ink); }
+  #read .px{ background:var(--ink); color:var(--lime); padding:5px 9px; border:1.5px solid var(--ink); border-left:none; }
+
+  .chrome{ position:fixed; z-index:20; pointer-events:none; }
+  .tl{ top:clamp(16px,2.4vw,30px); left:clamp(16px,2.4vw,30px); }
+  .kicker{ font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:rgba(255,255,255,.8); }
+  .kicker::before{ content:"// "; color:#fff; }
+  h1{ font-family:var(--fd); font-weight:400; text-transform:uppercase; line-height:.84;
+    font-size:clamp(2.2rem,6vw,4.6rem); margin-top:8px; -webkit-text-stroke:1px var(--paper); color:transparent; }
+  .deck{ margin-top:12px; max-width:42ch; font-size:12.5px; line-height:1.6; color:rgba(255,255,255,.9); }
+  .deck b{ color:#fff; }
+
+  #tag{ position:fixed; left:50%; bottom:7px; transform:translateX(-50%); z-index:40; font-size:9.5px;
+    letter-spacing:.14em; text-transform:uppercase; color:rgba(255,255,255,.55); pointer-events:none; }
+  @media (max-width:720px){ .deck{ display:none; } }
+</style>
+</head>
+<body>
+  <canvas id="grid"></canvas>
+  <canvas id="reticle"></canvas>
+  <div id="read"><span class="xy" id="readXY">G7</span><span class="px" id="readPX">— , —</span></div>
+
+  <header class="chrome tl">
+    <p class="kicker">cursor study · 02</p>
+    <h1>Inspection<br />Reticle</h1>
+    <p class="deck">A hard crosshair whose rules run clean to the grid edges, plus a live
+      cell coordinate in mono. Reads as a <b>rifle scope</b> and a <b>spreadsheet selector</b> at once.</p>
+  </header>
+
+  <div id="tag">02 · inspection reticle · 10m air-rifle precision, brutalist by default</div>
+
+<script>
+(function(){
+  'use strict';
+  var $=function(id){ return document.getElementById(id); };
+  var gc=$('grid'), gx=gc.getContext('2d'), rc=$('reticle'), rx=rc.getContext('2d');
+  var read=$('read'), readXY=$('readXY'), readPX=$('readPX');
+  var dpr=Math.min(2, window.devicePixelRatio||1);
+  var GLYPHS='ABCDEFGHJKLMNPQRSTUVWXYZ0123456789#/<>[]·.'.split('');
+  var CELL=48, cols=0, rows=0, chars=[];
+
+  function colName(c){ var s=''; c=c+1; while(c>0){ var m=(c-1)%26; s=String.fromCharCode(65+m)+s; c=(c-(m+1))/26|0; } return s; }
+
+  function size(cv,c){ cv.width=Math.round(innerWidth*dpr); cv.height=Math.round(innerHeight*dpr);
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px'; c.setTransform(dpr,0,0,dpr,0,0); }
+
+  function build(){
+    CELL=Math.max(40, Math.min(60, Math.round(innerWidth/26)));
+    cols=Math.ceil(innerWidth/CELL); rows=Math.ceil(innerHeight/CELL);
+    size(gc,gx); size(rc,rx);
+    chars=[];
+    for(var r=0;r<rows;r++){ chars[r]=[]; for(var c=0;c<cols;c++){ chars[r][c]=((r*31+c*17)%23<8)?GLYPHS[(r*7+c*13)%GLYPHS.length]:''; } }
+    drawGrid(); drawReticle();
+  }
+
+  function drawGrid(){
+    var w=innerWidth,h=innerHeight; gx.clearRect(0,0,w,h);
+    gx.strokeStyle='rgba(255,255,255,.12)'; gx.lineWidth=1; gx.beginPath();
+    for(var x=0;x<=cols;x++){ var px=Math.round(x*CELL)+.5; gx.moveTo(px,0); gx.lineTo(px,h); }
+    for(var y=0;y<=rows;y++){ var py=Math.round(y*CELL)+.5; gx.moveTo(0,py); gx.lineTo(w,py); }
+    gx.stroke();
+    // faint glyph field
+    gx.font='700 '+Math.round(CELL*0.4)+'px "JetBrains Mono",monospace';
+    gx.textAlign='center'; gx.textBaseline='middle'; gx.fillStyle='rgba(255,255,255,.14)';
+    for(var r=0;r<rows;r++) for(var c=0;c<cols;c++){ if(chars[r][c]) gx.fillText(chars[r][c], c*CELL+CELL/2, r*CELL+CELL/2+1); }
+    // header rulers — column letters (top) & row numbers (left), faint
+    gx.font='700 10px "JetBrains Mono",monospace'; gx.fillStyle='rgba(255,255,255,.3)';
+    gx.textBaseline='top'; for(var cc=0;cc<cols;cc++) gx.fillText(colName(cc), cc*CELL+CELL/2, 4);
+    gx.textAlign='left'; gx.textBaseline='middle';
+    for(var rr=0;rr<rows;rr++) gx.fillText(String(rr+1).padStart(2,'0'), 4, rr*CELL+CELL/2);
+  }
+
+  var curC=-1,curR=-1,inside=false, mx=0,my=0;
+  function drawReticle(){
+    var w=innerWidth,h=innerHeight; rx.clearRect(0,0,w,h);
+    if(!inside || curC<0 || curR<0) return;
+    var cx=curC*CELL+CELL/2, cy=curR*CELL+CELL/2;
+
+    // active row & column wash (spreadsheet selection)
+    rx.fillStyle='rgba(200,230,32,.12)';
+    rx.fillRect(curC*CELL,0,CELL,h); rx.fillRect(0,curR*CELL,w,CELL);
+
+    // concentric scoring rings, centred on the focal cell — the 10m air-rifle target tell
+    rx.strokeStyle='rgba(247,245,241,.16)'; rx.lineWidth=1;
+    [1.0,1.7,2.5].forEach(function(mult){ rx.beginPath(); rx.arc(cx,cy,CELL*mult,0,Math.PI*2); rx.stroke(); });
+    rx.strokeStyle='rgba(200,230,32,.5)'; rx.lineWidth=1.5; rx.beginPath(); rx.arc(cx,cy,CELL*0.46,0,Math.PI*2); rx.stroke();
+
+    // active header cells (bright)
+    rx.fillStyle=getCss('--lime'); rx.fillRect(curC*CELL,0,CELL,16); rx.fillRect(0,curR*CELL,28,CELL);
+    rx.fillStyle=getCss('--ink'); rx.font='700 10px "JetBrains Mono",monospace';
+    rx.textAlign='center'; rx.textBaseline='top'; rx.fillText(colName(curC), curC*CELL+CELL/2, 4);
+    rx.textBaseline='middle'; rx.fillText(String(curR+1).padStart(2,'0'), 14, curR*CELL+CELL/2);
+
+    // full-bleed crosshair rules
+    rx.strokeStyle=getCss('--paper'); rx.lineWidth=1.5; rx.beginPath();
+    rx.moveTo(Math.round(cx)+.5,0); rx.lineTo(Math.round(cx)+.5,h);
+    rx.moveTo(0,Math.round(cy)+.5); rx.lineTo(w,Math.round(cy)+.5); rx.stroke();
+
+    // mil-dot ticks along the rules
+    rx.strokeStyle='rgba(247,245,241,.85)'; rx.lineWidth=2; rx.beginPath();
+    for(var t=-6;t<=6;t++){ if(t===0) continue; var d=t*CELL;
+      rx.moveTo(cx+d, cy-4); rx.lineTo(cx+d, cy+4);   // ticks along horizontal rule
+      rx.moveTo(cx-4, cy+d); rx.lineTo(cx+4, cy+d);   // ticks along vertical rule
+    }
+    rx.stroke();
+
+    // lime corner brackets on the focused cell
+    var x0=curC*CELL, y0=curR*CELL, L=Math.round(CELL*0.34);
+    rx.strokeStyle=getCss('--lime'); rx.lineWidth=2.5; rx.beginPath();
+    rx.moveTo(x0,y0+L); rx.lineTo(x0,y0); rx.lineTo(x0+L,y0);
+    rx.moveTo(x0+CELL-L,y0); rx.lineTo(x0+CELL,y0); rx.lineTo(x0+CELL,y0+L);
+    rx.moveTo(x0+CELL,y0+CELL-L); rx.lineTo(x0+CELL,y0+CELL); rx.lineTo(x0+CELL-L,y0+CELL);
+    rx.moveTo(x0+L,y0+CELL); rx.lineTo(x0,y0+CELL); rx.lineTo(x0,y0+CELL-L);
+    rx.stroke();
+
+    // read the focal cell — light up its glyph, or mark dead-centre with a dot
+    var fg=(chars[curR]&&chars[curR][curC])?chars[curR][curC]:'';
+    if(fg){ rx.fillStyle=getCss('--lime'); rx.font='700 '+Math.round(CELL*0.5)+'px "JetBrains Mono",monospace';
+      rx.textAlign='center'; rx.textBaseline='middle'; rx.fillText(fg,cx,cy+1); }
+    else { rx.fillStyle=getCss('--lime'); rx.beginPath(); rx.arc(cx,cy,2.4,0,7); rx.fill(); }
+
+    // coordinate readout, offset from the intersection, flipped near edges
+    var flipX=cx>w-150, flipY=cy>h-60;
+    read.style.display='flex';
+    read.style.left=(cx+(flipX?-12:14))+'px'; read.style.top=(cy+(flipY?-34:14))+'px';
+    read.style.transform='translateX('+(flipX?'-100%':'0')+')';
+    readXY.textContent=colName(curC)+(curR+1);
+    readPX.textContent='◂ '+(fg||'·');
+  }
+
+  var cssCache={};
+  function getCss(v){ if(cssCache[v]) return cssCache[v]; return cssCache[v]=getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+
+  addEventListener('pointermove', function(e){ inside=true; mx=e.clientX; my=e.clientY;
+    var c=Math.floor(mx/CELL), r=Math.floor(my/CELL);
+    curC=c; curR=r; drawReticle();
+  }, {passive:true});
+  addEventListener('pointerleave', function(){ inside=false; read.style.display='none'; drawReticle(); });
+  document.addEventListener('mouseleave', function(){ inside=false; read.style.display='none'; drawReticle(); });
+
+  addEventListener('resize', build);
+  if(document.fonts && document.fonts.ready){ document.fonts.ready.then(build); }
+  build();
+})();
+</script>
+</body>
+</html>

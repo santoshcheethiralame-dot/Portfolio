@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="en" data-mock="annotated-specimen">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SPECIMEN No. PES1UG24CS127 — FIG. 1 · THE SUBJECT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --ink:#141414; --cream:#f7f5f1; --cream2:#efece4; --red:#ed1c24;
+  --lime:#b4ff2e; --black:#0a0a0a; --gray:#928b80;
+  --fd:"Anton",sans-serif; --fm:"JetBrains Mono",monospace; --fi:"Instrument Serif",serif;
+}
+*{ box-sizing:border-box; margin:0; padding:0; }
+html{ -webkit-font-smoothing:antialiased; scroll-behavior:smooth; }
+body{ background:var(--cream); color:var(--ink); font-family:var(--fm); min-height:100vh; }
+::selection{ background:var(--ink); color:var(--lime); }
+a{ color:inherit; text-decoration:none; }
+
+/* ── PAGE SHELL ── */
+.page-wrap{
+  max-width:1320px;
+  margin:0 auto;
+  padding:clamp(20px,4vw,60px) clamp(16px,4vw,60px) 100px;
+}
+
+/* ── PLATE HEADER ── */
+.plate-header{
+  border-top:4px solid var(--ink);
+  border-bottom:2px solid var(--ink);
+  padding:14px 0 12px;
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  align-items:center;
+  gap:12px;
+  margin-bottom:clamp(20px,3vw,40px);
+}
+.plate-header .ph-left{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+.plate-header .ph-center{ text-align:center; }
+.plate-header .ph-right{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:4px;
+}
+.plate-title{
+  font-family:var(--fd);
+  font-size:clamp(1.8rem,4vw,3.6rem);
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  line-height:.9;
+  text-align:center;
+}
+.plate-meta{
+  font-family:var(--fm);
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:var(--gray);
+}
+.plate-meta b{ color:var(--ink); }
+.plate-meta .red{ color:var(--red); }
+
+/* ── SPECIMEN PLATE (3-col grid) ── */
+.specimen-plate{
+  position:relative;
+  display:grid;
+  grid-template-columns:1fr minmax(260px,340px) 1fr;
+  gap:0;
+  align-items:center;
+  min-height:500px;
+}
+
+/* LEFT column: call-outs 1–3 */
+.callout-col-left{
+  display:flex;
+  flex-direction:column;
+  gap:clamp(18px,3.2vh,42px);
+  padding-right:clamp(16px,2.5vw,32px);
+  align-self:stretch;
+  justify-content:space-around;
+}
+/* RIGHT column: call-outs 4–6 */
+.callout-col-right{
+  display:flex;
+  flex-direction:column;
+  gap:clamp(18px,3.2vh,42px);
+  padding-left:clamp(16px,2.5vw,32px);
+  align-self:stretch;
+  justify-content:space-around;
+}
+
+/* ── FIGURE (center column) ── */
+.figure-col{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+}
+.figure-frame{
+  position:relative;
+  width:100%;
+  aspect-ratio:1/1;
+  border:4px solid var(--ink);
+  box-shadow:8px 8px 0 var(--ink);
+  background:#1a0d0e;
+  overflow:visible;
+}
+/* corner registration ticks */
+.figure-frame::before,
+.figure-frame::after{
+  content:'';
+  position:absolute;
+  width:18px; height:18px;
+  border-color:var(--ink); border-style:solid;
+  z-index:5;
+}
+.figure-frame::before{ top:-10px; left:-10px; border-width:3px 0 0 3px; }
+.figure-frame::after{ bottom:-10px; right:-10px; border-width:0 3px 3px 0; }
+.figure-frame .tick-tr{
+  position:absolute; top:-10px; right:-10px;
+  width:18px; height:18px;
+  border:3px solid var(--ink);
+  border-width:3px 3px 0 0;
+  z-index:5;
+}
+.figure-frame .tick-bl{
+  position:absolute; bottom:-10px; left:-10px;
+  width:18px; height:18px;
+  border:3px solid var(--ink);
+  border-width:0 0 3px 3px;
+  z-index:5;
+}
+.specimen-img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center 35%;
+  display:block;
+}
+/* scale bar */
+.scale-bar{
+  position:absolute;
+  bottom:10px; left:10px;
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  z-index:4;
+}
+.scale-bar-track{
+  height:6px;
+  width:70px;
+  border:2px solid rgba(247,245,241,.85);
+  background:transparent;
+  position:relative;
+}
+.scale-bar-track::before{
+  content:'';
+  position:absolute;
+  left:0; top:0; bottom:0;
+  width:50%;
+  background:rgba(247,245,241,.85);
+}
+.scale-bar-label{
+  font-size:8px;
+  font-weight:700;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:rgba(247,245,241,.75);
+}
+/* lime HERE pin — the only lime element on the page */
+.here-pin{
+  position:absolute;
+  top:10px; right:10px;
+  z-index:6;
+  background:var(--lime);
+  color:var(--ink);
+  border:2px solid var(--ink);
+  box-shadow:3px 3px 0 var(--ink);
+  font-family:var(--fm);
+  font-size:7.5px;
+  font-weight:700;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  padding:4px 7px;
+  white-space:nowrap;
+  display:flex;
+  align-items:center;
+  gap:4px;
+}
+.here-pin::before{ content:'▸'; }
+
+.figure-caption{
+  font-family:var(--fm);
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--gray);
+  text-align:center;
+  line-height:1.5;
+  max-width:300px;
+}
+
+/* ── CALL-OUT BADGE + LABEL ── */
+.callout{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  position:relative;
+}
+.callout.right{
+  flex-direction:row-reverse;
+  text-align:right;
+}
+.badge{
+  flex:none;
+  width:26px; height:26px;
+  border-radius:50%;
+  background:var(--red);
+  border:2px solid var(--ink);
+  box-shadow:2px 2px 0 var(--ink);
+  display:grid;
+  place-items:center;
+  font-family:var(--fd);
+  font-size:.95rem;
+  color:var(--cream);
+  letter-spacing:0;
+  line-height:1;
+}
+.callout-text{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+.callout-title{
+  font-family:var(--fm);
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--ink);
+  line-height:1.2;
+}
+.callout-detail{
+  font-family:var(--fm);
+  font-size:9px;
+  font-weight:400;
+  letter-spacing:.06em;
+  color:var(--gray);
+  line-height:1.5;
+}
+/* cat call-out: distinguish with a subtle left border in red */
+.callout-cat .callout-title{ color:var(--red); }
+
+/* anchor dots (visible on desktop, targeted by leader lines) */
+.anchor-dot{
+  display:inline-block;
+  width:5px; height:5px;
+  border-radius:50%;
+  background:var(--ink);
+  flex:none;
+  margin-top:9px;
+}
+.callout.right .anchor-dot{ order:-1; }
+
+/* ── SVG LEADER LINES (desktop overlay) ── */
+#leader-svg{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  pointer-events:none;
+  overflow:visible;
+  z-index:2;
+}
+#leader-svg line, #leader-svg polyline{
+  stroke:var(--ink);
+  stroke-width:1px;
+  fill:none;
+  opacity:.4;
+}
+#leader-svg circle{
+  fill:var(--ink);
+  opacity:.5;
+}
+
+/* ── BOTTOM STRIP ── */
+.bottom-strip{
+  margin-top:clamp(24px,4vh,52px);
+  border-top:2px solid var(--ink);
+  padding-top:clamp(14px,2.5vh,24px);
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+.thesis-line{
+  font-family:var(--fi);
+  font-size:clamp(1.2rem,2.2vw,1.85rem);
+  line-height:1.25;
+  letter-spacing:-.01em;
+  color:var(--ink);
+  font-style:italic;
+}
+.bottom-row{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:16px;
+  flex-wrap:wrap;
+}
+.projects-pointer{
+  font-family:var(--fm);
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--gray);
+}
+.projects-pointer b{ color:var(--ink); }
+.stderr-log{
+  font-family:var(--fm);
+  font-size:10px;
+  font-weight:400;
+  letter-spacing:.06em;
+  color:var(--gray);
+  font-style:normal;
+}
+.stderr-log .prompt{ color:var(--red); font-weight:700; }
+
+/* ── MOBILE: hide SVG + reflow ── */
+@media (max-width:760px){
+  #leader-svg{ display:none; }
+  .anchor-dot{ display:none; }
+
+  .specimen-plate{
+    display:flex;
+    flex-direction:column;
+    gap:0;
+    min-height:auto;
+  }
+  .callout-col-left,
+  .callout-col-right{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    padding:0;
+    width:100%;
+  }
+  /* reorder: figure first */
+  .figure-col{ order:0; margin-bottom:20px; }
+  .callout-col-left{ order:1; }
+  .callout-col-right{ order:2; }
+
+  .callout,
+  .callout.right{
+    flex-direction:row;
+    text-align:left;
+    border-left:2px solid rgba(20,20,20,.15);
+    padding-left:12px;
+  }
+
+  .callout-col-left{ margin-bottom:12px; }
+
+  .plate-header{
+    grid-template-columns:1fr;
+    text-align:center;
+    gap:6px;
+  }
+  .plate-header .ph-right{ align-items:center; }
+  .plate-title{ font-size:clamp(1.4rem,8vw,2.4rem); }
+
+  .bottom-row{ flex-direction:column; gap:8px; }
+}
+@media (min-width:761px){
+  .callout-col-left,
+  .callout-col-right{ order:unset; }
+}
+
+/* ── FIXED TAG ── */
+#tag{
+  position:fixed;
+  left:50%; bottom:7px;
+  transform:translateX(-50%);
+  z-index:1400;
+  font-size:9.5px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:rgba(20,20,20,.4);
+  pointer-events:none;
+  font-family:var(--fm);
+}
+</style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <!-- ═══════════════ PLATE HEADER ═══════════════ -->
+  <header class="plate-header">
+    <div class="ph-left">
+      <span class="plate-meta">SPECIMEN No. <b>PES1UG24CS127</b></span>
+      <span class="plate-meta">CLASS: <b>Software &amp; Machine Learning</b></span>
+      <span class="plate-meta">COLL. <b>Bengaluru</b> · <span class="red">2026</span></span>
+    </div>
+    <div class="ph-center">
+      <div class="plate-title">FIG.&nbsp;1&nbsp;—&nbsp;THE SUBJECT</div>
+    </div>
+    <div class="ph-right">
+      <span class="plate-meta">REF. <b>ABOUT / §05</b></span>
+      <span class="plate-meta">annotated · field specimen</span>
+    </div>
+  </header>
+
+  <!-- ═══════════════ SPECIMEN PLATE ═══════════════ -->
+  <div class="specimen-plate" id="plate">
+
+    <!-- SVG leader lines (populated by JS) -->
+    <svg id="leader-svg" aria-hidden="true"></svg>
+
+    <!-- LEFT CALL-OUTS: 1, 2, 3 (describe Santosh) -->
+    <div class="callout-col-left" id="col-left">
+
+      <!-- ① -->
+      <div class="callout" id="co1">
+        <div class="badge">1</div>
+        <div class="callout-text">
+          <span class="callout-title">Opens black boxes</span>
+          <span class="callout-detail">neural nets, version control,<br/>whatever's opaque</span>
+        </div>
+        <div class="anchor-dot" id="dot1"></div>
+      </div>
+
+      <!-- ② -->
+      <div class="callout" id="co2">
+        <div class="badge">2</div>
+        <div class="callout-text">
+          <span class="callout-title">Incoming @ PI Labs</span>
+          <span class="callout-detail">interpretability · why models hallucinate</span>
+        </div>
+        <div class="anchor-dot" id="dot2"></div>
+      </div>
+
+      <!-- ③ -->
+      <div class="callout" id="co3">
+        <div class="badge">3</div>
+        <div class="callout-text">
+          <span class="callout-title">Local-first</span>
+          <span class="callout-detail">your data, your GPU, no server</span>
+        </div>
+        <div class="anchor-dot" id="dot3"></div>
+      </div>
+
+    </div>
+
+    <!-- CENTER: figure -->
+    <div class="figure-col" id="fig-col">
+      <div class="figure-frame" id="fig-frame">
+        <img class="specimen-img" src="cat.jpg" alt="Stderr — field reviewer, code critic, campus stray" />
+        <div class="tick-tr"></div>
+        <div class="tick-bl"></div>
+        <!-- lime HERE pin — the ONLY lime element -->
+        <div class="here-pin">OPEN — SWE / ML INTERNSHIPS · SUMMER 2026</div>
+        <!-- scale bar -->
+        <div class="scale-bar">
+          <div class="scale-bar-track"></div>
+          <span class="scale-bar-label">actual size may vary</span>
+        </div>
+      </div>
+      <div class="figure-caption">
+        the subject declined to be pinned.<br/>
+        his code reviewer, <b>stderr</b>, sat instead.
+      </div>
+    </div>
+
+    <!-- RIGHT CALL-OUTS: 4, 5, 6 (describe Santosh + one for Stderr) -->
+    <div class="callout-col-right" id="col-right">
+
+      <!-- ④ -->
+      <div class="callout right" id="co4">
+        <div class="anchor-dot" id="dot4"></div>
+        <div class="callout-text">
+          <span class="callout-title">Debugging calm</span>
+          <span class="callout-detail">calibrated on a 10m air rifle<br/>national level · patience is a skill</span>
+        </div>
+        <div class="badge">4</div>
+      </div>
+
+      <!-- ⑤ -->
+      <div class="callout right" id="co5">
+        <div class="anchor-dot" id="dot5"></div>
+        <div class="callout-text">
+          <span class="callout-title">One signature proof</span>
+          <span class="callout-detail">neural net trained in-browser<br/>backprop by hand · ~97% MNIST</span>
+        </div>
+        <div class="badge">5</div>
+      </div>
+
+      <!-- ⑥ the cat call-out -->
+      <div class="callout right callout-cat" id="co6">
+        <div class="anchor-dot" id="dot6"></div>
+        <div class="callout-text">
+          <span class="callout-title">Field reviewer — stderr</span>
+          <span class="callout-detail">reviews commits. remains unimpressed.</span>
+        </div>
+        <div class="badge">6</div>
+      </div>
+
+    </div>
+  </div><!-- /specimen-plate -->
+
+  <!-- ═══════════════ BOTTOM STRIP: thesis + projects + log line ═══════════════ -->
+  <div class="bottom-strip">
+    <p class="thesis-line">"the interesting work is always inside the box everyone else treats as sealed."</p>
+    <div class="bottom-row">
+      <span class="projects-pointer"><b>GlassBox · Gradient · Orbit</b> — each one gets a proper page →</span>
+      <span class="stderr-log"><span class="prompt">&gt;</span> reviewed your stack. one warning: you.</span>
+    </div>
+  </div>
+
+</div><!-- /page-wrap -->
+
+<div id="tag">05 · annotated specimen · fig. 1 · about</div>
+
+<script>
+(function(){
+  'use strict';
+
+  var MOBILE_BP = 760;
+
+  var svg = document.getElementById('leader-svg');
+  var plate = document.getElementById('plate');
+  var figFrame = document.getElementById('fig-frame');
+
+  // Target points on figure: fraction of figure width/height
+  // Left callouts point to left edge zone; right to right edge zone
+  var figTargets = {
+    1: {fx:0.20, fy:0.25},
+    2: {fx:0.18, fy:0.50},
+    3: {fx:0.22, fy:0.75},
+    4: {fx:0.80, fy:0.25},
+    5: {fx:0.82, fy:0.52},
+    6: {fx:0.76, fy:0.78},
+  };
+
+  function getRelRect(el){
+    var pr = plate.getBoundingClientRect();
+    var er = el.getBoundingClientRect();
+    return {
+      left: er.left - pr.left,
+      top: er.top - pr.top,
+      right: er.right - pr.left,
+      bottom: er.bottom - pr.top,
+      width: er.width,
+      height: er.height,
+    };
+  }
+
+  function drawLines(){
+    while(svg.firstChild) svg.removeChild(svg.firstChild);
+    if(window.innerWidth <= MOBILE_BP) return;
+
+    var pr = plate.getBoundingClientRect();
+    svg.setAttribute('viewBox', '0 0 ' + pr.width + ' ' + pr.height);
+
+    var fr = getRelRect(figFrame);
+
+    for(var n = 1; n <= 6; n++){
+      var badge = document.getElementById('co' + n);
+      var dot = document.getElementById('dot' + n);
+      var target = figTargets[n];
+      if(!badge || !dot || !target) continue;
+
+      var tx = fr.left + fr.width * target.fx;
+      var ty = fr.top  + fr.height * target.fy;
+
+      var dr = getRelRect(dot);
+      var dx = dr.left + dr.width / 2;
+      var dy = dr.top  + dr.height / 2;
+
+      // Small circle at figure target
+      var circ = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      circ.setAttribute('cx', tx.toFixed(1));
+      circ.setAttribute('cy', ty.toFixed(1));
+      circ.setAttribute('r', '3.5');
+      svg.appendChild(circ);
+
+      // Elbow polyline
+      var line = document.createElementNS('http://www.w3.org/2000/svg','polyline');
+      var pts;
+      if(n <= 3){
+        // left callouts: horizontal from dot rightward to fig left edge, then angle to target
+        var midX = fr.left - 12;
+        pts = dx.toFixed(1) + ',' + dy.toFixed(1) + ' ' +
+              midX.toFixed(1) + ',' + dy.toFixed(1) + ' ' +
+              tx.toFixed(1) + ',' + ty.toFixed(1);
+      } else {
+        // right callouts: horizontal from dot leftward to fig right edge, then angle to target
+        var midX2 = fr.right + 12;
+        pts = dx.toFixed(1) + ',' + dy.toFixed(1) + ' ' +
+              midX2.toFixed(1) + ',' + dy.toFixed(1) + ' ' +
+              tx.toFixed(1) + ',' + ty.toFixed(1);
+      }
+      line.setAttribute('points', pts);
+      svg.appendChild(line);
+    }
+  }
+
+  if(document.fonts && document.fonts.ready){
+    document.fonts.ready.then(function(){ requestAnimationFrame(drawLines); });
+  } else {
+    window.addEventListener('load', function(){ requestAnimationFrame(drawLines); });
+  }
+  setTimeout(drawLines, 600);
+  window.addEventListener('resize', function(){ requestAnimationFrame(drawLines); });
+
+})();
+</script>
+</body>
+</html>

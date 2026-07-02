@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>THE CHRONICLE PREVIEW — above the fold</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --ink:#141414; --cream:#f7f5f1; --cream2:#efece4; --red:#ed1c24; --lime:#b4ff2e; --gray:#928b80;
+  --fd:"Anton",sans-serif; --fm:"JetBrains Mono",monospace; --fi:"Instrument Serif",serif;
+}
+*{ box-sizing:border-box; margin:0; padding:0; }
+html{ -webkit-font-smoothing:antialiased; }
+body{ background:var(--red); color:var(--ink); font-family:var(--fm); min-height:100svh;
+  display:flex; align-items:center; justify-content:center; padding:clamp(24px,5vw,70px); }
+::selection{ background:var(--ink); color:var(--lime); }
+
+/* ── THE FOLDED PAPER OBJECT ───────────────────────────────── */
+.chron-stage{ perspective:none; }
+.chron{
+  position:relative;
+  width:clamp(300px,38vw,440px);
+  background:var(--cream);
+  border:2.5px solid var(--ink);
+  box-shadow:10px 10px 0 var(--ink);
+  padding:clamp(13px,1.4vw,20px) clamp(15px,1.6vw,22px) 0;
+  transform:rotate(-1.5deg);
+  transition:transform .16s ease, box-shadow .16s ease;
+  cursor:pointer; outline:none;
+  /* subtle paper grain */
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+}
+/* 2 hard-edged sheets stacked behind → "a paper waiting to be opened" */
+.chron::before, .chron::after{
+  content:""; position:absolute; inset:0; background:var(--cream2);
+  border:2.5px solid var(--ink); z-index:-1;
+}
+.chron::before{ transform:translate(6px,7px); }
+.chron::after{ transform:translate(12px,14px); z-index:-2; background:var(--cream); }
+.chron:hover, .chron:focus-visible{ transform:rotate(-0.5deg) translateY(-3px); box-shadow:14px 16px 0 var(--ink); }
+.chron:focus-visible{ box-shadow:14px 16px 0 var(--ink), 0 0 0 3px var(--lime); }
+
+/* the shrunk LATE EDITION stamp — one accent, rotated, hard */
+.stamp{
+  position:absolute; top:-14px; right:-12px; z-index:6;
+  font-family:var(--fm); font-size:8.5px; font-weight:700; line-height:1.15; letter-spacing:.12em;
+  text-transform:uppercase; text-align:center; color:var(--cream);
+  background:var(--red); border:2px solid var(--ink); box-shadow:3px 3px 0 var(--ink);
+  padding:5px 8px; transform:rotate(7deg);
+}
+.stamp .b{ color:var(--lime); }
+
+/* folio */
+.ch-folio{ display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
+  font-family:var(--fm); font-size:8.5px; font-weight:500; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--gray); margin-bottom:6px; }
+.ch-rule{ border:none; border-top:3px solid var(--ink); margin:0 0 8px; }
+
+/* masthead — SOLID, the echo of the outline surname up top */
+.ch-mast{ font-family:var(--fd); font-weight:400; font-size:clamp(1.7rem,3vw,2.5rem);
+  line-height:.88; letter-spacing:.012em; text-transform:uppercase; color:var(--ink); text-align:center; }
+.ch-dateline{ margin-top:8px; background:var(--ink); color:var(--cream);
+  font-family:var(--fm); font-size:8px; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
+  padding:4px 8px; display:flex; align-items:center; justify-content:center; gap:7px; flex-wrap:wrap; text-align:center; }
+.ch-dateline .dl-tag{ color:var(--lime); }
+
+/* lead headline + one-line deck */
+.ch-lead{ padding-top:11px; }
+.ch-kicker{ display:block; font-family:var(--fm); font-size:8px; font-weight:700; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--red); margin-bottom:6px; }
+.ch-head{ font-family:var(--fd); font-weight:400; font-size:clamp(1.15rem,1.9vw,1.5rem);
+  line-height:1.04; letter-spacing:.008em; text-transform:uppercase; color:var(--ink); }
+.ch-head .dc{ display:inline-block; }
+.ch-head .dc.scr{ color:#c4302b; }
+.ch-head .dc.on{ color:var(--ink); transition:color .2s ease; }
+.ch-deck{ margin-top:8px; font-family:var(--fi); font-style:italic; font-size:clamp(.92rem,1.2vw,1.08rem);
+  line-height:1.25; color:var(--ink); }
+
+/* INSIDE TODAY — 4 dotted entries */
+.ch-inside{ list-style:none; margin:12px 0 2px; padding-top:9px; border-top:1.5px solid rgba(20,20,20,.25); }
+.ch-inside .ih{ font-family:var(--fm); font-size:8px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:var(--gray); margin-bottom:5px; }
+.ch-inside li.row{ display:flex; align-items:baseline; gap:6px; font-family:var(--fi); font-size:.92rem; color:var(--ink); padding:2.5px 0; }
+.ch-inside .dots{ flex:1; border-bottom:1.5px dotted rgba(20,20,20,.4); transform:translateY(-3px); }
+.ch-inside .pg{ font-family:var(--fm); font-size:9px; font-weight:700; letter-spacing:.04em; color:var(--ink); }
+
+/* the hard fold crease + the tucked-under sliver (clipped + masked) */
+.ch-foldzone{ position:relative; margin-top:11px; }
+.ch-crease{ height:9px; border-top:1px solid rgba(20,20,20,.6);
+  box-shadow:0 -7px 9px -7px rgba(20,20,20,.4) inset, 0 7px 9px -7px rgba(20,20,20,.22) inset; }
+.ch-under{ position:relative; height:62px; overflow:hidden;
+  font-family:var(--fi); font-size:.74rem; line-height:1.45; color:var(--ink);
+  columns:2; column-gap:16px; column-rule:1px solid rgba(20,20,20,.2);
+  -webkit-mask-image:linear-gradient(180deg, #000 0, #000 18%, transparent 96%);
+          mask-image:linear-gradient(180deg, #000 0, #000 18%, transparent 96%); }
+.ch-under p{ margin:0 0 .5em; }
+
+.ch-hint{ display:flex; align-items:center; gap:8px; padding:9px 0 11px;
+  font-family:var(--fm); font-size:8.5px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:var(--red); }
+.ch-hint .tri{ color:var(--lime); font-size:11px; line-height:1; }
+.ch-hint .arrow{ margin-left:auto; }
+
+#tag{ position:fixed; left:50%; bottom:7px; transform:translateX(-50%); z-index:40; font-size:9.5px;
+  letter-spacing:.14em; text-transform:uppercase; color:rgba(255,255,255,.6); }
+@media(prefers-reduced-motion:reduce){ .chron{ transition:none; } }
+</style>
+</head>
+<body>
+<div class="chron-stage">
+  <figure class="chron" id="chron" role="button" tabindex="0" aria-label="Read today's edition">
+    <span class="stamp">LATE EDITION<br><span class="b">&#9658;</span> BREAKING</span>
+
+    <div class="ch-folio">
+      <span>VOL. PES1UG24CS127</span>
+      <span>PRICE: ONE FILTER COFFEE</span>
+    </div>
+    <hr class="ch-rule" />
+
+    <div class="ch-mast">THE DAILY CHEETHIRALA</div>
+    <div class="ch-dateline">
+      <span class="dl-tag">BENGALURU</span><span>&middot;</span>
+      <span id="dl-date">—</span><span>&middot;</span>
+      <span id="dl-time">—</span>
+    </div>
+
+    <div class="ch-lead">
+      <span class="ch-kicker">&#9654; FRONT PAGE &middot; BENGALURU BUREAU</span>
+      <h2 class="ch-head" id="ch-head" data-text="THE INTERESTING WORK IS INSIDE THE BOX EVERYONE ELSE LEAVES SEALED"></h2>
+      <p class="ch-deck">I open black boxes &mdash; neural nets, version control, whatever&rsquo;s opaque.</p>
+    </div>
+
+    <ul class="ch-inside">
+      <li class="ih">// INSIDE TODAY</li>
+      <li class="row"><span>The throughline</span><span class="dots"></span><span class="pg">p.1</span></li>
+      <li class="row"><span>House rules &amp; stderr</span><span class="dots"></span><span class="pg">p.2</span></li>
+      <li class="row"><span>Orbit &middot; GlassBox &middot; git-in-C</span><span class="dots"></span><span class="pg">p.3</span></li>
+      <li class="row"><span>Open to work &middot; summer &rsquo;26</span><span class="dots"></span><span class="pg">p.4</span></li>
+    </ul>
+
+    <div class="ch-foldzone">
+      <div class="ch-crease" aria-hidden="true"></div>
+      <div class="ch-under" aria-hidden="true">
+        <p>i spent more time planning to study than actually studying. orbit started as the fix &mdash; a planner that thinks in forgetting curves, not to-do lists.</p>
+        <p>i wrote a neural net by hand in the browser, backprop and all. a black box is just a system nobody&rsquo;s opened yet.</p>
+      </div>
+    </div>
+
+    <div class="ch-hint">
+      <span class="tri" aria-hidden="true">&#9658;</span>
+      <span>Open today&rsquo;s edition</span>
+      <span class="arrow" aria-hidden="true">&darr;</span>
+    </div>
+  </figure>
+</div>
+
+<div id="tag">the chronicle preview · above the fold · folded object · live dateline · headline decodes on hover</div>
+
+<script>
+(function(){
+  'use strict';
+  var REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var GLYPHS='ABCDEFGHJKLMNPQRSTUVWXYZ0123456789#/<>[]{}*+=·.@%&';
+  function rg(){ return GLYPHS[(Math.random()*GLYPHS.length)|0]; }
+
+  var head=document.getElementById('ch-head'), TEXT=head.dataset.text;
+
+  /* stable ciphertext at rest (looks encrypted, not random noise) */
+  function cipher(el, text){
+    el.textContent='';
+    text.split('').forEach(function(ch,i){
+      var s=document.createElement('span'); s.className='dc';
+      if(ch===' '){ s.innerHTML='&nbsp;'; }
+      else { s.textContent=GLYPHS[((i*29+13)>>>0)%GLYPHS.length]; s.classList.add('scr'); }
+      el.appendChild(s);
+    });
+  }
+  /* resolve cipher → real headline (the same decode the edition completes when it prints over) */
+  function decode(el, text){
+    if(REDUCE){ el.textContent=text; return; }
+    var chars=text.split('');
+    el.textContent='';
+    var spans=chars.map(function(ch){
+      var s=document.createElement('span'); s.className='dc';
+      if(ch===' '){ s.innerHTML='&nbsp;'; s.dataset.sp='1'; }
+      else { s.textContent=rg(); s.classList.add('scr'); }
+      s.dataset.ch=ch; el.appendChild(s); return s;
+    });
+    var start=performance.now(), bucket=-1, stagger=26, scr=360;
+    function tick(now){
+      var b=(now/48)|0, swap=(b!==bucket); bucket=b; var done=true;
+      spans.forEach(function(s,i){
+        if(s.dataset.sp) return;
+        var begin=start+i*stagger, rt=begin+scr;
+        if(now>=rt){ if(!s.dataset.on){ s.dataset.on='1'; s.textContent=s.dataset.ch; s.classList.remove('scr'); s.classList.add('on'); } }
+        else { done=false; if(now>=begin && swap){ s.textContent=rg(); } }
+      });
+      if(!done) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  if(REDUCE){ head.textContent=TEXT; } else { cipher(head, TEXT); }
+
+  var chron=document.getElementById('chron'), resolveT=null, leaveT=null;
+  function enter(){ clearTimeout(leaveT); clearTimeout(resolveT); decode(head, TEXT); }
+  function leave(){ clearTimeout(resolveT); leaveT=setTimeout(function(){ cipher(head, TEXT); }, 1400); }
+  chron.addEventListener('pointerenter', enter);
+  chron.addEventListener('focus', enter);
+  chron.addEventListener('pointerleave', leave);
+  chron.addEventListener('blur', leave);
+
+  /* live dateline — freshly printed every visit (IST) */
+  function stamp(){
+    try{
+      var now=new Date();
+      var d=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Kolkata',weekday:'short',month:'short',day:'numeric'}).format(now).toUpperCase();
+      var t=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Kolkata',hour:'numeric',minute:'2-digit',hour12:true}).format(now);
+      document.getElementById('dl-date').textContent=d;
+      document.getElementById('dl-time').textContent=t.replace(' ','');
+    }catch(e){}
+  }
+  stamp(); setInterval(stamp, 1000*20);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,981 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>STYLE 09 / LOADOUT</title>
+
+<!-- Fonts: Anton (display) + JetBrains Mono (everything else) -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+
+<style>
+  :root{
+    --red:#ed1c24;
+    --red-deep:#b3001b;
+    --red-dark:#7a0014;
+    --ink:#ffffff;
+    --black:#0a0a0a;
+    --line:rgba(255,255,255,0.26);
+    --lime:#c8e620;
+    --font-display:"Anton",sans-serif;
+    --font-mono:"JetBrains Mono",monospace;
+    --bar-h:64px;
+    --snap:cubic-bezier(.2,.9,.2,1);
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  body{
+    background:var(--red);
+    color:var(--ink);
+    font-family:var(--font-mono);
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+
+  /* ----------------------------------------------------------- TOP BAR */
+  .topbar{
+    position:fixed; top:0; left:0; right:0;
+    height:var(--bar-h); z-index:80;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 clamp(14px,4vw,34px);
+    background:var(--red);
+    border-bottom:2px solid var(--ink);
+  }
+  .index-btn{
+    display:inline-flex; align-items:center; gap:.5em;
+    font-family:var(--font-mono); font-weight:700; font-size:11px;
+    letter-spacing:.14em; text-transform:uppercase;
+    color:var(--ink); text-decoration:none;
+    padding:9px 16px; border:2px solid var(--ink); background:transparent;
+    box-shadow:4px 4px 0 var(--black);
+    transition:transform 120ms var(--snap), background-color 120ms var(--snap),
+               color 120ms var(--snap), box-shadow 120ms var(--snap);
+  }
+  .index-btn:hover,.index-btn:focus-visible{
+    background:var(--ink); color:var(--red);
+    transform:translate(2px,2px); box-shadow:2px 2px 0 var(--black); outline:none;
+  }
+  .index-btn:active{ transform:translate(4px,4px); box-shadow:0 0 0 var(--black); }
+  .caption{ text-align:right; line-height:1.35; }
+  .caption .style-no{ font-weight:700; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink); }
+  .caption .hint{ font-weight:400; font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,0.72); }
+
+  /* ----------------------------------------------------------- PAGE / SECTION */
+  .wrap{
+    position:relative;
+    padding:calc(var(--bar-h) + clamp(26px,5vw,60px)) clamp(20px,6vw,90px) clamp(90px,10vw,140px);
+    max-width:1500px; margin:0 auto;
+  }
+  .kicker{
+    font-family:var(--font-mono); font-weight:500; font-size:13px;
+    letter-spacing:.04em; text-transform:lowercase;
+    color:rgba(255,255,255,0.78); margin-bottom:10px;
+  }
+  .title{
+    font-family:var(--font-display); font-weight:400; text-transform:uppercase;
+    color:var(--ink); line-height:.82; letter-spacing:.005em;
+    font-size:clamp(2.4rem,10vw,8rem); margin-bottom:clamp(20px,3vw,34px);
+  }
+
+  /* ----------------------------------------------------------- LEGEND BAR */
+  .legend{
+    display:flex; flex-wrap:wrap; align-items:center; gap:12px 18px;
+    margin-bottom:clamp(20px,3vw,32px); padding-bottom:16px;
+    border-bottom:2px solid var(--ink);
+    font-size:11px; letter-spacing:.12em; text-transform:uppercase;
+  }
+  .legend .lg-lab{ font-weight:700; color:rgba(255,255,255,0.85); }
+  .legend .key{ display:inline-flex; align-items:center; gap:8px; }
+  .legend .swatch{
+    width:16px; height:16px; border:2px solid var(--ink); background:var(--red); display:inline-block;
+  }
+  .legend .swatch.epic{ background:rgba(255,255,255,0.14); }
+  .legend .swatch.leg{ background:var(--lime); border-color:var(--lime); }
+  .legend .key b{ font-weight:700; color:var(--ink); }
+  .legend .leg-note{ margin-left:auto; color:rgba(255,255,255,0.6); }
+
+  /* ----------------------------------------------------------- CLASS PANELS */
+  .loadout{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));
+    gap:clamp(16px,2vw,26px);
+    align-items:start;
+  }
+
+  .panel{
+    position:relative;
+    border:2px solid var(--ink);
+    background:var(--red-deep);
+    box-shadow:6px 6px 0 var(--black);
+    padding:0;
+  }
+  /* hard chamfered top-right corner accent (still hard edges) */
+  .panel-head{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:11px 14px;
+    background:var(--black); color:var(--ink);
+    border-bottom:2px solid var(--ink);
+  }
+  .panel-head .class-tag{
+    font-weight:700; font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+    display:flex; align-items:baseline; gap:8px; min-width:0;
+  }
+  .panel-head .class-tag .pre{ color:rgba(255,255,255,0.55); }
+  .panel-head .class-name{ color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .panel-head .slots-of{
+    font-weight:500; font-size:10px; letter-spacing:.14em; color:rgba(255,255,255,0.55);
+    white-space:nowrap;
+  }
+
+  .grid-slots{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(108px,1fr));
+    gap:8px;
+    padding:14px;
+  }
+
+  /* --------------------------------------------------- SLOT (gear cell) */
+  .slot{
+    position:relative;
+    display:flex; flex-direction:column; justify-content:space-between;
+    height:94px; padding:20px 9px 7px;
+    background:var(--red);
+    border:2px solid var(--ink);
+    color:var(--ink);
+    cursor:pointer; user-select:none;
+    /* hard chamfer top-right via clip-path; edges remain crisp */
+    clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 0 100%);
+    transition:transform 110ms var(--snap), box-shadow 110ms var(--snap),
+               background-color 110ms var(--snap), border-color 110ms var(--snap),
+               opacity 130ms var(--snap);
+  }
+  .slot:focus{ outline:none; }
+  .slot:focus-visible{ box-shadow:0 0 0 2px var(--red), 0 0 0 4px var(--ink); }
+
+  /* rarity rank shows as border weight + fill */
+  .slot.rare{ background:var(--red); }
+  .slot.epic{ background:rgba(255,255,255,0.10); }
+  .slot.legendary{ background:var(--red-dark); }
+
+  /* rarity corner flag (top-right notch). Lime ONLY for legendary — the
+     ONE resting lime mark per legendary slot. */
+  .slot::after{
+    content:""; position:absolute; top:0; right:0;
+    border-style:solid;
+    border-width:0 13px 13px 0;
+    border-color:transparent var(--ink) transparent transparent;
+  }
+  .slot.epic::after{ border-color:transparent rgba(255,255,255,0.55) transparent transparent; }
+  .slot.legendary::after{ border-color:transparent var(--lime) transparent transparent; }
+
+  /* monogram = small corner badge so the full name gets the whole slot width */
+  .slot .mono{
+    position:absolute; top:6px; left:7px; z-index:1;
+    font-family:var(--font-display); font-weight:400; font-size:9px;
+    line-height:1; letter-spacing:.02em; text-transform:uppercase;
+    color:var(--ink); opacity:.6;
+    border:1px solid var(--ink); padding:1px 4px;
+  }
+  /* name fills the slot; vertically centered; font is shrunk-to-fit by JS so it
+     never breaks mid-word and every tile stays the same height */
+  .slot .slot-top{
+    flex:1 1 auto; min-height:0; overflow:hidden;
+    display:flex; align-items:center; padding-right:11px;
+  }
+  .slot .name{
+    width:100%;
+    font-family:var(--font-mono); font-weight:700; font-size:12px;
+    line-height:1.12; letter-spacing:.01em; text-transform:uppercase;
+    color:var(--ink);
+    overflow-wrap:normal; word-break:normal; hyphens:none;
+  }
+
+  .slot .meta{
+    display:flex; align-items:flex-end; justify-content:space-between; gap:6px; margin-top:6px;
+  }
+  .slot .rar{
+    font-weight:700; font-size:10px; letter-spacing:.12em; text-transform:uppercase;
+    color:rgba(255,255,255,0.78);
+  }
+  .slot.epic .rar{ color:var(--ink); }
+
+  /* level pip row (weight) */
+  .slot .pips{ display:inline-flex; gap:3px; align-items:center; }
+  .slot .pips i{ width:5px; height:5px; background:var(--ink); display:block; }
+  .slot .pips i.off{ opacity:.34; }
+
+  /* ----- interaction states ----- */
+  .loadout.inspecting .slot{ opacity:.34; }
+  .loadout.inspecting .slot.is-active,
+  .loadout.inspecting .slot.is-set{ opacity:1; }
+
+  .slot.is-active{
+    transform:translate(-2px,-2px);
+    box-shadow:5px 5px 0 var(--black);
+    border-color:var(--ink); z-index:3;
+  }
+  /* pinned (click-locked) slot: a held, double-outline look (white, not lime) */
+  .slot.is-pinned{
+    box-shadow:5px 5px 0 var(--black), inset 0 0 0 2px var(--red-dark), inset 0 0 0 4px var(--ink);
+    z-index:4;
+  }
+  /* set-bonus partners light up (the set "powering on") — no crossing lines */
+  .slot.is-set{
+    border-color:var(--ink);
+    box-shadow:3px 3px 0 var(--black);
+    transform:translate(-1px,-1px);
+  }
+  .slot.is-set::before{
+    content:"+"; position:absolute; left:5px; bottom:5px;
+    font-weight:700; font-size:10px; color:var(--ink); opacity:.85;
+    pointer-events:none;
+  }
+
+  /* ----------------------------------------------------------- ITEM CARD (tooltip) */
+  .card{
+    position:fixed; z-index:90;
+    width:248px; max-width:calc(100vw - 24px);
+    background:var(--black); color:var(--ink);
+    border:2px solid var(--ink);
+    box-shadow:7px 7px 0 var(--red-dark);
+    padding:0; pointer-events:none;
+    opacity:0; transform:translateY(6px) scale(.98);
+    transition:opacity 120ms var(--snap), transform 120ms var(--snap);
+  }
+  .card.show{ opacity:1; transform:translateY(0) scale(1); }
+  /* pinned card is interactive so a click on it (or anywhere) can release it */
+  .card.pinned{ pointer-events:auto; }
+  .card.leg{ border-color:var(--lime); box-shadow:7px 7px 0 var(--red-dark); }
+
+  .card-hd{
+    display:flex; align-items:flex-start; justify-content:space-between; gap:8px;
+    padding:10px 12px 9px; border-bottom:2px solid var(--ink);
+  }
+  .card.leg .card-hd{ border-bottom-color:var(--lime); }
+  .card-hd .nm{
+    font-family:var(--font-display); font-weight:400; font-size:21px; line-height:.9;
+    text-transform:uppercase; letter-spacing:.01em;
+  }
+  .card.leg .card-hd .nm{ color:var(--lime); }
+  .card-hd .rtag{
+    flex:0 0 auto;
+    font-weight:700; font-size:8px; letter-spacing:.1em; text-transform:uppercase;
+    border:2px solid var(--ink); padding:3px 5px; color:var(--ink); white-space:nowrap;
+  }
+  .card.leg .card-hd .rtag{ border-color:var(--lime); color:var(--lime); }
+
+  .card-cls{
+    padding:7px 12px; border-bottom:1px solid var(--line);
+    font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:rgba(255,255,255,0.6);
+  }
+  .card-cls b{ color:var(--ink); font-weight:700; }
+
+  .card-stats{ padding:9px 12px 6px; }
+  .stat{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:6px; font-size:10px; letter-spacing:.06em; }
+  .stat .k{ color:rgba(255,255,255,0.6); text-transform:uppercase; }
+  .stat .v{ color:var(--ink); font-weight:700; text-transform:uppercase; }
+  .stat .bar{
+    flex:1; height:7px; border:1px solid var(--ink); position:relative; overflow:hidden; max-width:96px;
+  }
+  .stat .bar > i{ position:absolute; top:0; left:0; bottom:0; background:var(--ink); }
+  .card.leg .stat .bar > i{ background:var(--lime); }
+
+  .card-set{
+    padding:9px 12px 11px; border-top:2px solid var(--ink);
+  }
+  .card.leg .card-set{ border-top-color:var(--lime); }
+  .card-set .set-lab{
+    font-weight:700; font-size:9px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--ink); margin-bottom:7px; display:flex; align-items:center; gap:6px;
+  }
+  .card-set .set-lab .bonus{
+    border:2px solid var(--ink); padding:1px 5px; color:var(--ink);
+  }
+  .card.leg .card-set .set-lab .bonus{ border-color:var(--lime); color:var(--lime); }
+  .card-set ul{ list-style:none; display:flex; flex-wrap:wrap; gap:5px; }
+  .card-set li{
+    font-size:9px; letter-spacing:.06em; text-transform:uppercase;
+    border:1px solid var(--line); padding:3px 6px; color:rgba(255,255,255,0.85);
+  }
+
+  /* ----------------------------------------------------------- READOUT / GAME LOG */
+  .readout{
+    position:fixed; left:0; right:0; bottom:0; z-index:70;
+    display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px;
+    padding:11px clamp(14px,4vw,34px);
+    background:var(--red); border-top:2px solid var(--ink);
+    font-family:var(--font-mono); font-size:11px; letter-spacing:.1em;
+    text-transform:uppercase; color:rgba(255,255,255,0.85);
+  }
+  .readout .prompt{ color:var(--ink); font-weight:700; }
+  .readout .log{ color:var(--ink); font-weight:500; }
+  .readout .log .hl{ color:var(--ink); font-weight:700; }
+  .readout .log .leg{ color:var(--lime); font-weight:700; }
+  .readout .log .dim{ color:rgba(255,255,255,0.55); }
+  .readout .blink{
+    display:inline-block; width:9px; height:14px; background:var(--ink);
+    animation:blink 1s steps(2,start) infinite; vertical-align:middle; margin-left:2px;
+  }
+  @keyframes blink{ 0%,50%{opacity:1;} 50.01%,100%{opacity:0;} }
+
+  /* ----------------------------------------------------------- COMPANION CAT */
+  .cat{
+    position:fixed; right:clamp(12px,3vw,28px); bottom:64px; z-index:75;
+    display:flex; flex-direction:column; align-items:flex-end; gap:8px;
+    pointer-events:none; max-width:220px;
+  }
+  .cat .bubble{
+    position:relative;
+    background:var(--ink); color:var(--black);
+    border:2px solid var(--black);
+    box-shadow:4px 4px 0 var(--black);
+    padding:7px 10px;
+    font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+    line-height:1.25; max-width:200px;
+    transition:opacity 120ms var(--snap), transform 120ms var(--snap);
+  }
+  .cat .bubble::after{
+    content:""; position:absolute; right:18px; bottom:-9px;
+    width:0; height:0; border-style:solid;
+    border-width:9px 7px 0 7px;
+    border-color:var(--ink) transparent transparent transparent;
+  }
+  .cat .bubble::before{
+    content:""; position:absolute; right:17px; bottom:-12px;
+    width:0; height:0; border-style:solid;
+    border-width:11px 8px 0 8px;
+    border-color:var(--black) transparent transparent transparent;
+  }
+  .cat .bubble.pop{ transform:translateY(-2px); }
+  .cat .kitty{
+    width:62px; height:62px; display:block;
+    filter:drop-shadow(3px 3px 0 var(--black));
+  }
+  .cat .kitty .eye{ transform-origin:center; }
+  .cat .kitty .tail{
+    transform-origin:74px 60px;
+    animation:tail 2.6s ease-in-out infinite;
+  }
+  @keyframes tail{ 0%,100%{ transform:rotate(0deg);} 50%{ transform:rotate(-9deg);} }
+
+  /* ----------------------------------------------------------- RESPONSIVE */
+  @media (max-width:760px){
+    .caption .hint{ display:none; }
+    .legend .leg-note{ display:none; }
+    .cat{ display:none; }
+    .grid-slots{ grid-template-columns:repeat(auto-fill, minmax(96px,1fr)); }
+  }
+
+  /* ----------------------------------------------------------- REDUCED MOTION */
+  @media (prefers-reduced-motion:reduce){
+    *{ animation-duration:.001ms !important; animation-iteration-count:1 !important; }
+    .slot,.index-btn,.card,.bubble{ transition:none !important; }
+    .cat .kitty .tail{ animation:none; }
+    .readout .blink{ animation:none; opacity:1; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- ================================================== TOP BAR -->
+  <header class="topbar">
+    <a class="index-btn" href="index.html">&larr;&nbsp;INDEX</a>
+    <div class="caption">
+      <div class="style-no">STYLE 09 / LOADOUT</div>
+      <div class="hint">hover a slot for the item card &middot; mind the set bonuses</div>
+    </div>
+  </header>
+
+  <!-- ================================================== PAGE -->
+  <main class="wrap">
+    <div class="kicker">// stack</div>
+    <h1 class="title">WHAT I<br>WORK WITH</h1>
+
+    <div class="legend" aria-hidden="true">
+      <span class="lg-lab">RARITY:</span>
+      <span class="key"><span class="swatch"></span> <b>RARE</b> &middot; lvl 3</span>
+      <span class="key"><span class="swatch epic"></span> <b>EPIC</b> &middot; lvl 4</span>
+      <span class="key"><span class="swatch leg"></span> <b>LEGENDARY</b> &middot; lvl 5</span>
+      <span class="leg-note">equipped &middot; <b id="equipCount">0</b> SLOTS / 5 CLASSES</span>
+    </div>
+
+    <div class="loadout" id="loadout"></div>
+  </main>
+
+  <!-- ================================================== ITEM CARD TOOLTIP -->
+  <div class="card" id="card" role="tooltip" aria-hidden="true"></div>
+
+  <!-- ================================================== COMPANION CAT -->
+  <div class="cat" id="cat" aria-hidden="true">
+    <div class="bubble" id="catSay">> companion online. show me the build.</div>
+    <svg class="kitty" id="kitty" viewBox="0 0 96 80" fill="none" aria-hidden="true">
+      <!-- tail -->
+      <path class="tail" d="M70 58 C 88 56, 90 40, 80 34" stroke="#0a0a0a" stroke-width="5" stroke-linecap="round"/>
+      <!-- body -->
+      <path d="M22 40 L22 70 L70 70 L70 40 Z" fill="#0a0a0a"/>
+      <!-- head -->
+      <path d="M24 18 L24 46 L68 46 L68 18 L58 28 L34 28 Z" fill="#0a0a0a"/>
+      <!-- ears -->
+      <path d="M24 18 L24 6 L36 26 Z" fill="#0a0a0a"/>
+      <path d="M68 18 L68 6 L56 26 Z" fill="#0a0a0a"/>
+      <!-- eyes (squint = judging) -->
+      <rect class="eye" id="eyeL" x="32" y="32" width="9" height="3.4" fill="#ffffff"/>
+      <rect class="eye" id="eyeR" x="51" y="32" width="9" height="3.4" fill="#ffffff"/>
+      <!-- nose -->
+      <rect x="44.5" y="38" width="3" height="3" fill="#ffffff"/>
+    </svg>
+  </div>
+
+  <!-- ================================================== READOUT / GAME LOG -->
+  <div class="readout" id="readout">
+    <span class="prompt">&gt;</span>
+    <span class="log" id="logText">idle &mdash; hover a slot to inspect equipped gear</span>
+    <span class="blink"></span>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------------------------------------------------- DATA (verbatim) */
+  var GROUPS = [
+    { group:"Languages", items:[["C",4],["Python",5],["TypeScript",5],["JavaScript",4],["SQL",3],["HTML",4],["CSS",4],["WGSL",3]] },
+    { group:"ML / AI", items:[["PyTorch",4],["scikit-learn",4],["NumPy",4],["Pandas",4],["LLM Evaluation",4],["RAG",4],["Failure Taxonomy",3],["Deep Learning",4],["GPU Compute",4]] },
+    { group:"Web / Frontend", items:[["React",5],["Tailwind CSS",4],["Vite",4],["Astro",4],["WebGPU",4],["PWA",4],["IndexedDB / Dexie.js",4],["Canvas",3],["Web Workers",3]] },
+    { group:"Backend / Data", items:[["FastAPI",4],["Pydantic",3],["Node.js",4],["Express",3],["MongoDB",3],["REST APIs",4]] },
+    { group:"Tools / Systems", items:[["Git",4],["Linux",4],["OpenRouter API",3]] }
+  ];
+
+  var RELATED = {
+    "C":["WGSL","Linux","Git"],
+    "Python":["NumPy","Pandas","PyTorch","scikit-learn","FastAPI"],
+    "TypeScript":["JavaScript","React","Vite","Node.js","WebGPU"],
+    "JavaScript":["TypeScript","React","Node.js","Canvas"],
+    "SQL":["MongoDB","Pandas","REST APIs"],
+    "HTML":["CSS","React","Canvas"],
+    "CSS":["HTML","Tailwind CSS","React"],
+    "WGSL":["WebGPU","Canvas","C"],
+    "PyTorch":["NumPy","scikit-learn","Deep Learning","Python"],
+    "scikit-learn":["NumPy","Pandas","Python","PyTorch"],
+    "NumPy":["Pandas","PyTorch","scikit-learn","Python"],
+    "Pandas":["NumPy","SQL","scikit-learn","Python"],
+    "LLM Evaluation":["RAG","Failure Taxonomy","OpenRouter API"],
+    "RAG":["LLM Evaluation","Failure Taxonomy","FastAPI","OpenRouter API"],
+    "Failure Taxonomy":["LLM Evaluation","RAG"],
+    "Deep Learning":["PyTorch","WebGPU","GPU Compute"],
+    "React":["TypeScript","JavaScript","Tailwind CSS","Vite","Canvas"],
+    "Tailwind CSS":["CSS","React","HTML"],
+    "Vite":["React","TypeScript","WebGPU","Astro"],
+    "Astro":["Vite","React","TypeScript","Tailwind CSS","HTML"],
+    "WebGPU":["WGSL","Deep Learning","Canvas","TypeScript"],
+    "GPU Compute":["WebGPU","WGSL","Deep Learning","Canvas"],
+    "PWA":["IndexedDB / Dexie.js","Web Workers","React"],
+    "IndexedDB / Dexie.js":["PWA","Web Workers","SQL","MongoDB"],
+    "Canvas":["WebGPU","WGSL","JavaScript","HTML"],
+    "Web Workers":["PWA","IndexedDB / Dexie.js","WebGPU"],
+    "FastAPI":["Pydantic","Python","REST APIs","RAG"],
+    "Pydantic":["FastAPI","Python"],
+    "Node.js":["Express","TypeScript","JavaScript","REST APIs"],
+    "Express":["Node.js","REST APIs","MongoDB"],
+    "MongoDB":["Express","SQL","IndexedDB / Dexie.js"],
+    "REST APIs":["FastAPI","Express","Node.js","OpenRouter API"],
+    "Git":["Linux","C"],
+    "Linux":["Git","C","Python"],
+    "OpenRouter API":["RAG","LLM Evaluation","REST APIs"]
+  };
+
+  /* symmetric adjacency for set bonuses */
+  var ADJ = {};
+  function ensure(k){ if(!ADJ[k]) ADJ[k] = []; }
+  function addEdge(a,b){ ensure(a); if(ADJ[a].indexOf(b)<0) ADJ[a].push(b); }
+  Object.keys(RELATED).forEach(function(k){ ensure(k); });
+  Object.keys(RELATED).forEach(function(k){
+    RELATED[k].forEach(function(v){ addEdge(k,v); addEdge(v,k); });
+  });
+
+  var REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var GLYPHS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&@/<>*+=-";
+
+  /* ---------------------------------------------------- RARITY + ABBREV */
+  function rarityOf(w){ return w >= 5 ? "LEGENDARY" : (w >= 4 ? "EPIC" : "RARE"); }
+  function rarityClass(w){ return w >= 5 ? "legendary" : (w >= 4 ? "epic" : "rare"); }
+
+  /* abbreviation for the big slot glyph — short, gamey */
+  var ABBR = {
+    "C":"C","Python":"PY","TypeScript":"TS","JavaScript":"JS","SQL":"SQL","HTML":"HTM","CSS":"CSS","WGSL":"WGS",
+    "PyTorch":"TRC","scikit-learn":"SKL","NumPy":"NPY","Pandas":"PDS",
+    "LLM Evaluation":"EVAL","RAG":"RAG","Failure Taxonomy":"FTX","Deep Learning":"DL","GPU Compute":"GPU",
+    "React":"RCT","Tailwind CSS":"TWD","Vite":"VITE","Astro":"AST","WebGPU":"WGP","PWA":"PWA","IndexedDB / Dexie.js":"IDB",
+    "Canvas":"CNV","Web Workers":"WRK",
+    "FastAPI":"API","Pydantic":"PYD","Node.js":"NODE","Express":"EXP","MongoDB":"MDB","REST APIs":"REST",
+    "Git":"GIT","Linux":"LNX","OpenRouter API":"ORT"
+  };
+  function abbrOf(name){ return ABBR[name] || name.slice(0,3).toUpperCase(); }
+
+  /* dry, on-brand flavor stats. Each: deterministic, themed to the tool. */
+  function statsFor(name, weight){
+    var lvl = weight * 20;                    // base scale 0..100
+    var foot = (6 - weight) * 17;             // higher weight = lower footgun
+    var pools = {
+      "C":[["uptime",92],["footgun risk",94],["segfaults/hr",61]],
+      "Python":[["versatility",98],["import time",44],["footgun risk",30]],
+      "TypeScript":[["type safety",97],["compile spite",38],["red squigglies",70]],
+      "JavaScript":[["reach",95],["this binding",18],["footgun risk",80]],
+      "SQL":[["join power",78],["null surprises",55],["uptime",84]],
+      "HTML":[["semantics",80],["div soup risk",46],["uptime",99]],
+      "CSS":[["specificity",72],["centering pain",60],["!important debt",35]],
+      "WGSL":[["draw calls",66],["GPU heat",58],["docs scarcity",78]],
+      "PyTorch":[["grad flow",90],["VRAM hunger",74],["uptime",82]],
+      "GPU Compute":[["throughput",94],["VRAM hunger",78],["kernels by hand",70]],
+      "Astro":[["ship speed",92],["islands",84],["zero-JS default",80]],
+      "scikit-learn":[["fit speed",84],["baseline power",90],["footgun risk",24]],
+      "NumPy":[["vector throughput",94],["broadcast magic",88],["off-by-one risk",40]],
+      "Pandas":[["wrangle power",88],["memory bloat",66],["SettingWithCopy",58]],
+      "LLM Evaluation":[["signal/noise",82],["rubric rigor",86],["flake risk",48]],
+      "RAG":[["recall",80],["hallucination dmg",-1],["latency",54]],
+      "Failure Taxonomy":[["coverage",76],["bug clarity",84],["tedium",70]],
+      "Deep Learning":[["raw power",92],["compute cost",80],["interpretability",36]],
+      "React":[["render speed",90],["re-render risk",58],["ecosystem",98]],
+      "Tailwind CSS":[["ship speed",90],["class length",84],["readability",52]],
+      "Vite":[["HMR speed",96],["cold start",22],["uptime",88]],
+      "WebGPU":[["draw calls",88],["browser support",58],["GPU heat",62]],
+      "PWA":[["offline armor",86],["install lure",70],["cache traps",55]],
+      "IndexedDB / Dexie.js":[["storage",80],["query ergonomics",74],["API jank",60]],
+      "Canvas":[["pixel control",82],["state churn",64],["a11y",30]],
+      "Web Workers":[["thread relief",84],["msg overhead",46],["debug pain",58]],
+      "FastAPI":[["throughput",88],["typing",90],["footgun risk",26]],
+      "Pydantic":[["validation",90],["coercion surprises",48],["uptime",84]],
+      "Node.js":[["I/O power",86],["callback risk",44],["ecosystem",96]],
+      "Express":[["routing",78],["middleware sprawl",56],["uptime",80]],
+      "MongoDB":[["flex schema",78],["consistency",52],["scale",74]],
+      "REST APIs":[["clarity",84],["over-fetch risk",50],["uptime",88]],
+      "Git":[["recoverability",92],["rebase fear",62],["uptime",98]],
+      "Linux":[["control",94],["learning cliff",70],["uptime",99]],
+      "OpenRouter API":[["model reach",88],["rate limits",48],["latency",56]]
+    };
+    var base = pools[name];
+    if(!base){ base = [["uptime", lvl],["footgun risk", foot],["throughput", lvl-8]]; }
+    // clamp -1 -> a special "MAX" flavor for hallucination dmg = 0 risk
+    return base.map(function(p){ return [p[0], p[1]]; });
+  }
+
+  /* ---------------------------------------------------- DOM refs */
+  var loadout  = document.getElementById("loadout");
+  var card     = document.getElementById("card");
+  var logText  = document.getElementById("logText");
+  var equipEl  = document.getElementById("equipCount");
+  var bubble   = document.getElementById("catSay");
+
+  var slotEls = {};   // name -> slot element
+  var totalSlots = 0;
+  var activeName = null;   // currently shown (hover preview OR pinned)
+  var pinnedName = null;   // click-pinned item, persists through hover-out
+
+  /* ---------------------------------------------------- BUILD PANELS */
+  GROUPS.forEach(function(g, gi){
+    var panel = document.createElement("section");
+    panel.className = "panel";
+
+    var head = document.createElement("div");
+    head.className = "panel-head";
+    head.innerHTML =
+      '<div class="class-tag"><span class="pre">CLASS:</span>' +
+      '<span class="class-name">' + escapeHtml(g.group) + '</span></div>' +
+      '<div class="slots-of">' + String(g.items.length).padStart(2,"0") + ' SLOTS</div>';
+
+    var slots = document.createElement("div");
+    slots.className = "grid-slots";
+
+    g.items.forEach(function(it){
+      var name = it[0], weight = it[1];
+      var rc = rarityClass(weight);
+      var rar = rarityOf(weight);
+      totalSlots++;
+
+      var slot = document.createElement("button");
+      slot.type = "button";
+      slot.className = "slot " + rc;
+      slot.dataset.name = name;
+      slot.dataset.weight = weight;
+      slot.dataset.group = g.group;
+      slot.setAttribute("aria-label", name + ", " + rar + ", level " + weight + " of 5");
+
+      var top = document.createElement("span");
+      top.className = "slot-top";
+
+      var mono = document.createElement("span");
+      mono.className = "mono";
+      mono.textContent = abbrOf(name);
+      mono.setAttribute("aria-hidden", "true");
+
+      var nameEl = document.createElement("span");
+      nameEl.className = "name decode";
+      nameEl.dataset.text = name.toUpperCase();
+      nameEl.textContent = name.toUpperCase();
+
+      top.appendChild(mono);
+      top.appendChild(nameEl);
+
+      var meta = document.createElement("span");
+      meta.className = "meta";
+
+      var rtag = document.createElement("span");
+      rtag.className = "rar";
+      rtag.textContent = rar.slice(0,3); // RAR / EPI / LEG marker
+
+      var pips = document.createElement("span");
+      pips.className = "pips";
+      for(var d=0; d<5; d++){
+        var i = document.createElement("i");
+        if(d >= weight) i.className = "off";
+        pips.appendChild(i);
+      }
+
+      meta.appendChild(rtag);
+      meta.appendChild(pips);
+      slot.appendChild(top);
+      slot.appendChild(meta);
+
+      slotEls[name] = slot;
+
+      slot.addEventListener("mouseenter", function(e){ inspect(name); positionCard(e); });
+      slot.addEventListener("mousemove", function(e){ if(pinnedName === name || !pinnedName) positionCard(e); });
+      slot.addEventListener("focus", function(){ inspect(name); positionCardForEl(slot); });
+      slot.addEventListener("mouseleave", restoreOrClear);
+      slot.addEventListener("blur", restoreOrClear);
+      slot.addEventListener("click", function(e){ e.preventDefault(); e.stopPropagation(); togglePin(name, slot); });
+
+      slots.appendChild(slot);
+    });
+
+    panel.appendChild(head);
+    panel.appendChild(slots);
+    loadout.appendChild(panel);
+  });
+
+  if(equipEl) equipEl.textContent = String(totalSlots);
+
+  /* ---------------------------------------------------- DECODE-IN LABELS */
+  /* deterministic scramble: per element, derived from element index so the
+     shuffle is stable per pass (not a per-frame global randomizer). */
+  function decode(el, idx){
+    if(REDUCED){ el.textContent = el.dataset.text; return; }
+    var target = el.dataset.text;
+    var steps = 7;
+    var frame = 0;
+    var seed = (idx * 2654435761) >>> 0;
+    function rnd(){ seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }
+    var settle = target.split("").map(function(){ return Math.floor(rnd() * steps * 0.6) + 1; });
+    var timer = setInterval(function(){
+      var out = "";
+      for(var i=0;i<target.length;i++){
+        var ch = target[i];
+        if(ch === " "){ out += " "; continue; }
+        if(frame >= settle[i]) out += ch;
+        else out += GLYPHS[(Math.floor(rnd()*GLYPHS.length))];
+      }
+      el.textContent = out;
+      frame++;
+      if(frame > steps){ el.textContent = target; clearInterval(timer); }
+    }, 34);
+  }
+
+  /* run an initial decode wave across all slot abbreviations */
+  function runDecodeWave(){
+    var labels = Array.prototype.slice.call(document.querySelectorAll(".slot .decode"));
+    labels.forEach(function(el, i){
+      el.textContent = "";
+      setTimeout(function(){ decode(el, i); }, REDUCED ? 0 : (i * 22));
+    });
+  }
+
+  /* ---------------------------------------------------- INSPECT (hover preview) */
+  function inspect(name){
+    activeName = name;
+    var slot = slotEls[name];
+    var weight = parseInt(slot.dataset.weight, 10);
+    var group = slot.dataset.group;
+    var rar = rarityOf(weight);
+    var partners = (ADJ[name] || []).filter(function(r){ return slotEls[r]; });
+
+    loadout.classList.add("inspecting");
+    Object.keys(slotEls).forEach(function(k){
+      slotEls[k].classList.remove("is-active","is-set");
+    });
+    slot.classList.add("is-active");
+    partners.forEach(function(p){ slotEls[p].classList.add("is-set"); });
+
+    buildCard(name, group, weight, rar, partners);
+    updateLog(name, rar, partners.length);
+    catReact(name, rar, partners.length);
+  }
+
+  function clearInspect(){
+    activeName = null;
+    loadout.classList.remove("inspecting");
+    Object.keys(slotEls).forEach(function(k){
+      slotEls[k].classList.remove("is-active","is-set","is-pinned");
+    });
+    hideCard();
+    logText.innerHTML = "idle &mdash; hover or tap a slot to inspect equipped gear";
+    bubble.classList.remove("pop");
+    bubble.textContent = catIdle();
+  }
+
+  /* ---------------------------------------------------- CLICK-TO-PIN (touch/mobile) */
+  /* clicking a slot pins its card + lit set; clicking it again, clicking empty
+     space, or pressing Esc releases. Hover preview still works on desktop. */
+  function togglePin(name, slot){
+    if(pinnedName === name){ unpin(); return; }
+    pinnedName = name;
+    inspect(name);
+    Object.keys(slotEls).forEach(function(k){ slotEls[k].classList.remove("is-pinned"); });
+    slot.classList.add("is-pinned");
+    positionCardForEl(slot);
+    card.classList.add("pinned");   // make pinned card non-transient / interactive
+  }
+
+  function unpin(){
+    pinnedName = null;
+    card.classList.remove("pinned");
+    clearInspect();
+  }
+
+  /* on hover-out: keep the pinned view if any, otherwise go idle */
+  function restoreOrClear(){
+    if(pinnedName){
+      var slot = slotEls[pinnedName];
+      inspect(pinnedName);
+      slot.classList.add("is-pinned");
+      positionCardForEl(slot);
+      return;
+    }
+    clearInspect();
+  }
+
+  /* ---------------------------------------------------- ITEM CARD BUILD */
+  function buildCard(name, group, weight, rar, partners){
+    var leg = (rar === "LEGENDARY");
+    card.className = "card" + (leg ? " leg" : "");
+
+    var stats = statsFor(name, weight);
+    var statsHtml = stats.map(function(s){
+      var label = s[0], val = s[1];
+      // val -1 == special MAX/0 readout (used for "hallucination dmg")
+      var display, pct;
+      if(val < 0){ display = "0"; pct = 6; }
+      else { display = String(val); pct = Math.max(4, Math.min(100, val)); }
+      return '<div class="stat">' +
+               '<span class="k">' + escapeHtml(label) + '</span>' +
+               '<span class="bar"><i style="width:' + pct + '%"></i></span>' +
+               '<span class="v">' + display + '</span>' +
+             '</div>';
+    }).join("");
+
+    var bonus = "+" + partners.length;
+    var setHtml = partners.map(function(p){
+      return '<li>' + escapeHtml(p) + '</li>';
+    }).join("");
+
+    card.innerHTML =
+      '<div class="card-hd">' +
+        '<div class="nm">' + escapeHtml(name) + '</div>' +
+        '<div class="rtag">' + rar + '</div>' +
+      '</div>' +
+      '<div class="card-cls">CLASS: <b>' + escapeHtml(group) + '</b> &middot; LVL ' + weight + '/5</div>' +
+      '<div class="card-stats">' + statsHtml + '</div>' +
+      '<div class="card-set">' +
+        '<div class="set-lab">SET BONUS / PAIRS WITH <span class="bonus">' + bonus + '</span></div>' +
+        '<ul>' + (setHtml || '<li>solo build</li>') + '</ul>' +
+      '</div>';
+
+    card.classList.add("show");
+    card.setAttribute("aria-hidden","false");
+  }
+
+  function hideCard(){
+    card.classList.remove("show");
+    card.setAttribute("aria-hidden","true");
+  }
+
+  /* place card near cursor, clamped to viewport */
+  function positionCard(e){
+    if(!card.classList.contains("show")) return;
+    placeCard(e.clientX + 18, e.clientY + 18);
+  }
+  function positionCardForEl(el){
+    var r = el.getBoundingClientRect();
+    placeCard(r.right + 12, r.top);
+  }
+  function placeCard(x, y){
+    var cw = card.offsetWidth || 248;
+    var ch = card.offsetHeight || 240;
+    var pad = 12;
+    var maxX = window.innerWidth - cw - pad;
+    var maxY = window.innerHeight - ch - 56; /* keep clear of readout */
+    if(x > maxX) x = maxX;
+    if(x < pad) x = pad;
+    if(y > maxY) y = maxY;
+    if(y < pad + 64) y = pad + 64; /* keep clear of topbar */
+    card.style.left = x + "px";
+    card.style.top  = y + "px";
+  }
+
+  /* ---------------------------------------------------- READOUT / GAME LOG */
+  function updateLog(name, rar, count){
+    var rarSpan = (rar === "LEGENDARY")
+      ? '<span class="leg">[' + rar + ']</span>'
+      : '<span class="hl">[' + rar + ']</span>';
+    logText.innerHTML =
+      'equipped: <span class="hl">' + escapeHtml(name.toUpperCase()) + '</span> ' +
+      rarSpan +
+      ' <span class="dim">&middot;</span> set: <span class="hl">+' + count + '</span> ' +
+      '<span class="dim">' + (count === 1 ? 'partner' : 'partners') + ' lit</span>';
+  }
+
+  /* ---------------------------------------------------- COMPANION CAT */
+  var IDLE = [
+    "> companion online. show me the build.",
+    "> hover a slot. i'll judge it.",
+    "> a loadout is only as good as its set bonuses.",
+    "> i've seen worse stacks. recently. not many."
+  ];
+  var idleIdx = 0;
+  function catIdle(){
+    idleIdx = (idleIdx + 1) % IDLE.length;
+    return IDLE[idleIdx];
+  }
+
+  /* per-item dry quips, plus rarity fallbacks */
+  var QUIPS = {
+    "C":"C? bold. respect the segfaults.",
+    "Python":"python. the swiss army duct tape.",
+    "TypeScript":"types on. squigglies appeased.",
+    "JavaScript":"js again? brave or tired.",
+    "SQL":"join responsibly.",
+    "HTML":"the skeleton. underrated.",
+    "CSS":"centered it? prove it.",
+    "WGSL":"shaders. flexing the GPU, are we.",
+    "PyTorch":"gradients flowing. fans spinning.",
+    "GPU Compute":"raw GPU. no framework. menace.",
+    "Astro":"astro. ships html, hides the js. sneaky.",
+    "scikit-learn":"baseline first. classy.",
+    "NumPy":"vectorized. tasteful.",
+    "Pandas":"mind the SettingWithCopy.",
+    "LLM Evaluation":"actually measuring it? rare.",
+    "RAG":"retrieve, then pretend you knew.",
+    "Failure Taxonomy":"cataloguing bugs. ominous.",
+    "Deep Learning":"big compute energy.",
+    "React":"react again... fine. it ships.",
+    "Tailwind CSS":"class names longer than the file.",
+    "Vite":"HMR so fast it's showing off.",
+    "WebGPU":"draw calls go brrr.",
+    "PWA":"offline armor equipped.",
+    "IndexedDB / Dexie.js":"storing it client-side. trusting.",
+    "Canvas":"pixels by hand. masochist.",
+    "Web Workers":"threading the needle.",
+    "FastAPI":"typed endpoints. chef's kiss.",
+    "Pydantic":"validates everything but my feelings.",
+    "Node.js":"callbacks, but make it async.",
+    "Express":"middleware sprawl incoming.",
+    "MongoDB":"schema? we don't do that here.",
+    "REST APIs":"GET it together. you did.",
+    "Git":"rebase fear is real. you'll live.",
+    "Linux":"control freak. approved.",
+    "OpenRouter API":"one key, many models. greedy."
+  };
+  function catReact(name, rar, count){
+    var line = QUIPS[name];
+    if(!line){
+      if(rar === "LEGENDARY") line = "legendary. now don't fumble it.";
+      else if(rar === "EPIC") line = "epic tier. respectable.";
+      else line = "rare-grade. it'll do.";
+    }
+    var prefix = (rar === "LEGENDARY") ? "> ★ " : "> ";
+    if(count >= 5) line += " huge set, btw.";
+    bubble.textContent = prefix + line;
+    if(!REDUCED){
+      bubble.classList.remove("pop");
+      void bubble.offsetWidth;
+      bubble.classList.add("pop");
+    }
+  }
+
+  /* ---------------------------------------------------- UTIL */
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, function(m){
+      return ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" })[m];
+    });
+  }
+
+  /* keep card from lingering off-slot when scrolling */
+  window.addEventListener("scroll", function(){
+    if(!activeName) return;
+    var slot = slotEls[activeName];
+    if(slot) positionCardForEl(slot);
+  }, { passive:true });
+
+  /* reposition card on resize so it never escapes the viewport */
+  window.addEventListener("resize", function(){
+    if(activeName) positionCardForEl(slotEls[activeName]);
+  });
+
+  /* release a pin: click on empty space, or the pinned card itself */
+  document.addEventListener("click", function(e){
+    if(!pinnedName) return;
+    if(e.target.closest && e.target.closest(".slot")) return; // slot clicks handled per-slot
+    unpin();
+  });
+  /* Esc releases the pin */
+  document.addEventListener("keydown", function(e){
+    if((e.key === "Escape" || e.key === "Esc") && pinnedName) unpin();
+  });
+
+  /* ---------------------------------------------------- FIT NAMES */
+  /* shrink each name's font until it fits the slot on <=2 lines, breaking only
+     at word boundaries (never mid-word) — keeps every tile a uniform height */
+  function fitNames(){
+    var names = document.querySelectorAll(".slot .name");
+    for(var i=0;i<names.length;i++){
+      var el = names[i];
+      var size = 12, min = 7, guard = 0;
+      el.style.fontSize = size + "px";
+      while(size > min && guard < 24){
+        var overW = el.scrollWidth > el.clientWidth + 1;
+        var overH = el.scrollHeight > Math.ceil(size * 1.12 * 2) + 1;
+        if(!overW && !overH) break;
+        size -= 0.5; guard++;
+        el.style.fontSize = size + "px";
+      }
+    }
+  }
+  var fitRAF = 0;
+  window.addEventListener("resize", function(){
+    if(fitRAF) cancelAnimationFrame(fitRAF);
+    fitRAF = requestAnimationFrame(fitNames);
+  });
+
+  /* ---------------------------------------------------- BOOT */
+  function boot(){
+    bubble.textContent = IDLE[0];
+    fitNames();        // size names to fit before the decode wave (length is stable through decode)
+    runDecodeWave();
+  }
+  if(document.fonts && document.fonts.ready){
+    document.fonts.ready.then(boot);
+    setTimeout(function(){ // fallback if fonts.ready stalls
+      var first = document.querySelector(".slot .decode");
+      if(first && first.textContent === "") boot();
+    }, 800);
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>

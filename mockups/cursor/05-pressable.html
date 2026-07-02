@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en" data-mock="pressable">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PRESSABLE FIELD — a field of keys reacting physically</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --red:#ed1c24; --red-cap:#f24c52; --red-deep:#a8001a;
+    --ink:#0d0d0d; --paper:#f7f5f1; --lime:#c8e620;
+    --fd:"Anton",sans-serif; --fm:"JetBrains Mono",monospace;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  html{ -webkit-font-smoothing:antialiased; }
+  body{ background:var(--red-deep); color:var(--paper); font-family:var(--fm); overflow:hidden; cursor:none; }
+  ::selection{ background:var(--ink); color:var(--lime); }
+
+  #field{ position:fixed; inset:0; }
+  .key{ position:absolute; display:grid; place-items:center; background:var(--red-cap); color:rgba(255,255,255,.4);
+    border:2px solid var(--ink); box-shadow:5px 5px 0 var(--ink); font-weight:700; line-height:1;
+    transition:transform .085s linear, box-shadow .085s linear, background .085s linear, color .085s linear; }
+  .key.p1{ transform:translate(1.5px,1.5px); box-shadow:3.5px 3.5px 0 var(--ink); }
+  .key.p2{ transform:translate(3px,3px); box-shadow:2px 2px 0 var(--ink); background:var(--red); }
+  .key.p3{ transform:translate(5px,5px); box-shadow:0 0 0 var(--ink); background:var(--ink); color:var(--lime); }
+
+  #cur{ position:fixed; z-index:9; width:14px; height:14px; margin:-7px 0 0 -7px; border:2px solid var(--paper);
+    border-radius:50%; pointer-events:none; will-change:transform; display:none;
+    box-shadow:0 0 0 2px rgba(13,13,13,.5); }
+
+  .chrome{ position:fixed; z-index:20; pointer-events:none; }
+  .tl{ top:clamp(16px,2.4vw,30px); left:clamp(16px,2.4vw,30px); }
+  .kicker{ font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:rgba(255,255,255,.8); }
+  .kicker::before{ content:"// "; color:#fff; }
+  h1{ font-family:var(--fd); font-weight:400; text-transform:uppercase; line-height:.84;
+    font-size:clamp(2.2rem,6vw,4.6rem); margin-top:8px; -webkit-text-stroke:1px var(--paper); color:transparent; }
+  .deck{ margin-top:12px; max-width:42ch; font-size:12.5px; line-height:1.6; color:rgba(255,255,255,.92); }
+  .deck b{ color:#fff; }
+  #tag{ position:fixed; left:50%; bottom:7px; transform:translateX(-50%); z-index:40; font-size:9.5px;
+    letter-spacing:.14em; text-transform:uppercase; color:rgba(255,255,255,.55); pointer-events:none; }
+  @media (max-width:720px){ .deck{ display:none; } }
+</style>
+</head>
+<body>
+  <div id="field"></div>
+  <div id="cur"></div>
+
+  <header class="chrome tl">
+    <p class="kicker">cursor study · 05</p>
+    <h1>Pressable<br />Field</h1>
+    <p class="deck">Cells near the cursor press into their shadow — the tactile-press vocab —
+      like a <b>field of keys</b> reacting physically. Hard edges, no blur.</p>
+  </header>
+
+  <div id="tag">05 · pressable field · keys depress into their hard shadow</div>
+
+<script>
+(function(){
+  'use strict';
+  var REDUCE=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var $=function(id){ return document.getElementById(id); };
+  var field=$('field'), cur=$('cur');
+  var GLYPHS='·+×=/#<>[]ABCDEFGHJKLMNPQRSTUVWXYZ0123456789'.split('');
+  var KEY=46, GAP=9, PITCH=KEY+GAP, cols=0, rows=0, grid=[], active=new Set();
+
+  function build(){
+    KEY=Math.max(38, Math.min(54, Math.round(innerWidth/26)));
+    PITCH=KEY+GAP;
+    cols=Math.floor((innerWidth-GAP)/PITCH); rows=Math.floor((innerHeight-GAP)/PITCH);
+    var offX=Math.round((innerWidth-(cols*PITCH-GAP))/2), offY=Math.round((innerHeight-(rows*PITCH-GAP))/2);
+    field.innerHTML=''; grid=[]; active.clear();
+    var fs=Math.round(KEY*0.4)+'px';
+    for(var r=0;r<rows;r++){ grid[r]=[];
+      for(var c=0;c<cols;c++){
+        var k=document.createElement('div'); k.className='key';
+        k.style.left=(offX+c*PITCH)+'px'; k.style.top=(offY+r*PITCH)+'px';
+        k.style.width=KEY+'px'; k.style.height=KEY+'px'; k.style.fontSize=fs;
+        k.textContent=((r*31+c*17)%23<7)?GLYPHS[(r*7+c*13)%GLYPHS.length]:'';
+        field.appendChild(k); grid[r][c]={el:k,x:offX+c*PITCH+KEY/2,y:offY+r*PITCH+KEY/2};
+      }
+    }
+    state.offX=offX; state.offY=offY;
+  }
+  var state={offX:0,offY:0};
+
+  var R=2.6;                                  // press radius in cells
+  function press(mx,my){
+    var cc=(mx-state.offX)/PITCH, cr=(my-state.offY)/PITCH;
+    var c0=Math.max(0,Math.floor(cc-R-1)), c1=Math.min(cols-1,Math.ceil(cc+R+1));
+    var r0=Math.max(0,Math.floor(cr-R-1)), r1=Math.min(rows-1,Math.ceil(cr+R+1));
+    var next=new Set();
+    for(var r=r0;r<=r1;r++) for(var c=c0;c<=c1;c++){
+      var cell=grid[r][c], d=Math.hypot((cell.x-mx)/PITCH,(cell.y-my)/PITCH);
+      var cls = d<0.7?'p3' : d<1.5?'p2' : d<R?'p1' : '';
+      if(cls){ if(cell._cls!==cls){ cell.el.className='key '+cls; cell._cls=cls; } next.add(r+','+c); }
+    }
+    // release keys no longer in range
+    active.forEach(function(key){ if(!next.has(key)){ var p=key.split(','),cell=grid[p[0]][p[1]];
+      if(cell){ cell.el.className='key'; cell._cls=''; } } });
+    active=next;
+  }
+  function release(){ active.forEach(function(key){ var p=key.split(','),cell=grid[p[0]][p[1]];
+    if(cell){ cell.el.className='key'; cell._cls=''; } }); active.clear(); }
+
+  addEventListener('pointermove', function(e){
+    cur.style.display='block'; cur.style.transform='translate('+e.clientX+'px,'+e.clientY+'px)';
+    if(!REDUCE) press(e.clientX, e.clientY);
+  }, {passive:true});
+  addEventListener('pointerleave', function(){ cur.style.display='none'; release(); });
+  document.addEventListener('mouseleave', function(){ cur.style.display='none'; release(); });
+  // a click drives the whole local cluster fully down for a beat
+  addEventListener('pointerdown', function(e){ var key, p, cell;
+    active.forEach(function(k){ p=k.split(','); cell=grid[p[0]][p[1]]; if(cell){ cell.el.className='key p3'; cell._cls='p3'; } });
+    setTimeout(function(){ press(e.clientX,e.clientY); }, 90);
+  });
+
+  addEventListener('resize', build);
+  if(document.fonts && document.fonts.ready){ document.fonts.ready.then(build); }
+  build();
+})();
+</script>
+</body>
+</html>

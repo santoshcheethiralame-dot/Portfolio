@@ -1,0 +1,4134 @@
+/* ============================================================
+   Design system — Bill Chien palette: warm gold + black
+   ============================================================ */
+
+@font-face {
+  font-family: 'Faktum';
+  src: url('/fonts/Faktum-Medium.woff2') format('woff2');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Manuka';
+  src: url('/fonts/Manuka-Medium.woff') format('woff');
+  font-weight: 500;
+  /* actual cut = Medium; heavier requests synthesize bold */
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* palette */
+  --paper: #ed1c24;
+  /* vibrant red background */
+  --paper-2: #b3001b;
+  /* deep red panel for cards */
+  --ink: #ffffff;
+  /* white — text + inverted UI fills */
+  --ink-2: #7a0014;
+  /* dark red */
+
+  /* var names kept (--gold*) — shades of RED only (no orange/yellow) */
+  --gold: #d6001c;
+  /* strong red — accent text on white surfaces */
+  --gold-2: #ff3b47;
+  /* bright red — secondary fills */
+  --gold-deep: #ff8a8a;
+  /* light red — accents on red */
+  --link: #ff9aa2;
+  /* light red — link underline */
+  --muted: #ffb8be;
+  /* light pink-red — muted text */
+  --line: rgba(255, 255, 255, 0.22);
+  /* light hairline on red */
+  --divider: rgba(255, 255, 255, 0.22);
+  /* light divider on red */
+
+  /* neon-dark theme (hero first; rolling out site-wide) */
+  --hero-bg: #0a0a0c;
+  --neon-fg: #eef1ec;
+  --neon-dim: #c9cdc6;
+  --neon-muted: #7e837b;
+  --neon-cyan: #22e0e6;
+  --neon-lime: #b4ff2e;
+  --neon-mint: #5fffc2;
+  --neon-amber: #ffb638;
+  --neon-red: #ff5a5a;
+
+  /* fonts */
+  --font-display: 'Manuka', 'Anton', sans-serif;
+  --font-serif: 'Instrument Serif', Georgia, serif;
+  --font-grotesk: 'Inter', sans-serif;
+  /* Space Grotesk dropped — was loaded but unused */
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-intro: 'Faktum', 'Hanken Grotesk', 'Inter', sans-serif;
+  /* Faktum (paid) → Hanken Grotesk stand-in */
+
+  /* spacing */
+  --pad-x: clamp(20px, 7vw, 120px);
+  --section-top: clamp(48px, 6vw, 60px);
+  --section-bottom: clamp(96px, 12vw, 200px);
+
+  /* neo-brutalist red grid (from the mockups) — reused everywhere the page is red */
+  --grid-strips:
+    linear-gradient(rgba(255, 255, 255, 0.26) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.26) 1px, transparent 1px);
+  --grid-size: 70px;
+
+  /* press grain — the edition's paper-noise texture, shared by every surface
+     so each screen reads as a pull from the same press (offsets differ per
+     surface like separate impressions) */
+  --press-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+
+  /* Decode Wake — native white/lime on the red grid (drives the cursor decode trail) */
+  --wk-cipher: rgba(255, 255, 255, 0.06);
+  /* faint ciphertext at rest */
+  --wk-resolved: rgba(255, 255, 255, 0.92);
+  /* decoded words — bright on red */
+  --wk-scramble: var(--neon-lime);
+  /* lime — scramble phase only */
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /* body's clip alone doesn't stop mobile layout-viewport expansion when a
+     3D-tilted element (the Experience phone) projects wider than the screen —
+     the browser zooms out and fixed UI (nav HUD, FAB) lands off-screen */
+  overflow-x: clip;
+}
+
+body {
+  background-color: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15.5px;
+  line-height: 1.5;
+  overflow-x: clip;
+}
+
+/* ---------- Reactive grid + Decode Wake ----------
+   The neo-brutalist grid LINES are pinned to the viewport behind all content
+   (negative z-index) and come from CSS, so they show even without JS. The two
+   Wake canvases (ciphertext at rest + the cursor's decode trail) are added by
+   initGridWake() and fill the same fixed layer. Shows through every transparent
+   (red) section; hidden under opaque ones — so it only reads on the red grid. */
+#reactive-grid {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+  /* clip the +1 over-scan column/row so the fixed grid never adds page scroll */
+  background-image: var(--press-grain), var(--grid-strips);
+  background-size: 300px 300px, var(--grid-size) var(--grid-size);
+  background-position: 0 0, -1px -1px;
+  display: grid;
+  grid-auto-rows: var(--grid-size);
+}
+
+/* the Wake canvases live inside #reactive-grid, filling the viewport, behind content */
+.wk-cv {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Cover-stack load guard: hold the page hidden until main.ts build() collapses the
+   stack (build removes .staging). Pre-build the layout is uncollapsed and ~850k px
+   tall, so a restored scroll flashed the bare red background then snapped in. A paper
+   backdrop covers the brief hold; the reveal fades in. */
+html.staging {
+  background: #f3f1ea;
+}
+
+html.staging body {
+  opacity: 0;
+}
+
+body {
+  transition: opacity 0.18s ease;
+}
+
+::selection {
+  background: var(--ink);
+  color: var(--gold);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* ---------- Typography scale ---------- */
+.h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(3.4rem, 13vw, 12rem);
+  line-height: 0.86;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+.h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(2.6rem, 8vw, 8rem);
+  line-height: 0.9;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+.h3 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: clamp(1.7rem, 3.6vw, 3.4rem);
+  line-height: 1.18;
+  letter-spacing: -0.01em;
+}
+
+.sub {
+  font-family: var(--font-grotesk);
+  font-weight: 600;
+  font-size: clamp(1.4rem, 2.4vw, 2rem);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+.h4 {
+  font-family: var(--font-grotesk);
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+}
+
+.b1 {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 15.5px;
+  line-height: 1.3;
+}
+
+.b2 {
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 15.5px;
+  line-height: 1.55;
+}
+
+/* tiny uppercase mono label — the "kicker" */
+.label {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+
+/* color utilities */
+.gold {
+  color: var(--gold);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+/* ---------- Layout ---------- */
+.section {
+  width: 100%;
+  padding: var(--section-top) var(--pad-x) var(--section-bottom);
+}
+
+.section-head {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: clamp(36px, 5vw, 72px);
+}
+
+/* the monospace code-comment kicker beside section titles */
+.kicker {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.kicker::before {
+  content: '// ';
+  color: var(--ink);
+}
+
+/* ---------- Divider — the press-sheet seam ---------- */
+.divider {
+  position: relative;
+  width: 100%;
+  padding: 0 var(--pad-x);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.divider-line {
+  height: 1px;
+  width: 100%;
+  background: var(--divider);
+  transform-origin: left center;
+}
+
+/* crop marks at the cut ends */
+.divider-crop {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border: 0 solid rgba(255, 255, 255, 0.55);
+}
+
+.divider-crop--l {
+  left: calc(var(--pad-x) - 16px);
+  border-left-width: 1.5px;
+  border-top-width: 1.5px;
+  transform: translateY(-4px);
+}
+
+.divider-crop--r {
+  right: calc(var(--pad-x) - 16px);
+  border-right-width: 1.5px;
+  border-bottom-width: 1.5px;
+  transform: translateY(4px);
+}
+
+/* the trimmer carriage — sweeps the seam when the cut is made (GSAP, main.ts) */
+.divider-blade {
+  position: absolute;
+  left: var(--pad-x);
+  top: 50%;
+  width: 13px;
+  height: 13px;
+  margin-top: -6.5px;
+  background: var(--ink);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.divider-blade::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: var(--neon-lime);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .divider-blade {
+    display: none;
+  }
+}
+
+/* jump line to the next page (centered via the individual `translate`
+   property so GSAP's scale punch doesn't overwrite the centering) */
+.divider-slug {
+  position: absolute;
+  left: 50%;
+  translate: -50% -50%;
+  top: 50%;
+  white-space: nowrap;
+  background: var(--paper);
+  border: 1.5px solid rgba(255, 255, 255, 0.65);
+  color: rgba(255, 255, 255, 0.92);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+}
+
+/* ---------- Page folio — the running header on every desk ----------
+   (`pfolio-*`: the edition's masthead already owns the `.folio` name) */
+.pfolio {
+  display: flex;
+  width: 100%;
+  /* section heads are flex columns — span them */
+  align-items: baseline;
+  gap: 8px 14px;
+  flex-wrap: wrap;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 7px 2px 8px;
+  margin-bottom: clamp(18px, 2.6vw, 30px);
+  border-top: 2px solid;
+  border-bottom: 1px solid;
+}
+
+.pfolio--ink {
+  color: rgba(255, 255, 255, 0.92);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.pfolio--paper {
+  color: #141414;
+  border-color: #141414;
+}
+
+.pfolio-page {
+  padding: 2px 7px;
+  letter-spacing: 0.14em;
+}
+
+.pfolio--ink .pfolio-page {
+  background: var(--ink);
+  color: #b3001b;
+}
+
+.pfolio--paper .pfolio-page {
+  background: #ed1c24;
+  color: #f7f5f1;
+}
+
+.pfolio-paper {
+  margin-left: auto;
+  opacity: 0.62;
+}
+
+.pfolio-date {
+  opacity: 0.62;
+}
+
+@media (max-width: 680px) {
+  .pfolio-paper {
+    display: none;
+  }
+
+  .pfolio {
+    font-size: 9px;
+    gap: 6px 10px;
+  }
+}
+
+/* ---------- Buttons ---------- */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 60px;
+  min-width: 150px;
+  padding: 0 30px;
+  border-radius: 100px;
+  border: 2px solid var(--ink);
+  background: var(--ink);
+  color: var(--gold);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.165, 0.84, 0.44, 1), background 0.2s ease, color 0.2s ease;
+}
+
+.button:hover {
+  transform: scale(1.04);
+}
+
+.button:active {
+  transform: scale(0.98);
+}
+
+.button.sub {
+  background: var(--gold-2);
+  color: var(--ink);
+}
+
+.button.sub:active {
+  background: var(--gold-deep);
+}
+
+.button.ghost {
+  background: transparent;
+  color: var(--ink);
+}
+
+.button.ghost:hover {
+  background: var(--ink);
+  color: var(--gold);
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 100%;
+  border: 2px solid var(--ink);
+  background: var(--ink);
+  color: var(--gold);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.icon-button:hover {
+  transform: scale(1.04);
+}
+
+.icon-button:active {
+  transform: scale(0.98);
+}
+
+.button-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+}
+
+/* animated link underline sweep */
+.link {
+  position: relative;
+  display: inline;
+}
+
+.link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  height: 5px;
+  width: 0;
+  background: var(--link);
+  transition: width 0.22s ease-out;
+}
+
+.link:hover::after {
+  width: 100%;
+}
+
+/* ---------- Cards ---------- */
+.card {
+  border-radius: 16px;
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+}
+
+/* tag pill */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 12px;
+  border-radius: 100px;
+  border: 1px solid var(--ink);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+/* ============================================================
+   PRESS-START — the first impression: the front page feeds off
+   the platen. html.boot is set pre-paint by an inline script
+   (motion-safe); html.boot-go runs the feed; html.boot-done
+   force-finishes everything. No-JS / reduced motion: never
+   staged, the page is simply there.
+   ============================================================ */
+/* the sheet feeds down off the platen */
+html.boot .hero-panel {
+  clip-path: inset(0 0 100% 0);
+}
+
+html.boot.boot-go .hero-panel {
+  clip-path: inset(0 0 0 0);
+  transition: clip-path 0.62s cubic-bezier(0.7, 0, 0.2, 1);
+}
+
+/* bar items stamp in */
+html.boot .hp-bar>* {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+html.boot.boot-go .hp-bar>* {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.22s ease, transform 0.3s cubic-bezier(0.18, 1.3, 0.3, 1);
+}
+
+html.boot.boot-go .hp-bar> :nth-child(1) {
+  transition-delay: 0.34s;
+}
+
+html.boot.boot-go .hp-bar> :nth-child(2) {
+  transition-delay: 0.4s;
+}
+
+html.boot.boot-go .hp-bar> :nth-child(3) {
+  transition-delay: 0.46s;
+}
+
+html.boot.boot-go .hp-bar> :nth-child(4) {
+  transition-delay: 0.52s;
+}
+
+/* SANTOSH wipes up out of its own line while CHEETHIRALA runs its decode.
+   The wipe is a clip on the span itself — translating it inside the shared
+   h1 would slide the solid name straight through the outline surname. */
+html.boot .hp-name .hero-name:not(.is-out) {
+  clip-path: inset(1.2em 0 -0.15em 0);
+  transform: translateY(0.14em);
+}
+
+html.boot.boot-go .hp-name .hero-name:not(.is-out) {
+  clip-path: inset(-0.15em 0 -0.15em 0);
+  transform: none;
+  transition: clip-path 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.18s,
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.18s;
+}
+
+/* the teaser and the cat arrive with the body of the page */
+html.boot .teaser-wrap,
+html.boot .hp-photo {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+html.boot.boot-go .teaser-wrap {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.4s ease 0.42s, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.42s;
+}
+
+html.boot.boot-go .hp-photo {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.4s ease 0.5s, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.5s;
+}
+
+/* the marquee wipes up last */
+html.boot .hp-marquee {
+  transform: scaleY(0);
+  transform-origin: bottom;
+}
+
+html.boot.boot-go .hp-marquee {
+  transform: none;
+  transition: transform 0.4s cubic-bezier(0.7, 0, 0.2, 1) 0.72s;
+}
+
+/* hard safety: whatever happened, end fully revealed and unclipped */
+html.boot.boot-done .hero-panel {
+  clip-path: none;
+  transition: none;
+}
+
+html.boot.boot-done .hp-bar>*,
+html.boot.boot-done .hp-name .hero-name:not(.is-out),
+html.boot.boot-done .teaser-wrap,
+html.boot.boot-done .hp-photo,
+html.boot.boot-done .hp-marquee {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+  clip-path: none !important;
+}
+
+/* ============================================================
+   STOP THE PRESS — hold Space or press-and-hold the hero marquee:
+   the whole press freezes (every CSS animation pauses; Lenis, GSAP
+   and the canvas loops stop in main.ts), the grid confesses its
+   plaintext, and the stamp slams in. Release to resume printing.
+   ============================================================ */
+html.press-held * {
+  animation-play-state: paused !important;
+}
+
+#press-stamp {
+  position: fixed;
+  left: 50%;
+  top: 42%;
+  z-index: 2000;
+  translate: -50% -50%;
+  rotate: -7deg;
+  display: grid;
+  gap: 7px;
+  justify-items: center;
+  padding: clamp(16px, 3vw, 28px) clamp(22px, 4vw, 44px);
+  background: var(--paper);
+  border: 5px double #fff;
+  outline: 3px solid var(--paper);
+  box-shadow: 12px 12px 0 rgba(10, 10, 10, 0.45);
+  pointer-events: none;
+  opacity: 0;
+  scale: 1.45;
+  transition: opacity 0.1s steps(2, end), scale 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html.press-held #press-stamp {
+  opacity: 1;
+  scale: 1;
+}
+
+#press-stamp .ps-big {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2rem, 6vw, 4.2rem);
+  line-height: 0.9;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+#press-stamp .ps-sub {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* the hold affordance on the marquee strip (the strip clips overflow, so the
+   chip sits inside its top-right corner) */
+.hp-marquee {
+  position: relative;
+  cursor: pointer;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.hp-marquee::after {
+  content: 'HOLD — STOP THE PRESS';
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  translate: 0 -50%;
+  padding: 4px 8px;
+  background: var(--neon-lime);
+  color: #141414;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+}
+
+.hp-marquee:hover::after {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #press-stamp {
+    transition: none;
+    scale: 1;
+  }
+}
+
+/* ---------- Motion primitives ---------- */
+/* marquee tracks paused while off-screen (class toggled by an IO in main.ts) */
+.mq-offstage {
+  animation-play-state: paused !important;
+}
+
+/* generic scroll fade-up */
+[data-fade] {
+  opacity: 0;
+  transform: translateY(28px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-fade] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  * {
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- Lay-on stack — each act is a printed sheet laid on the one below.
+   The ::before is the sheet's crisp top edge plus the lift shadow it throws up
+   onto the act above it in flow; it seats (slides down, shadow blooms) as the
+   act scrolls in (scroll-driven via view()). ONLY the ::before transforms — the
+   sections themselves get position:relative with no z-index/transform, so their
+   position:fixed children (phone, stderr cat, scrub bubble) are undisturbed. */
+#projects,
+#experience,
+#education,
+#stack,
+#contact {
+  position: relative;
+  --lay-edge: #0a0a0a;
+  /* default ink cut — used by the Record (ink on manila) */
+}
+
+#projects {
+  --lay-edge: #ed1c24;
+  /* The Black Proof — a red cut on the black bench */
+  /* framed sheet: inset on the red page bg with a cut border + hard drop shadow,
+     so every act stacks like the about edition — a bordered page with a gap.
+     Explicit width (not just margins) so GSAP's pin captures the inset size —
+     it forces the pinned element's inline width, ignoring side margins. */
+  width: calc(100% - 2 * clamp(10px, 1.4vw, 20px));
+  margin: 0 clamp(10px, 1.4vw, 20px) clamp(10px, 1.4vw, 20px);
+  border: 5px solid #f7f5f1;
+  box-shadow:
+    0 -3px 0 rgba(10, 10, 10, 0.32),
+    0 -8px 0 rgba(10, 10, 10, 0.16),
+    0 -15px 0 rgba(10, 10, 10, 0.07),
+    12px 12px 0 #141414;
+}
+
+#experience {
+  --lay-edge: #f7f5f1;
+  /* Alarm Raise — a cream specular lip */
+  width: calc(100% - 2 * clamp(10px, 1.4vw, 20px));
+  margin: 0 clamp(10px, 1.4vw, 20px) clamp(10px, 1.4vw, 20px);
+  border: 5px solid #f7f5f1;
+  box-shadow:
+    0 -3px 0 rgba(10, 10, 10, 0.32),
+    0 -8px 0 rgba(10, 10, 10, 0.16),
+    0 -15px 0 rgba(10, 10, 10, 0.07),
+    12px 12px 0 #141414;
+}
+
+#stack {
+  --lay-edge: #b4ff2e;
+  /* Lights Out — the lone UV ink surviving the blackout */
+  /* the frame already provides the gutter — trim the section padding so the
+     loadout fills the desk and keeps 3 slot columns per panel */
+  --pad-x: clamp(16px, 2.5vw, 40px);
+  width: calc(100% - 2 * clamp(10px, 1.4vw, 20px));
+  margin: 0 clamp(10px, 1.4vw, 20px) clamp(10px, 1.4vw, 20px);
+  border: 5px solid #f7f5f1;
+  box-shadow:
+    0 -3px 0 rgba(10, 10, 10, 0.32),
+    0 -8px 0 rgba(10, 10, 10, 0.16),
+    0 -15px 0 rgba(10, 10, 10, 0.07),
+    12px 12px 0 #141414;
+}
+
+#contact {
+  --lay-edge: #f7f5f1;
+  /* The Run Finishes — a cream finish-line glint */
+}
+
+/* cover-stack — each act pins at its tail (JS) while the next act is pulled up
+   -100vh over it and painted on top (rising z-index), so the next slides over
+   the frozen act as the pin scrubs out. pinSpacing keeps the layout (no jump);
+   the lay-on ::before leads each sheet.
+
+   The DESTRUCTIVE geometry (-100vh + z-index) is gated behind html.cover-on,
+   added inside build() once the compensating pins exist — so reduced-motion /
+   no-JS / pre-fonts paint get a clean SEQUENTIAL stack with no overlap. The
+   opaque cover SURFACES stay ungated: a solid sheet is correct in the
+   sequential fallback too (the Record a kraft desk so its cream document reads,
+   the closer an opaque red). */
+#education {
+  background-color: #cdbf9e;
+  /* deeper manila folder so the cream document pops */
+  width: calc(100% - 2 * clamp(10px, 1.4vw, 20px));
+  margin: 0 clamp(10px, 1.4vw, 20px) clamp(10px, 1.4vw, 20px);
+  border: 5px solid #141414;
+  box-shadow:
+    0 -3px 0 rgba(10, 10, 10, 0.32),
+    0 -8px 0 rgba(10, 10, 10, 0.16),
+    0 -15px 0 rgba(10, 10, 10, 0.07),
+    12px 12px 0 #141414;
+}
+
+#contact {
+  /* deep-press red: cream body copy on the closer field now clears WCAG AA
+     (#ed1c24 left it at 4.0:1); --lt-red stays bright for the accents, which
+     pop harder against the deeper field. */
+  background-color: #b3001b;
+  /* same press grid as the other desks so the closer reads as one more folio */
+  background-image: var(--grid-strips);
+  background-size: var(--grid-size) var(--grid-size);
+  background-position: -1px -1px;
+  width: calc(100% - 2 * clamp(10px, 1.4vw, 20px));
+  margin: 0 clamp(10px, 1.4vw, 20px) clamp(10px, 1.4vw, 20px);
+  border: 5px solid #f7f5f1;
+  box-shadow:
+    0 -3px 0 rgba(10, 10, 10, 0.32),
+    0 -8px 0 rgba(10, 10, 10, 0.16),
+    0 -15px 0 rgba(10, 10, 10, 0.07),
+    12px 12px 0 #141414;
+}
+
+/* bottom buffer — the next sheet rises from below to cover, so leave breathing room
+   under each folio's last lines: it eats this empty margin first and the closing
+   copy stays readable while you finish it (no scroll snapping, just spacing). The
+   closer (#contact) is omitted — nothing covers it, so a buffer would just dangle. */
+#projects,
+#experience,
+#education,
+#stack {
+  padding-bottom: clamp(90px, 16vh, 200px);
+}
+
+/* (per-act instrument cursors were removed along with the canvas trail engine —
+   the grid-cipher wake is the cursor effect again; native cursor otherwise) */
+
+html.cover-on #projects {
+  margin-top: -100vh;
+  z-index: 2;
+}
+
+html.cover-on #experience {
+  margin-top: -100vh;
+  z-index: 3;
+}
+
+html.cover-on #education {
+  margin-top: -100vh;
+  z-index: 4;
+}
+
+html.cover-on #stack {
+  margin-top: -100vh;
+  z-index: 5;
+}
+
+html.cover-on #contact {
+  /* the extra -1px is hairline insurance: this is the one cover that isn't
+     pinned (the closer covers the Night Desk), so it can't leave an ink strip
+     of #stack peeking at the final seam */
+  margin-top: calc(-100vh - 1px);
+  z-index: 6;
+}
+
+/* min-height floor so a short act (sparse content / landscape phone) can't fire
+   its pin before its top reaches the top and over-cover live content */
+html.cover-on #projects,
+html.cover-on #experience,
+html.cover-on #education,
+html.cover-on #stack,
+html.cover-on #contact {
+  min-height: 100vh;
+}
+
+/* A modal inside an act (the Switchboard call screen / keypad, the closer's
+   contact dialog) is position:fixed but capped inside that act's stacking
+   context, so it would render under the nav HUD / command palette. While the
+   modal is open, lift the whole act above them; :has() keeps it pure-CSS and
+   reverts the instant the modal closes. */
+html.cover-on #experience:has(.call.is-open, .pad.is-open) {
+  z-index: 1500;
+}
+
+html.cover-on #contact:has(#lt-call.is-open) {
+  z-index: 1950;
+}
+
+#projects::before,
+#experience::before,
+#education::before,
+#stack::before,
+#contact::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 7px;
+  background: var(--lay-edge);
+  box-shadow: 0 -8px 0 -2px rgba(10, 10, 10, 0.3), 0 -46px 80px -2px rgba(10, 10, 10, 0.64);
+  pointer-events: none;
+  z-index: 6;
+  /* seated by default (reduced-motion / no-JS rest state); the seat motion is
+     driven by a ScrollTrigger scrub on --lay-y / --lay-o (CSS view() is dead
+     here — the overflow:clip scroll hack disables scroll-driven timelines). */
+  transform: translateY(var(--lay-y, 0px));
+  opacity: var(--lay-o, 1);
+}
+
+/* registration tick row riding just under the cut — press furniture on the
+   page top; seats with the edge and fades in on the same scrub var. */
+#projects::after,
+#experience::after,
+#education::after,
+#stack::after,
+#contact::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 7px;
+  height: 10px;
+  background: repeating-linear-gradient(90deg, var(--lay-edge) 0 2px, transparent 2px 30px);
+  pointer-events: none;
+  z-index: 6;
+  transform: translateY(var(--lay-y, 0px));
+  opacity: calc(var(--lay-o, 1) * 0.5);
+}
+
+/* ── per-seam personalities (the "press actions"). Edge COLOUR is per act via
+   --lay-edge above; EASE is per act in main.ts. These are the extra CSS beats
+   for the two seams that earn one — both pseudo-only, zero geometry risk. */
+
+/* Lights Out (Record → Night Desk): the black sheet throws the deepest, softest
+   shadow on the site as it covers (the floor lights cutting), and the lime
+   registration ticks only glow ON once the blackout has landed (second half of
+   the cover) — the lone UV ink surviving the dark. */
+#stack::before {
+  box-shadow: 0 -5px 0 -2px rgba(10, 10, 10, 0.35), 0 -52px 110px -2px rgba(10, 10, 10, 0.9);
+}
+
+#stack::after {
+  opacity: calc(max(0, var(--lay-o, 1) - 0.5) * 1.5);
+  filter: drop-shadow(0 0 3px rgba(180, 255, 46, 0.85));
+}
+
+/* The Run Finishes (Night Desk → Closer): the red closer's cut glints a cream
+   "finish line" as it lands — the press waking back into colour to ship out. */
+#contact::before {
+  box-shadow: 0 -8px 0 -2px rgba(10, 10, 10, 0.3), 0 -46px 80px -2px rgba(10, 10, 10, 0.5),
+    0 1px 10px 1px rgba(247, 245, 241, 0.55);
+}
+
+/* ============================================================
+   Stack section — "LOADOUT" (game inventory) interaction
+   Kept here (not the component) so dev CSS HMR is reliable;
+   every rule namespaced under #stack. The item-card tooltip is
+   .ld-card (not .card) to avoid the global project-card class.
+   ============================================================ */
+#stack {
+  --lime: var(--neon-lime);
+  /* one lime site-wide — was a legacy #c8e620 */
+  --w-black: #0a0a0a;
+  --w-disp: 'Anton', sans-serif;
+  --snap: cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+
+/* ---- creative heading: clip-rise lines + lime strike-through on "bookmarked" ----
+   the design enacts the line — the rejected word gets visibly crossed out.
+   Default state is fully visible (no-JS safe); JS adds .armed to hide, then
+   .revealed (on scroll) to play the entrance. */
+#stack .ld-head {
+  line-height: 0.84;
+}
+
+#stack .ld-head .hl {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.06em;
+}
+
+#stack .ld-head .hl-in {
+  display: block;
+  transform: translateY(0);
+  transition: transform 0.7s cubic-bezier(0.2, 0.9, 0.2, 1);
+  will-change: transform;
+}
+
+#stack .ld-head .hl:nth-child(2) .hl-in {
+  transition-delay: 0.08s;
+}
+
+#stack .ld-head.armed .hl-in {
+  transform: translateY(110%);
+}
+
+#stack .ld-head.armed.revealed .hl-in {
+  transform: translateY(0);
+}
+
+/* the struck word */
+#stack .ld-head .bk {
+  position: relative;
+  display: inline-block;
+}
+
+#stack .ld-head .bk::after {
+  content: '';
+  position: absolute;
+  left: -0.03em;
+  right: -0.03em;
+  top: 50%;
+  height: 0.1em;
+  background: var(--lime);
+  transform: translateY(-50%) scaleX(1);
+  transform-origin: left center;
+  transition: transform 0.5s cubic-bezier(0.2, 0.9, 0.2, 1) 0.5s;
+}
+
+#stack .ld-head.armed .bk::after {
+  transform: translateY(-50%) scaleX(0);
+}
+
+#stack .ld-head.armed.revealed .bk::after {
+  transform: translateY(-50%) scaleX(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  #stack .ld-head .hl-in,
+  #stack .ld-head .bk::after {
+    transition: none;
+  }
+}
+
+/* ---- legend / rarity key ---- */
+#stack .legend {
+  max-width: 1500px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 18px;
+  margin-bottom: clamp(18px, 2.6vw, 30px);
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--ink);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+#stack .legend .lg-lab {
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+#stack .legend .key {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#stack .legend .swatch {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--ink);
+  background: var(--paper);
+  display: inline-block;
+}
+
+#stack .legend .swatch.epic {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+#stack .legend .swatch.leg {
+  background: var(--lime);
+  border-color: var(--lime);
+}
+
+#stack .legend .key b {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+#stack .legend .leg-note {
+  margin-left: auto;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+#stack .legend .leg-note b {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* ---- class panels ---- */
+#stack .loadout {
+  display: grid;
+  /* min 380px => 3 panel columns across the desk's full width; degrades to 2
+     then 1. The min(...,100%) guard lets a panel shrink to fit phones. */
+  grid-template-columns: repeat(auto-fill, minmax(min(360px, 100%), 1fr));
+  gap: clamp(16px, 2vw, 26px);
+  align-items: start;
+  max-width: 1500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#stack .panel {
+  position: relative;
+  border: 2px solid var(--ink);
+  background: var(--paper-2);
+  box-shadow: 6px 6px 0 var(--w-black);
+}
+
+#stack .panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 11px 14px;
+  background: var(--w-black);
+  color: var(--ink);
+  border-bottom: 2px solid var(--ink);
+  font-family: var(--font-mono);
+}
+
+#stack .panel-head .class-tag {
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+#stack .panel-head .class-tag .pre {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+#stack .panel-head .class-name {
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#stack .panel-head .slots-of {
+  font-weight: 500;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: rgba(255, 255, 255, 0.55);
+  white-space: nowrap;
+}
+
+#stack .grid-slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+  gap: 8px;
+  padding: 14px;
+}
+
+/* ---- slot (gear cell) ---- */
+#stack .slot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  /* min-height (not fixed) so a long two-line name that fitNames can't shrink
+     past the 7px floor grows the cell instead of being guillotined by the
+     slot-top's overflow:hidden; the grid row stretches its siblings to match */
+  min-height: 94px;
+  padding: 20px 9px 7px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  color: var(--ink);
+  cursor: pointer;
+  user-select: none;
+  font-family: var(--font-mono);
+  clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 0 100%);
+  transition: transform 110ms var(--snap), box-shadow 110ms var(--snap),
+    background-color 110ms var(--snap), border-color 110ms var(--snap), opacity 130ms var(--snap);
+}
+
+#stack .slot:focus {
+  outline: none;
+}
+
+#stack .slot:focus-visible {
+  box-shadow: 0 0 0 2px var(--w-black), 0 0 0 4px var(--neon-lime);
+}
+
+#stack .slot.rare {
+  background: var(--paper);
+}
+
+#stack .slot.epic {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+#stack .slot.legendary {
+  background: var(--ink-2);
+}
+
+/* rarity corner flag — lime ONLY for legendary */
+#stack .slot::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  border-style: solid;
+  border-width: 0 13px 13px 0;
+  border-color: transparent var(--ink) transparent transparent;
+}
+
+#stack .slot.epic::after {
+  border-color: transparent rgba(255, 255, 255, 0.55) transparent transparent;
+}
+
+#stack .slot.legendary::after {
+  border-color: transparent var(--lime) transparent transparent;
+}
+
+/* monogram corner badge */
+#stack .slot .mono {
+  position: absolute;
+  top: 6px;
+  left: 7px;
+  z-index: 1;
+  font-family: var(--w-disp);
+  font-weight: 400;
+  font-size: 9px;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0.6;
+  border: 1px solid var(--ink);
+  padding: 1px 4px;
+}
+
+/* name fills the slot; font shrunk-to-fit by JS so it never breaks mid-word */
+#stack .slot .slot-top {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  padding-right: 11px;
+}
+
+#stack .slot .name {
+  width: 100%;
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 1.12;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--ink);
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+}
+
+#stack .slot .meta {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+#stack .slot .rar {
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+#stack .slot.epic .rar {
+  color: var(--ink);
+}
+
+#stack .slot .pips {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+}
+
+#stack .slot .pips i {
+  width: 6px;
+  height: 6px;
+  background: var(--ink);
+  display: block;
+}
+
+/* level is a quantitative scale — encode the empty track with an outline, not
+   opacity alone (a 34%-white square sat ~3:1 and read as "missing", not "empty") */
+#stack .slot .pips i.off {
+  background: transparent;
+  opacity: 1;
+  box-shadow: inset 0 0 0 1px rgba(247, 245, 241, 0.5);
+}
+
+/* ---- interaction states ---- */
+#stack .loadout.inspecting .slot {
+  opacity: 0.55;
+}
+
+#stack .loadout.inspecting .slot.is-active,
+#stack .loadout.inspecting .slot.is-set {
+  opacity: 1;
+}
+
+#stack .slot.is-active {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 var(--w-black);
+  border-color: var(--ink);
+  z-index: 3;
+}
+
+#stack .slot.is-pinned {
+  box-shadow: 5px 5px 0 var(--w-black), inset 0 0 0 2px var(--ink-2), inset 0 0 0 4px var(--ink);
+  z-index: 4;
+}
+
+#stack .slot.is-set {
+  border-color: var(--ink);
+  box-shadow: 3px 3px 0 var(--w-black);
+  transform: translate(-1px, -1px);
+}
+
+#stack .slot.is-set::before {
+  content: '+';
+  position: absolute;
+  left: 5px;
+  bottom: 5px;
+  font-weight: 700;
+  font-size: 10px;
+  color: var(--ink);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+/* ---- item card tooltip (.ld-card, fixed) ---- */
+#stack .ld-card {
+  position: fixed;
+  z-index: 60;
+  width: 248px;
+  max-width: calc(100vw - 24px);
+  background: var(--w-black);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  box-shadow: 7px 7px 0 var(--ink-2);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(6px) scale(0.98);
+  transition: opacity 120ms var(--snap), transform 120ms var(--snap);
+  font-family: var(--font-mono);
+}
+
+#stack .ld-card.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+#stack .ld-card.pinned {
+  pointer-events: auto;
+}
+
+#stack .ld-card.leg {
+  border-color: var(--lime);
+}
+
+#stack .ld-card .card-hd {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px 9px;
+  border-bottom: 2px solid var(--ink);
+}
+
+#stack .ld-card.leg .card-hd {
+  border-bottom-color: var(--lime);
+}
+
+#stack .ld-card .card-hd .nm {
+  font-family: var(--w-disp);
+  font-weight: 400;
+  font-size: 21px;
+  line-height: 0.9;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+
+#stack .ld-card.leg .card-hd .nm {
+  color: var(--lime);
+}
+
+#stack .ld-card .card-hd .rtag {
+  flex: 0 0 auto;
+  font-weight: 700;
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 2px solid var(--ink);
+  padding: 3px 5px;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+#stack .ld-card.leg .card-hd .rtag {
+  border-color: var(--lime);
+  color: var(--lime);
+}
+
+#stack .ld-card .card-cls {
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--line);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+#stack .ld-card .card-cls b {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+#stack .ld-card .card-stats {
+  padding: 9px 12px 6px;
+}
+
+#stack .ld-card .stat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+
+#stack .ld-card .stat .k {
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+}
+
+#stack .ld-card .stat .v {
+  color: var(--ink);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+#stack .ld-card .stat .bar {
+  flex: 1;
+  height: 7px;
+  border: 1px solid var(--ink);
+  position: relative;
+  overflow: hidden;
+  max-width: 96px;
+}
+
+#stack .ld-card .stat .bar>i {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  background: var(--ink);
+}
+
+#stack .ld-card.leg .stat .bar>i {
+  background: var(--lime);
+}
+
+#stack .ld-card .card-set {
+  padding: 9px 12px 11px;
+  border-top: 2px solid var(--ink);
+}
+
+#stack .ld-card.leg .card-set {
+  border-top-color: var(--lime);
+}
+
+#stack .ld-card .set-lab {
+  font-weight: 700;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin-bottom: 7px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#stack .ld-card .set-lab .bonus {
+  border: 2px solid var(--ink);
+  padding: 1px 5px;
+  color: var(--ink);
+}
+
+#stack .ld-card.leg .set-lab .bonus {
+  border-color: var(--lime);
+  color: var(--lime);
+}
+
+#stack .ld-card .card-set ul {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+#stack .ld-card .card-set li {
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid var(--line);
+  padding: 3px 6px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* ---- readout / game log (in-flow) ---- */
+#stack .readout {
+  max-width: 1500px;
+  margin-top: clamp(20px, 3vw, 32px);
+  padding-top: 14px;
+  border-top: 2px solid var(--ink);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+#stack .readout .prompt {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+#stack .readout .log {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+#stack .readout .log .hl {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+#stack .readout .log .leg {
+  color: var(--lime);
+  font-weight: 700;
+}
+
+#stack .readout .log .dim {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* idle-animation diet: solid terminal block, no idle blink */
+#stack .readout .blink {
+  display: inline-block;
+  width: 9px;
+  height: 14px;
+  background: var(--ink);
+  vertical-align: middle;
+}
+
+/* ---- companion cat (occupies the last grid cell) ---- */
+#stack .cat {
+  position: fixed;
+  right: clamp(16px, 3vw, 30px);
+  bottom: clamp(16px, 3vw, 30px);
+  /* email FAB removed — sit in the corner */
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.25s var(--snap), transform 0.25s var(--snap);
+}
+
+/* only show while the stack section is on screen (toggled by IntersectionObserver) */
+#stack .cat.in-view {
+  opacity: 1;
+  transform: none;
+}
+
+#stack .cat .bubble {
+  position: relative;
+  background: var(--ink);
+  color: var(--w-black);
+  border: 2px solid var(--w-black);
+  box-shadow: 4px 4px 0 var(--w-black);
+  padding: 7px 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.25;
+  max-width: 200px;
+  transition: transform 120ms var(--snap);
+}
+
+#stack .cat .bubble::after {
+  content: '';
+  position: absolute;
+  right: 18px;
+  bottom: -9px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 9px 7px 0 7px;
+  border-color: var(--ink) transparent transparent transparent;
+}
+
+#stack .cat .bubble::before {
+  content: '';
+  position: absolute;
+  right: 17px;
+  bottom: -12px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 11px 8px 0 8px;
+  border-color: var(--w-black) transparent transparent transparent;
+}
+
+#stack .cat .bubble.pop {
+  transform: translateY(-2px);
+}
+
+#stack .cat .kitty {
+  width: 62px;
+  height: 62px;
+  display: block;
+  margin-top: 10px;
+  filter: drop-shadow(3px 3px 0 var(--w-black));
+}
+
+#stack .cat .kitty .tail {
+  transform-origin: 74px 60px;
+  animation: ld-tail 2.6s ease-in-out infinite;
+}
+
+@keyframes ld-tail {
+
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  50% {
+    transform: rotate(-9deg);
+  }
+}
+
+/* ---- responsive ---- */
+@media (max-width: 980px) {
+  #stack .cat {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  #stack .grid-slots {
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  }
+}
+
+/* ---- reduced motion ---- */
+@media (prefers-reduced-motion: reduce) {
+
+  #stack .slot,
+  #stack .ld-card,
+  #stack .cat .bubble {
+    transition: none !important;
+  }
+
+  #stack .cat .kitty .tail {
+    animation: none;
+  }
+}
+
+/* ============================================================
+   #stack — THE NIGHT DESK. The page's one act break: between two
+   red acts the loadout works the night shift on an opaque ink
+   field with the inverse (red-line) grid, and lime becomes UV ink
+   that glows after dark. Hard cuts in and out — it's a room
+   change, not a transition. Overrides cascade over the rules above.
+   ============================================================ */
+#stack {
+  background-color: #0a0a0a;
+  background-image: var(--press-grain),
+    linear-gradient(rgba(237, 28, 36, 0.13) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(237, 28, 36, 0.13) 1px, transparent 1px);
+  background-size: 300px 300px, var(--grid-size) var(--grid-size), var(--grid-size) var(--grid-size);
+  background-position: 11px 5px, -1px -1px, -1px -1px;
+}
+
+/* the act break band */
+#stack .night-band {
+  margin: 0 calc(-1 * var(--pad-x)) clamp(26px, 4vw, 44px);
+  padding: 10px var(--pad-x);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 12px;
+  border-top: 2px solid #ed1c24;
+  border-bottom: 2px solid #ed1c24;
+  background: repeating-linear-gradient(45deg, transparent 0 14px, rgba(237, 28, 36, 0.07) 14px 16px);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(247, 245, 241, 0.9);
+}
+
+#stack .night-band .nb-lime {
+  color: var(--neon-lime);
+}
+
+#stack .night-band .nb-dim {
+  color: rgba(247, 245, 241, 0.45);
+}
+
+/* dark-room furniture: ink boxes, red frames, deep-red shadows */
+#stack .panel {
+  background: #0f0f0f;
+  border-color: rgba(237, 28, 36, 0.8);
+  box-shadow: 6px 6px 0 rgba(179, 0, 27, 0.5);
+}
+
+#stack .panel-head {
+  border-bottom-color: rgba(237, 28, 36, 0.8);
+}
+
+#stack .slot,
+#stack .slot.rare {
+  background: #131313;
+  border-color: rgba(247, 245, 241, 0.3);
+}
+
+#stack .slot.epic {
+  background: #1b1b1b;
+  border-color: rgba(247, 245, 241, 0.5);
+}
+
+#stack .slot.legendary {
+  background: #0c0c0c;
+  border-color: var(--neon-lime);
+  /* UV emission — it's light, not a soft edge */
+  box-shadow: 0 0 13px rgba(180, 255, 46, 0.22);
+}
+
+#stack .slot::after {
+  border-color: transparent rgba(247, 245, 241, 0.45) transparent transparent;
+}
+
+#stack .slot.epic::after {
+  border-color: transparent rgba(247, 245, 241, 0.65) transparent transparent;
+}
+
+#stack .slot.legendary::after {
+  border-color: transparent var(--neon-lime) transparent transparent;
+}
+
+#stack .slot.is-active {
+  box-shadow: 5px 5px 0 rgba(179, 0, 27, 0.65);
+}
+
+#stack .slot.legendary.is-active {
+  box-shadow: 5px 5px 0 rgba(179, 0, 27, 0.65), 0 0 16px rgba(180, 255, 46, 0.3);
+}
+
+#stack .slot.is-set {
+  box-shadow: 3px 3px 0 rgba(179, 0, 27, 0.5);
+}
+
+#stack .legend .swatch {
+  background: #131313;
+  border-color: rgba(247, 245, 241, 0.5);
+}
+
+#stack .legend .swatch.epic {
+  background: #1b1b1b;
+}
+
+#stack .legend .swatch.leg {
+  background: var(--neon-lime);
+  border-color: var(--neon-lime);
+  box-shadow: 0 0 10px rgba(180, 255, 46, 0.35);
+}
+
+/* the night watch: the cat's body dissolves into the dark — the eyes
+   (and a UV halo) keep working */
+#stack .cat .kitty {
+  filter: drop-shadow(0 0 7px rgba(180, 255, 46, 0.4));
+}
+
+/* UV lamp canvas — under the desk furniture, over the ink field.
+   (fixed-position children .cat / .ld-card are deliberately untouched) */
+#stack {
+  position: relative;
+}
+
+#stack .uv-cv {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+#stack .night-band,
+#stack .section-head,
+#stack .legend,
+#stack .loadout,
+#stack .readout {
+  position: relative;
+  z-index: 1;
+}
+
+/* night-desk furniture centered at the loadout's full width */
+#stack .section-head,
+#stack .legend,
+#stack .readout {
+  max-width: 1500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ============================================================
+   Projects — "Living Instruments" section (ported from
+   mockups/projects/01-living-instruments.html). Fully `li-`
+   namespaced so it never collides with the red-themed site.
+   Lives here (not in the component's <style is:global>) because
+   Astro's dev server doesn't reliably inject component-level
+   global styles for non-hydrated .astro components.
+   ============================================================ */
+.li-projects,
+.li-cs-panel {
+  --li-red: #ed1c24;
+  --li-ink: #ffffff;
+  --li-black: #0a0a0a;
+  --li-paper: #eceae4;
+  --li-line: rgba(10, 10, 10, 0.18);
+  --li-ease: cubic-bezier(0.2, 0.9, 0.2, 1);
+  --li-fd: 'Anton', sans-serif;
+  --li-fm: 'JetBrains Mono', monospace;
+}
+
+.li-projects {
+  background-color: var(--li-paper);
+  /* press grain + the red registration grid, so the bench matches the other desks */
+  background-image: var(--press-grain),
+    linear-gradient(rgba(237, 28, 36, 0.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(237, 28, 36, 0.09) 1px, transparent 1px);
+  background-size: 300px 300px, var(--grid-size) var(--grid-size), var(--grid-size) var(--grid-size);
+  background-position: 7px 3px, -1px -1px, -1px -1px;
+  /* a different pull from the same press */
+  color: var(--li-black);
+  font-family: var(--li-fm);
+}
+
+.li-page {
+  /* same content box as the about page (.edition .page) so the acts line up
+     edge-to-edge as the cover-stack swaps them */
+  padding: clamp(24px, 4vw, 46px) clamp(12px, 3vw, 36px) clamp(50px, 8vw, 96px);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.li-kicker {
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  color: var(--li-red);
+  margin: 0 0 10px;
+}
+
+/* idle-animation diet: cursor stays a solid block — no idle blink */
+
+.li-title-wrap {
+  transform-origin: left center;
+  will-change: transform;
+}
+
+.li-title {
+  font-family: var(--li-fd);
+  font-weight: 400;
+  text-transform: uppercase;
+  line-height: 0.82;
+  letter-spacing: 0.005em;
+  font-size: clamp(2.6rem, 11vw, 8.5rem);
+  margin: 0;
+}
+
+.li-title em {
+  font-style: normal;
+  color: var(--li-red);
+}
+
+.li-lede {
+  max-width: 62ch;
+  margin: 18px 0 0;
+  font-size: 13px;
+  line-height: 1.65;
+  color: #2a2a2a;
+}
+
+.li-lede b {
+  color: var(--li-black);
+  font-weight: 700;
+}
+
+/* Production Line — the Projects act is a black press BENCH. Only the section
+   field flips dark (the .li-cs-panel case-study view keeps the light paper so
+   it stays a readable document); the white instrument cards stay as lit panels
+   on the bench, and the on-field text goes cream. The hardest cut on the site
+   now lands exactly where its weakest (paper-on-paper) seam used to be. */
+.li-projects {
+  --li-paper: #15171a;
+  --li-line: rgba(244, 242, 236, 0.14);
+}
+
+.li-projects .li-title {
+  color: #f4f2ec;
+}
+
+.li-projects .li-lede {
+  color: rgba(244, 242, 236, 0.72);
+}
+
+.li-projects .li-lede b {
+  color: #f4f2ec;
+}
+
+/* The field-flip cream-ified the title/lede but the section's default text
+   stays dark (#0a0a0a) on purpose — the white instrument cards inherit it. So
+   the remaining on-bench furniture has to be cream-ified one by one. */
+.li-projects .li-kicker {
+  color: #ff5860;
+}
+
+/* plain red was 4.1:1 on the bench */
+.li-projects .li-ctrl-label {
+  color: rgba(244, 242, 236, 0.82);
+}
+
+.li-projects .li-controls {
+  border-bottom-color: rgba(244, 242, 236, 0.22);
+}
+
+.li-projects .li-foot {
+  color: rgba(244, 242, 236, 0.62);
+}
+
+.li-projects .li-foot b {
+  color: #f4f2ec;
+}
+
+/* The white cards are lit panels: restore the LIGHT paper context inside them
+   so the stat chips (background: --li-paper) stop inheriting the bench dark,
+   and swap the now-invisible black depth-plate for a cream one that reads. */
+.li-projects .li-card {
+  --li-paper: #eceae4;
+  --li-line: rgba(10, 10, 10, 0.18);
+  box-shadow: 6px 6px 0 var(--li-red), 12px 12px 0 rgba(244, 242, 236, 0.92);
+}
+
+.li-projects .li-card:hover {
+  box-shadow: 12px 12px 0 var(--li-red), 24px 24px 0 rgba(244, 242, 236, 0.92);
+}
+
+.li-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 22px;
+  margin: clamp(24px, 3vw, 36px) 0 clamp(20px, 2.6vw, 30px);
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--li-black);
+}
+
+.li-ctrl-label {
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.li-toggle-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.li-toggle {
+  font-family: var(--li-fm);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--li-black);
+  background: var(--li-ink);
+  border: 2px solid var(--li-black);
+  padding: 8px 13px;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 var(--li-black);
+  transition: transform 110ms var(--li-ease), box-shadow 110ms var(--li-ease), background 110ms, color 110ms;
+}
+
+.li-toggle:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 var(--li-black);
+}
+
+.li-toggle:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--li-black);
+}
+
+.li-toggle[aria-pressed='true'] {
+  background: var(--li-red);
+  color: var(--li-ink);
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--li-black);
+}
+
+.li-toggle:focus-visible {
+  outline: 2px dashed var(--li-black);
+  outline-offset: 3px;
+}
+
+.li-monitor {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: #333;
+  border: 2px solid var(--li-black);
+  background: var(--li-ink);
+  padding: 7px 11px;
+  box-shadow: 3px 3px 0 var(--li-black);
+  max-width: 100%;
+}
+
+.li-monitor .li-hb {
+  width: 8px;
+  height: 8px;
+  background: var(--li-red);
+  border-radius: 50%;
+  flex: 0 0 auto;
+  animation: li-hb 1.6s var(--li-ease) infinite;
+}
+
+@keyframes li-hb {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  18% {
+    transform: scale(1.7);
+    opacity: 0.5;
+  }
+
+  36% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.li-pingline {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.li-pingline b {
+  color: var(--li-black);
+  font-weight: 700;
+}
+
+.li-ok {
+  color: var(--li-red);
+  font-weight: 700;
+}
+
+.li-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(22px, 2.6vw, 36px) clamp(22px, 2.6vw, 40px);
+}
+
+@media (max-width: 880px) {
+  .li-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.li-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--li-ink);
+  border: 2.5px solid var(--li-black);
+  box-shadow: 6px 6px 0 var(--li-red), 12px 12px 0 var(--li-black);
+  transition: transform 150ms var(--li-ease), box-shadow 150ms var(--li-ease), opacity 200ms ease;
+  will-change: transform;
+}
+
+.li-card:hover {
+  transform: translate(-6px, -6px);
+  box-shadow: 12px 12px 0 var(--li-red), 24px 24px 0 var(--li-black);
+  z-index: 3;
+}
+
+.li-card-head {
+  position: relative;
+  height: clamp(168px, 21vw, 196px);
+  overflow: hidden;
+  background-color: var(--li-black);
+  background-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.055) 0 1px, transparent 1px 9px);
+  background-position: 0 var(--li-hatch, 0px);
+  border-bottom: 2.5px solid var(--li-black);
+  cursor: pointer;
+}
+
+.li-card-head canvas.li-demo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.li-idx {
+  position: absolute;
+  right: 10px;
+  bottom: 2px;
+  z-index: 2;
+  pointer-events: none;
+  font-family: var(--li-fd);
+  line-height: 0.8;
+  font-size: clamp(3.2rem, 7vw, 5rem);
+  color: rgba(255, 255, 255, calc(0.05 + 0.16 * var(--g, 0)));
+  transform: scale(calc(0.9 + 0.14 * var(--g, 0)));
+  transform-origin: right bottom;
+  transition: color 80ms linear;
+}
+
+.li-mono {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  z-index: 3;
+  width: 34px;
+  height: 34px;
+  perspective: 300px;
+}
+
+.li-mono i {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: var(--li-red);
+  color: var(--li-ink);
+  border: 2px solid var(--li-ink);
+  font-family: var(--li-fd);
+  font-size: 20px;
+  font-style: normal;
+  transform-style: preserve-3d;
+  transition: transform 0.55s var(--li-ease);
+}
+
+.li-card:hover .li-mono i {
+  transform: rotateY(360deg);
+}
+
+.li-badge {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--li-ink);
+  background: rgba(10, 10, 10, 0.5);
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
+  padding: 4px 8px;
+}
+
+.li-badge .li-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+/* idle-animation diet: the dot only pulses via .li-pinged when a REAL ping lands */
+.li-badge.li-live .li-dot {
+  background: var(--li-red);
+}
+
+.li-badge.li-live.li-pinged .li-dot {
+  box-shadow: 0 0 0 0 var(--li-red);
+  animation: li-ping 0.5s var(--li-ease);
+}
+
+@keyframes li-ping {
+  0% {
+    box-shadow: 0 0 0 0 rgba(237, 28, 36, 0.7);
+  }
+
+  100% {
+    box-shadow: 0 0 0 9px rgba(237, 28, 36, 0);
+  }
+}
+
+.li-badge.li-built {
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--li-black);
+  border-color: var(--li-black);
+}
+
+.li-badge.li-built .li-dot {
+  background: var(--li-black);
+  border-radius: 0;
+}
+
+.li-scan {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 46px;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.16) 45%, rgba(237, 28, 36, 0.22) 55%, transparent);
+  transform: translateY(-60px);
+  opacity: 0;
+}
+
+.li-card-head.li-sweep .li-scan {
+  animation: li-scan 0.72s var(--li-ease);
+}
+
+@keyframes li-scan {
+  0% {
+    transform: translateY(-60px);
+    opacity: 0;
+  }
+
+  8% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(210px);
+    opacity: 0;
+  }
+}
+
+.li-card-body {
+  padding: clamp(16px, 1.8vw, 22px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+.li-name-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.li-pname {
+  font-family: var(--li-fd);
+  font-size: clamp(1.5rem, 2.5vw, 2.1rem);
+  letter-spacing: 0.01em;
+  line-height: 0.92;
+}
+
+.li-plabel {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--li-red);
+  font-weight: 700;
+}
+
+.li-plabel::before {
+  content: '// ';
+  color: #999;
+}
+
+.li-blurb {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #2c2c2c;
+}
+
+.li-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.li-stack span {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 500;
+  border: 1.5px solid var(--li-black);
+  padding: 4px 8px;
+  background: var(--li-ink);
+}
+
+.li-stats {
+  display: flex;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.li-stat {
+  flex: 1;
+  border: 2px solid var(--li-black);
+  padding: 8px 10px;
+  background: var(--li-paper);
+}
+
+.li-snum {
+  font-family: var(--li-fd);
+  font-size: clamp(1.4rem, 2.4vw, 1.9rem);
+  line-height: 0.9;
+  display: flex;
+  align-items: baseline;
+}
+
+.li-snum .li-pre {
+  font-size: 0.6em;
+  margin-right: 1px;
+  color: var(--li-red);
+}
+
+.li-snum .li-suf {
+  font-size: 0.6em;
+  margin-left: 1px;
+  color: var(--li-red);
+}
+
+.li-slab {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #666;
+  margin-top: 3px;
+}
+
+.li-view {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--li-fm);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--li-ink);
+  background: var(--li-black);
+  border: none;
+  cursor: pointer;
+  padding: 13px 14px;
+  transition: background 120ms, color 120ms;
+  width: 100%;
+}
+
+.li-view:hover {
+  background: var(--li-red);
+}
+
+.li-view .li-arr {
+  transition: transform 150ms var(--li-ease);
+}
+
+.li-card:hover .li-view .li-arr {
+  transform: translateX(5px);
+}
+
+.li-view:focus-visible {
+  outline: 2px dashed var(--li-black);
+  outline-offset: 3px;
+}
+
+.li-card.li-is-out {
+  opacity: 0;
+  transform: scale(0.95);
+  pointer-events: none;
+}
+
+.li-cs-panel {
+  /* above the nav HUD (1300) + progress rail (1200) — at 300 the HUD sat on
+     top of the panel and swallowed clicks meant for the CLOSE button */
+  position: fixed;
+  z-index: 1400;
+  overflow: hidden;
+  background: var(--li-ink);
+  color: var(--li-black);
+  font-family: var(--li-fm);
+  border: 2.5px solid var(--li-black);
+  transition: left 0.52s var(--li-ease), top 0.52s var(--li-ease), width 0.52s var(--li-ease), height 0.52s var(--li-ease), opacity 0.3s ease;
+}
+
+.li-cs-panel.li-cs-expand {
+  left: 0 !important;
+  top: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+}
+
+/* closing: fade out over the back-half of the collapse so the swap to the
+   re-shown source card is seamless (no hard removal pop) */
+.li-cs-panel.li-cs-closing {
+  opacity: 0;
+  transition: left 0.42s var(--li-ease), top 0.42s var(--li-ease), width 0.42s var(--li-ease), height 0.42s var(--li-ease), opacity 0.34s ease 0.12s;
+}
+
+/* the source card is hidden while its panel stands in for it */
+.li-card.li-cs-source {
+  visibility: hidden;
+}
+
+.li-cs-head {
+  position: relative;
+  height: clamp(180px, 30vh, 300px);
+  overflow: hidden;
+  background-color: var(--li-black);
+  background-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.055) 0 1px, transparent 1px 9px);
+  border-bottom: 2.5px solid var(--li-black);
+}
+
+.li-cs-head canvas.li-demo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.li-cs-close {
+  position: absolute;
+  right: 14px;
+  top: 14px;
+  z-index: 5;
+  font-family: var(--li-fm);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--li-ink);
+  background: rgba(10, 10, 10, 0.5);
+  border: 2px solid var(--li-ink);
+  padding: 7px 11px;
+  cursor: pointer;
+  transition: background 120ms, color 120ms;
+}
+
+.li-cs-close:hover {
+  background: var(--li-ink);
+  color: var(--li-black);
+}
+
+.li-cs-mono {
+  position: absolute;
+  left: 18px;
+  top: 18px;
+  z-index: 4;
+  width: 46px;
+  height: 46px;
+}
+
+.li-cs-mono i {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: var(--li-red);
+  color: var(--li-ink);
+  border: 2px solid var(--li-ink);
+  font-family: var(--li-fd);
+  font-size: 28px;
+  font-style: normal;
+}
+
+.li-cs-scroll {
+  height: calc(100% - clamp(180px, 30vh, 300px));
+  overflow: auto;
+}
+
+.li-cs-body {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: clamp(22px, 4vw, 52px) clamp(20px, 5vw, 60px) 80px;
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.4s ease 0.22s, transform 0.4s var(--li-ease) 0.22s;
+}
+
+.li-cs-panel.li-cs-expand .li-cs-body {
+  opacity: 1;
+  transform: none;
+}
+
+.li-cs-eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  color: var(--li-red);
+  font-weight: 700;
+}
+
+.li-cs-eyebrow::before {
+  content: '// ';
+  color: #aaa;
+}
+
+.li-cs-title {
+  font-family: var(--li-fd);
+  font-size: clamp(2.4rem, 7vw, 5rem);
+  line-height: 0.85;
+  margin: 10px 0 6px;
+  text-transform: uppercase;
+}
+
+.li-cs-tag {
+  font-size: 14px;
+  color: #333;
+  max-width: 60ch;
+  line-height: 1.5;
+}
+
+.li-cs-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: clamp(24px, 4vw, 48px);
+  margin-top: clamp(28px, 4vw, 44px);
+}
+
+@media (max-width: 760px) {
+  .li-cs-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.li-cs-section-h {
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding-bottom: 7px;
+  border-bottom: 2px solid var(--li-black);
+  margin-bottom: 14px;
+}
+
+.li-cs-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.li-cs-list li {
+  font-size: 13.5px;
+  line-height: 1.55;
+  padding-left: 20px;
+  position: relative;
+  color: #222;
+}
+
+.li-cs-list li::before {
+  content: '▸';
+  color: var(--li-red);
+  position: absolute;
+  left: 0;
+}
+
+.li-cs-meta {
+  border: 2px solid var(--li-black);
+  background: var(--li-paper);
+  padding: 16px;
+}
+
+.li-cs-meta dt {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #777;
+  margin-top: 12px;
+}
+
+.li-cs-meta dt:first-child {
+  margin-top: 0;
+}
+
+.li-cs-meta dd {
+  margin: 3px 0 0;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.li-cs-links {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
+.li-cs-link {
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: 2px solid var(--li-black);
+  padding: 11px 15px;
+  box-shadow: 4px 4px 0 var(--li-black);
+  transition: transform 110ms var(--li-ease), box-shadow 110ms var(--li-ease), background 110ms, color 110ms;
+}
+
+.li-cs-link.li-primary {
+  background: var(--li-red);
+  color: var(--li-ink);
+}
+
+.li-cs-link.li-ghost {
+  background: var(--li-ink);
+  color: var(--li-black);
+}
+
+.li-cs-link:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--li-black);
+}
+
+.li-cs-link:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--li-black);
+}
+
+body.li-cs-open {
+  overflow: hidden;
+}
+
+.li-foot {
+  margin-top: clamp(40px, 5vw, 64px);
+  padding-top: 16px;
+  border-top: 2px solid var(--li-line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  justify-content: space-between;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #666;
+}
+
+.li-foot b {
+  color: var(--li-black);
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .li-card,
+  .li-cs-panel,
+  .li-view .li-arr,
+  .li-mono i,
+  .li-title-wrap {
+    transition: none !important;
+  }
+
+  .li-monitor .li-hb,
+  .li-badge.li-live.li-pinged .li-dot {
+    animation: none !important;
+  }
+
+  .li-card-head.li-sweep .li-scan {
+    animation: none;
+  }
+}
+
+/* ============================================================
+   Contact — "Let's Talk" slide-to-send closer
+   (ported from mockups/contact/02-slide-to-send.html. Scoped under
+   .lt-contact with prefixed --lt-* vars so it never clobbers the
+   site tokens; lives here, not in the component, so the JS-built
+   overlay screens get styled.)
+   ============================================================ */
+.lt-contact {
+  --lt-red: #ed1c24;
+  --lt-red-deep: #b3001b;
+  --lt-ink: #141414;
+  --lt-cream: #f7f5f1;
+  --lt-cream-2: #fffdf9;
+  --lt-muted: #a39a90;
+  --lt-black: #0a0a0a;
+  --lt-fd: 'Anton', sans-serif;
+  --lt-fm: 'JetBrains Mono', monospace;
+  --lt-fi: 'Inter', system-ui, sans-serif;
+  --lt-ease: cubic-bezier(0.2, 0.9, 0.2, 1);
+  --lt-pop: cubic-bezier(0.16, 1, 0.3, 1);
+  --lt-thunk: cubic-bezier(0.18, 1.5, 0.3, 1);
+  position: relative;
+  color: var(--lt-cream);
+  font-family: var(--lt-fm);
+  /* tighter side gutters than the rest of the site, to match the mockup */
+  padding-left: clamp(16px, 5vw, 70px);
+  padding-right: clamp(16px, 5vw, 70px);
+}
+
+.lt-contact ::selection {
+  background: var(--lt-cream);
+  color: var(--lt-red);
+}
+
+/* same 1128 content box as the about page so the closer lines up in the stack */
+.lt-contact>.pfolio,
+.lt-contact>.lt-kicker,
+.lt-contact>.band,
+.lt-contact>.catzone,
+.lt-contact>.thirty,
+.lt-contact>.eof {
+  max-width: 1128px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.lt-kicker {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  color: rgba(255, 255, 255, 0.82);
+  text-transform: lowercase;
+  margin-bottom: 14px;
+}
+
+.lt-kicker::before {
+  content: '// ';
+  color: #fff;
+}
+
+/* ---- band: headline (left) + rack (right); clock + slider span full width ---- */
+.lt-contact .band-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.78);
+  margin-bottom: 6px;
+}
+
+.lt-contact .band-cols {
+  display: grid;
+  /* heading + rack form a CENTERED cluster (equal gaps on both sides). justify-content
+     centers the two tracks as a group; the bottom row spans only the cluster, so the
+     slide-to-send matches the cluster width instead of running full-bleed. */
+  grid-template-columns: minmax(0, max-content) clamp(260px, 26%, 322px);
+  grid-template-areas: 'head rack' 'bottom bottom';
+  justify-content: center;
+  column-gap: clamp(56px, 17vw, 352px);
+  row-gap: clamp(14px, 2.4vw, 26px);
+  align-items: start;
+  margin-top: clamp(6px, 1.5vw, 16px);
+}
+
+.lt-contact .band-cols>.huge {
+  grid-area: head;
+}
+
+.lt-contact .band-bottom {
+  grid-area: bottom;
+  min-width: 0;
+}
+
+.lt-contact .rack {
+  grid-area: rack;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.lt-contact .huge {
+  font-family: var(--lt-fd);
+  text-transform: uppercase;
+  line-height: 0.78;
+  letter-spacing: 0.002em;
+  color: var(--lt-cream);
+  margin: 0;
+  user-select: none;
+}
+
+.lt-contact .huge .row {
+  display: block;
+  white-space: nowrap;
+}
+
+.lt-contact .huge .lets {
+  font-size: clamp(4rem, 21vw, 17rem);
+}
+
+.lt-contact .huge .talk {
+  font-size: clamp(4rem, 26vw, 21rem);
+  color: transparent;
+  -webkit-text-stroke: clamp(2px, 0.4vw, 4px) var(--lt-cream);
+}
+
+.lt-contact .huge .talk.filled {
+  color: var(--lt-cream);
+  -webkit-text-stroke: 0;
+  transition: color 0.2s steps(2, end);
+}
+
+.lt-contact .clock-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--lt-cream);
+  background: var(--lt-ink);
+  border: 2px solid var(--lt-cream);
+  padding: 8px 12px;
+  box-shadow: 4px 4px 0 var(--lt-black);
+}
+
+.lt-contact .clock-line .cl-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #7fd14a;
+  box-shadow: 0 0 0 2px var(--lt-ink);
+}
+
+.lt-contact .clock-line.asleep .cl-dot {
+  background: var(--lt-muted);
+}
+
+.lt-contact .clock-line .cl-t {
+  font-variant-numeric: tabular-nums;
+}
+
+.lt-contact .clock-line .cl-msg {
+  color: rgba(247, 245, 241, 0.82);
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
+/* ---- slide to send ---- */
+.lt-contact .slidewrap {
+  margin-top: clamp(20px, 3.5vw, 38px);
+}
+
+.lt-contact .slide-lab {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(247, 245, 241, 0.84);
+  margin-bottom: 10px;
+}
+
+.lt-contact .slide-lab .pct {
+  color: var(--lt-cream);
+  font-variant-numeric: tabular-nums;
+}
+
+.lt-contact .slide {
+  position: relative;
+  height: clamp(76px, 11vw, 104px);
+  background: var(--lt-ink);
+  border: 4px solid var(--lt-cream);
+  box-shadow: 10px 10px 0 var(--lt-black);
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+}
+
+.lt-contact .slide-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  background: var(--lt-red);
+  pointer-events: none;
+}
+
+.lt-contact .slide-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(45deg, transparent 0 12px, rgba(0, 0, 0, 0.16) 12px 16px);
+}
+
+.lt-contact .slide-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  font-family: var(--lt-fd);
+  font-size: clamp(1.1rem, 3vw, 2rem);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(247, 245, 241, 0.8);
+  pointer-events: none;
+  padding-left: clamp(76px, 11vw, 104px);
+}
+
+.lt-contact .slide-text .chev {
+  animation: lt-nudge 1.4s var(--lt-ease) infinite;
+}
+
+@keyframes lt-nudge {
+
+  0%,
+  100% {
+    transform: translateX(0);
+    opacity: 0.5;
+  }
+
+  50% {
+    transform: translateX(8px);
+    opacity: 1;
+  }
+}
+
+.lt-contact .slide-knob {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: clamp(76px, 11vw, 104px);
+  display: grid;
+  place-items: center;
+  cursor: grab;
+  touch-action: none;
+  background: var(--lt-cream);
+  color: var(--lt-ink);
+  border-right: 4px solid var(--lt-ink);
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  line-height: 1;
+  z-index: 2;
+  will-change: transform;
+}
+
+.lt-contact .slide-knob:active {
+  cursor: grabbing;
+}
+
+.lt-contact .slide-knob:focus-visible {
+  outline: 4px solid var(--lt-red);
+  outline-offset: -8px;
+}
+
+.lt-contact .slide.dragging .slide-knob {
+  transition: none;
+}
+
+.lt-contact .slide.snap .slide-knob {
+  transition: transform 0.32s var(--lt-thunk);
+}
+
+.lt-contact .slide.snap .slide-fill {
+  transition: width 0.32s var(--lt-thunk);
+}
+
+.lt-contact .slide.armed .slide-text {
+  color: var(--lt-cream);
+}
+
+.lt-contact .slide.fired .slide-knob {
+  background: var(--lt-red);
+  color: var(--lt-cream);
+  border-right-color: var(--lt-cream);
+}
+
+.lt-contact .slide-hint {
+  margin-top: 12px;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  color: rgba(247, 245, 241, 0.82);
+}
+
+.lt-contact .slide-hint b {
+  color: var(--lt-cream);
+}
+
+.lt-contact .tap-alt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 44px;
+  box-sizing: border-box;
+  font-family: var(--lt-fm);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--lt-cream);
+  background: transparent;
+  border: 2px solid var(--lt-cream);
+  padding: 11px 16px;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 var(--lt-black);
+  transition: transform 0.12s var(--lt-ease), box-shadow 0.12s var(--lt-ease), background 0.12s, color 0.12s;
+}
+
+.lt-contact .tap-alt:hover {
+  background: var(--lt-cream);
+  color: var(--lt-red);
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 var(--lt-black);
+}
+
+/* ---- speed-dial rack ---- */
+.lt-contact .rack-lab {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(247, 245, 241, 0.84);
+}
+
+.lt-contact .rack-pinned {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.lt-contact .rack-rest {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.lt-contact .tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  text-decoration: none;
+  text-align: left;
+  color: var(--lt-cream);
+  background: var(--lt-ink);
+  border: 3px solid var(--lt-cream);
+  box-shadow: 6px 6px 0 var(--lt-black);
+  padding: 14px;
+  cursor: pointer;
+  font-family: var(--lt-fm);
+  width: 100%;
+  transition: transform 0.12s var(--lt-ease), box-shadow 0.12s var(--lt-ease), background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.lt-contact .tile:hover,
+.lt-contact .tile:focus-visible {
+  background: var(--lt-cream);
+  color: var(--lt-red);
+  border-color: var(--lt-cream);
+  transform: translate(2px, 2px);
+  box-shadow: 3px 3px 0 var(--lt-black);
+  outline: none;
+}
+
+.lt-contact .tile:active {
+  transform: translate(4px, 4px);
+  box-shadow: 1px 1px 0 var(--lt-black);
+}
+
+.lt-contact .tile.copied {
+  background: var(--lt-cream);
+  color: var(--lt-red);
+  border-color: var(--lt-cream);
+}
+
+.lt-contact .tile-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lt-contact .tile-ico {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: 2px solid currentColor;
+}
+
+.lt-contact .tile-ico svg {
+  width: 17px;
+  height: 17px;
+  fill: currentColor;
+  display: block;
+  transition: transform 0.55s var(--lt-pop);
+}
+
+.lt-contact .tile:hover .tile-ico svg,
+.lt-contact .tile:focus-visible .tile-ico svg {
+  transform: rotate(360deg);
+}
+
+.lt-contact .tile-num {
+  font-family: var(--lt-fd);
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.lt-contact .tile-ext {
+  margin-left: auto;
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.lt-contact .tile-label {
+  font-family: var(--lt-fd);
+  text-transform: uppercase;
+  line-height: 0.88;
+  letter-spacing: 0.005em;
+}
+
+.lt-contact .tile.pin .tile-label {
+  font-size: clamp(1.6rem, 2.6vw, 2.2rem);
+}
+
+.lt-contact .tile.sm .tile-label {
+  font-size: clamp(1.15rem, 1.9vw, 1.5rem);
+}
+
+.lt-contact .tile-sub {
+  font-size: 0.62rem;
+  letter-spacing: 0.03em;
+  color: var(--lt-muted);
+  overflow-wrap: anywhere;
+}
+
+.lt-contact .tile:hover .tile-sub,
+.lt-contact .tile:focus-visible .tile-sub {
+  color: var(--lt-ink);
+}
+
+.lt-contact .tile-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #7fd14a;
+  font-variant-numeric: tabular-nums;
+}
+
+.lt-contact .tile:hover .tile-live,
+.lt-contact .tile:focus-visible .tile-live {
+  color: var(--lt-red);
+}
+
+.lt-contact .tile-live .dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+  background: #7fd14a;
+  box-shadow: 0 0 0 2px var(--lt-ink);
+  animation: lt-blip 1.4s steps(1, end) infinite;
+}
+
+.lt-contact .tile:hover .tile-live .dot,
+.lt-contact .tile:focus-visible .tile-live .dot {
+  background: var(--lt-red);
+  box-shadow: 0 0 0 2px var(--lt-cream);
+}
+
+.lt-contact .tile-star {
+  position: absolute;
+  top: -11px;
+  right: -11px;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  background: var(--lt-red);
+  color: var(--lt-cream);
+  border: 2px solid var(--lt-cream);
+  box-shadow: 2px 2px 0 var(--lt-black);
+  font-size: 0.78rem;
+  transform: rotate(9deg);
+}
+
+.lt-contact .tag-pdf {
+  display: inline-block;
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  border: 1.5px solid currentColor;
+  padding: 2px 5px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+@keyframes lt-blip {
+
+  0%,
+  55% {
+    opacity: 1;
+  }
+
+  56%,
+  100% {
+    opacity: 0.18;
+  }
+}
+
+/* ---- the cat (closer / bookend) ---- */
+.lt-contact .catzone {
+  margin-top: clamp(36px, 6vw, 80px);
+  position: relative;
+  min-height: clamp(140px, 20vw, 210px);
+  display: flex;
+  align-items: flex-end;
+}
+
+.lt-contact .catpix {
+  position: relative;
+  width: clamp(140px, 18vw, 196px);
+}
+
+.lt-contact .catpix svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+}
+
+.lt-contact .cat-awake-part {
+  display: none;
+}
+
+.lt-contact .catpix.is-awake .cat-asleep-part {
+  display: none;
+}
+
+.lt-contact .catpix.is-awake .cat-awake-part {
+  display: block;
+}
+
+.lt-contact .cat-breathe {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: lt-breathe 3.4s ease-in-out infinite;
+}
+
+.lt-contact .catpix.is-awake .cat-breathe {
+  animation: none;
+}
+
+@keyframes lt-breathe {
+
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+
+  50% {
+    transform: scaleY(1.04);
+  }
+}
+
+.lt-contact .cat-tail {
+  transform-box: fill-box;
+  transform-origin: left center;
+}
+
+.lt-contact .catpix.is-awake .cat-tail {
+  animation: lt-tail 1.4s ease-in-out infinite;
+}
+
+@keyframes lt-tail {
+
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+
+  50% {
+    transform: rotate(-9deg);
+  }
+}
+
+.lt-contact .zzz {
+  position: absolute;
+  left: 62%;
+  top: -6%;
+  pointer-events: none;
+}
+
+.lt-contact .zzz span {
+  position: absolute;
+  font-family: var(--lt-fd);
+  color: var(--lt-cream);
+  opacity: 0;
+  text-shadow: 2px 2px 0 var(--lt-black);
+}
+
+.lt-contact .zzz span:nth-child(1) {
+  font-size: 0.9rem;
+  left: 0;
+  animation: lt-floatz 3s ease-in-out infinite;
+}
+
+.lt-contact .zzz span:nth-child(2) {
+  font-size: 1.2rem;
+  left: 14px;
+  animation: lt-floatz 3s ease-in-out 0.9s infinite;
+}
+
+.lt-contact .zzz span:nth-child(3) {
+  font-size: 1.6rem;
+  left: 32px;
+  animation: lt-floatz 3s ease-in-out 1.8s infinite;
+}
+
+@keyframes lt-floatz {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  30% {
+    opacity: 0.95;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-26px);
+  }
+}
+
+.lt-contact .catpix.is-awake .zzz {
+  display: none;
+}
+
+.lt-contact .cat-tag {
+  position: absolute;
+  left: 0;
+  bottom: -26px;
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(247, 245, 241, 0.84);
+}
+
+/* ---- EOF / sign-off ---- */
+/* the journalist's end-of-copy mark */
+.lt-contact .thirty {
+  margin-top: clamp(30px, 5vw, 56px);
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5em;
+  text-indent: 0.5em;
+  color: rgba(247, 245, 241, 0.85);
+}
+
+.lt-contact .eof {
+  margin-top: clamp(14px, 2.4vw, 26px);
+  border-top: 3px solid var(--lt-cream);
+  padding-top: 22px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.lt-contact .eof-stamp {
+  font-family: var(--lt-fd);
+  font-size: clamp(1.8rem, 6vw, 3.4rem);
+  text-transform: uppercase;
+  line-height: 0.85;
+  color: transparent;
+  -webkit-text-stroke: 2px var(--lt-cream);
+}
+
+.lt-contact .eof-stamp b {
+  -webkit-text-stroke: 0;
+  color: var(--lt-cream);
+}
+
+.lt-contact .eof-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.lt-contact .eof-copy {
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(247, 245, 241, 0.9);
+  text-align: right;
+  line-height: 1.6;
+}
+
+.lt-contact .eof-copy b {
+  color: #fff;
+}
+
+.lt-contact .saturn {
+  width: clamp(58px, 8vw, 82px);
+  height: clamp(58px, 8vw, 82px);
+  flex: none;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  background: var(--lt-cream);
+  color: var(--lt-ink);
+  border: 3px solid var(--lt-ink);
+  border-radius: 50%;
+  box-shadow: 5px 5px 0 var(--lt-black);
+  font-size: clamp(1.6rem, 2.4vw, 2.4rem);
+}
+
+/* idle-animation diet: Saturn rests; it spins on hover, on click, and once on arrival */
+.lt-contact .saturn .sat {
+  display: block;
+}
+
+.lt-contact .saturn:hover {
+  background: var(--lt-red);
+  color: var(--lt-cream);
+  border-color: var(--lt-cream);
+}
+
+.lt-contact .saturn:hover .sat {
+  animation: lt-spin 4s linear infinite;
+}
+
+.lt-contact .saturn.spin-once .sat {
+  animation: lt-spin 1.1s var(--lt-pop);
+}
+
+@keyframes lt-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---- call overlay + screens (child of .lt-contact so namespaced CSS reaches the JS-built screens) ---- */
+.lt-contact .call {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  overflow: auto;
+  padding: clamp(12px, 3vw, 40px);
+}
+
+.lt-contact .call[hidden] {
+  display: none;
+}
+
+.lt-contact .call-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 7, 7, 0.62);
+  -webkit-backdrop-filter: blur(13px) saturate(0.9);
+  backdrop-filter: blur(13px) saturate(0.9);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.lt-contact .call.is-open .call-scrim {
+  opacity: 1;
+}
+
+.lt-contact .call-stage {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 760px;
+  margin: auto 0;
+}
+
+.lt-contact .screen {
+  background: var(--lt-ink);
+  color: var(--lt-cream);
+  border: 5px solid var(--lt-cream);
+  box-shadow: 16px 16px 0 var(--lt-black);
+  padding: clamp(26px, 5vw, 52px) clamp(20px, 4vw, 44px);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  opacity: 0;
+  transform: scale(0.92);
+  transition: opacity 0.28s ease, transform 0.42s var(--lt-pop);
+}
+
+.lt-contact .call.is-open .screen {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.lt-contact .screen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(45deg, transparent 0 11px, rgba(255, 255, 255, 0.04) 11px 13px);
+  pointer-events: none;
+}
+
+.lt-contact .screen-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--lt-red);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lt-contact .screen-tag .gl {
+  font-size: 1rem;
+}
+
+.lt-contact .screen-mono {
+  width: clamp(118px, 26vw, 168px);
+  height: clamp(118px, 26vw, 168px);
+  margin: clamp(22px, 4vw, 34px) auto;
+  background: var(--lt-red);
+  color: var(--lt-cream);
+  border: 5px solid var(--lt-cream);
+  box-shadow: 10px 10px 0 var(--lt-black);
+  display: grid;
+  place-items: center;
+  font-family: var(--lt-fd);
+  font-size: clamp(4rem, 11vw, 7rem);
+  line-height: 1;
+  position: relative;
+}
+
+.lt-contact .screen-mono.pulse {
+  animation: lt-mono-pulse 1.1s ease-in-out infinite;
+}
+
+@keyframes lt-mono-pulse {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.lt-contact .screen-mono .wave {
+  position: absolute;
+  inset: -5px;
+  border: 4px solid var(--lt-red);
+  opacity: 0;
+}
+
+.lt-contact .screen-mono.ringing .wave {
+  animation: lt-ring-out 1.2s ease-out infinite;
+}
+
+.lt-contact .screen-mono.ringing .wave.w2 {
+  animation-delay: 0.4s;
+}
+
+@keyframes lt-ring-out {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+
+  100% {
+    transform: scale(1.55);
+    opacity: 0;
+  }
+}
+
+.lt-contact .screen-name {
+  font-family: var(--lt-fd);
+  font-size: clamp(2.2rem, 6vw, 3.6rem);
+  line-height: 0.92;
+  text-transform: uppercase;
+}
+
+.lt-contact .screen-sub {
+  font-family: var(--lt-fi);
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-top: 8px;
+  color: rgba(247, 245, 241, 0.86);
+}
+
+.lt-contact .screen-handle {
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  color: var(--lt-red);
+  margin-top: 8px;
+}
+
+.lt-contact .screen-status {
+  margin-top: 14px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(247, 245, 241, 0.72);
+  min-height: 1.2em;
+}
+
+.lt-contact .screen-status .dots::after {
+  content: '';
+  animation: lt-ellipsis 1.2s steps(4, end) infinite;
+}
+
+@keyframes lt-ellipsis {
+  0% {
+    content: '';
+  }
+
+  25% {
+    content: '\00b7';
+  }
+
+  50% {
+    content: '\00b7\00b7';
+  }
+
+  75%,
+  100% {
+    content: '\00b7\00b7\00b7';
+  }
+}
+
+.lt-contact .vm {
+  text-align: left;
+}
+
+.lt-contact .vm-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 6px;
+}
+
+.lt-contact .vm-top .screen-tag {
+  color: #7fd14a;
+}
+
+.lt-contact .vm-timer {
+  margin-left: auto;
+  font-size: 0.92rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--lt-cream);
+}
+
+.lt-contact .vm-timer .rec {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--lt-red);
+  margin-right: 7px;
+  vertical-align: middle;
+  animation: lt-blip 1.1s steps(1, end) infinite;
+}
+
+.lt-contact .vm-headline {
+  font-family: var(--lt-fd);
+  font-size: clamp(1.7rem, 5vw, 3rem);
+  text-transform: uppercase;
+  line-height: 0.9;
+  margin: 6px 0 2px;
+}
+
+.lt-contact .vm-headline em {
+  font-style: normal;
+  color: var(--lt-red);
+}
+
+.lt-contact .vm-blurb {
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  color: rgba(247, 245, 241, 0.7);
+  margin-bottom: 18px;
+}
+
+.lt-contact .vm-wave {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 30px;
+  margin-bottom: 16px;
+}
+
+.lt-contact .vm-wave i {
+  width: 5px;
+  background: rgba(247, 245, 241, 0.4);
+  height: 18%;
+}
+
+.lt-contact .vm-wave.live i {
+  animation: lt-wv 0.9s ease-in-out infinite;
+  background: var(--lt-red);
+}
+
+.lt-contact .vm-wave i:nth-child(2n) {
+  animation-delay: 0.1s;
+}
+
+.lt-contact .vm-wave i:nth-child(3n) {
+  animation-delay: 0.2s;
+}
+
+.lt-contact .vm-wave i:nth-child(4n) {
+  animation-delay: 0.3s;
+}
+
+.lt-contact .vm-wave i:nth-child(5n) {
+  animation-delay: 0.15s;
+}
+
+@keyframes lt-wv {
+
+  0%,
+  100% {
+    height: 16%;
+  }
+
+  50% {
+    height: 100%;
+  }
+}
+
+.lt-contact .vm-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.lt-contact .vm-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lt-contact .vm-field.full {
+  grid-column: 1 / -1;
+}
+
+.lt-contact .vm-field label {
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--lt-muted);
+}
+
+.lt-contact .vm-field input,
+.lt-contact .vm-field textarea {
+  font-family: var(--lt-fm);
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--lt-cream);
+  background: #0d0d0d;
+  border: 3px solid var(--lt-cream);
+  padding: 11px 12px;
+  outline: none;
+  resize: vertical;
+}
+
+.lt-contact .vm-field input::placeholder,
+.lt-contact .vm-field textarea::placeholder {
+  color: rgba(247, 245, 241, 0.4);
+}
+
+.lt-contact .vm-field input:focus,
+.lt-contact .vm-field textarea:focus {
+  outline: 2px solid var(--lt-red);
+  outline-offset: 2px;
+}
+
+.lt-contact .vm-field textarea {
+  min-height: 110px;
+  line-height: 1.5;
+}
+
+.lt-contact .vm-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.lt-contact .vm-note {
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  color: rgba(247, 245, 241, 0.5);
+  flex: 1;
+  min-width: 160px;
+}
+
+.lt-contact .call-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--lt-fm);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 14px clamp(18px, 4vw, 30px);
+  border: 4px solid var(--lt-cream);
+  cursor: pointer;
+  color: var(--lt-cream);
+  background: transparent;
+  box-shadow: 6px 6px 0 var(--lt-black);
+  transition: transform 0.12s var(--lt-ease), box-shadow 0.12s var(--lt-ease), background 0.12s, color 0.12s;
+}
+
+.lt-contact .call-btn .gl {
+  font-size: 1.2rem;
+}
+
+.lt-contact .call-btn:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 3px 3px 0 var(--lt-black);
+}
+
+.lt-contact .call-btn--send {
+  background: var(--lt-red);
+  border-color: var(--lt-red);
+}
+
+.lt-contact .call-btn--send:hover {
+  background: #ff3b42;
+}
+
+.lt-contact .call-btn--hang:hover {
+  background: var(--lt-cream);
+  color: var(--lt-ink);
+}
+
+.lt-contact .vm-sent {
+  text-align: center;
+  padding: clamp(10px, 3vw, 26px) 0;
+}
+
+.lt-contact .vm-sent .big {
+  font-family: var(--lt-fd);
+  font-size: clamp(2.4rem, 8vw, 4.4rem);
+  text-transform: uppercase;
+  line-height: 0.86;
+}
+
+.lt-contact .vm-sent .big em {
+  font-style: normal;
+  color: var(--lt-red);
+}
+
+.lt-contact .vm-sent .sm {
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  color: rgba(247, 245, 241, 0.78);
+  margin-top: 14px;
+}
+
+.lt-contact .vm-sent .check {
+  width: 84px;
+  height: 84px;
+  margin: 0 auto 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--lt-red);
+  color: var(--lt-cream);
+  border: 5px solid var(--lt-cream);
+  box-shadow: 8px 8px 0 var(--lt-black);
+  font-family: var(--lt-fd);
+  font-size: 3rem;
+}
+
+@media (max-width: 1140px) {
+  .lt-contact .band-cols {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .lt-contact .band-cols>.huge {
+    order: 1;
+  }
+
+  .lt-contact .band-cols>.band-bottom {
+    order: 2;
+  }
+
+  .lt-contact .band-cols>.rack {
+    order: 3;
+  }
+}
+
+@media (max-width: 760px) {
+  .lt-contact .vm-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .lt-contact .slide-text {
+    font-size: 1rem;
+    letter-spacing: 0.04em;
+  }
+
+  .lt-contact .huge .lets {
+    font-size: clamp(3rem, 18vw, 6rem);
+  }
+
+  .lt-contact .huge .talk {
+    font-size: clamp(3.4rem, 22vw, 7rem);
+  }
+}
+
+@media (max-width: 440px) {
+  .lt-contact .rack-rest {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-height: 760px),
+(max-width: 600px) {
+
+  /* pin the call overlay to the top so a tall voicemail form stays reachable —
+     centered margin:auto could push the Send button off a short screen */
+  .lt-contact .call {
+    align-items: flex-start;
+  }
+
+  .lt-contact .call-stage {
+    margin: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lt-contact * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  /* keep the slide's position glide — it's functional feedback (where am I on the
+     track), not decoration; a 0.24s transform/width slip isn't vestibular. */
+  .lt-contact .slide.snap .slide-knob,
+  .lt-contact .slide.snap .slide-fill {
+    transition-duration: 0.24s !important;
+  }
+}
+
+/* ============================================================
+   Misregistration — two-plate print physics. Scroll velocity slips
+   the color plates apart (--press-vel is written by main.ts and
+   decays to 0 at rest, so headlines snap back into register);
+   hovering a headline slips its plates by hand. No easing curves —
+   the decay of the signal itself is the motion.
+   ============================================================ */
+/* ink on paper: red plate one way, an ink ghost the other */
+.li-title,
+.edition .masthead-title {
+  --mr-a: rgba(237, 28, 36, 0.75);
+  --mr-b: rgba(10, 10, 10, 0.22);
+}
+
+/* white on red: deep-red plate one way, UV lime the other */
+.experience .exp-title,
+#stack .ld-head {
+  --mr-a: rgba(179, 0, 27, 0.9);
+  --mr-b: rgba(180, 255, 46, 0.55);
+}
+
+.li-title,
+.edition .masthead-title,
+.experience .exp-title,
+#stack .ld-head {
+  text-shadow:
+    calc(var(--press-vel, 0) * 4px) 0 0 var(--mr-a),
+    calc(var(--press-vel, 0) * -4px) 0 0 var(--mr-b);
+}
+
+.li-title:hover,
+.edition .masthead-title:hover,
+.experience .exp-title:hover,
+#stack .ld-head:hover {
+  text-shadow: 3px 0 0 var(--mr-a), -3px 0 0 var(--mr-b);
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .li-title,
+  .edition .masthead-title,
+  .experience .exp-title,
+  #stack .ld-head {
+    text-shadow: none !important;
+  }
+}
+
+/* (the page-by-page reader was removed — the cover-stack scrolls freely now) */

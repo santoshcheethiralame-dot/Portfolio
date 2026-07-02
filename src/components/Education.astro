@@ -1,0 +1,1545 @@
+---
+import { education } from '../data/site';
+import Folio from './Folio.astro';
+
+const MON = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+const START = Date.UTC(2024, 8, 1); // Sep 1 2024
+const END = Date.UTC(2028, 4, 31); // May 31 2028
+
+type Sem = {
+  id: number;
+  term: string;
+  name: string;
+  start: number;
+  end: number;
+  sgpa: number | null;
+  ach: string | null;
+};
+
+const SEMS: Sem[] = [
+  { id: 1, term: 'S1', name: 'SEM 1 / FALL 2024', start: Date.UTC(2024, 8, 1), end: Date.UTC(2024, 11, 31), sgpa: 8.72, ach: 'CNR Merit Scholarship' },
+  { id: 2, term: 'S2', name: 'SEM 2 / SPRING 2025', start: Date.UTC(2025, 0, 1), end: Date.UTC(2025, 4, 31), sgpa: 8.08, ach: 'Academic Distinction — SGPA 7.75+' },
+  { id: 3, term: 'S3', name: 'SEM 3 / FALL 2025', start: Date.UTC(2025, 8, 1), end: Date.UTC(2025, 11, 31), sgpa: 7.0, ach: null },
+  { id: 4, term: 'S4', name: 'SEM 4 / SPRING 2026', start: Date.UTC(2026, 0, 1), end: Date.UTC(2026, 4, 31), sgpa: 8.0, ach: 'Academic Distinction — SGPA 7.75+' },
+  { id: 5, term: 'S5', name: 'SEM 5 / FALL 2026', start: Date.UTC(2026, 8, 1), end: Date.UTC(2026, 11, 31), sgpa: null, ach: null },
+  { id: 6, term: 'S6', name: 'SEM 6 / SPRING 2027', start: Date.UTC(2027, 0, 1), end: Date.UTC(2027, 4, 31), sgpa: null, ach: null },
+  { id: 7, term: 'S7', name: 'SEM 7 / FALL 2027', start: Date.UTC(2027, 8, 1), end: Date.UTC(2027, 11, 31), sgpa: null, ach: null },
+  { id: 8, term: 'S8', name: 'SEM 8 / SPRING 2028', start: Date.UTC(2028, 0, 1), end: Date.UTC(2028, 4, 31), sgpa: null, ach: null },
+];
+
+const pctOf = (t: number) => Math.max(0, Math.min(100, ((t - START) / (END - START)) * 100));
+const rangeOf = (s: Sem) =>
+  `${MON[new Date(s.start).getUTCMonth()]} ${new Date(s.start).getUTCFullYear()} – ${MON[new Date(s.end).getUTCMonth()]} ${new Date(s.end).getUTCFullYear()}`;
+const ticks = SEMS.map((s) => ({ ...s, left: +pctOf((s.start + s.end) / 2).toFixed(3), range: rangeOf(s) }));
+
+// SGPA hard-meter scaling (0–10 so bar heights are true to the real SGPA values).
+const SG_LO = 0;
+const SG_HI = 10;
+const sgPct = (v: number) => Math.max(6, Math.min(100, ((v - SG_LO) / (SG_HI - SG_LO)) * 100));
+const cgpaNum = parseFloat(education.cgpa); // "7.95 / 10" -> 7.95
+const cgpaRef = +sgPct(cgpaNum).toFixed(2);
+
+// Achievement stamps (from honors).
+const STAMPS = [
+  { award: 'CNR Merit Scholarship', sub: '', sem: 'Sem 1', rot: -4, rotIn: -22, rotHover: -2, over: 'INK • 2024' },
+  { award: 'Academic Distinction', sub: 'SGPA 7.75+', sem: 'Sem 2', rot: 3, rotIn: 18, rotHover: 1.5, over: 'INK • 2025' },
+  { award: 'Academic Distinction', sub: 'SGPA 7.75+', sem: 'Sem 4', rot: -2, rotIn: -16, rotHover: -1, over: 'INK • 2026' },
+];
+
+const wordmark = education.school.toUpperCase();
+const placeMeta = `${education.place} · ${education.dates} · 8 Semesters`;
+---
+
+<section class="section" id="education">
+  <div class="edu-shell">
+    <Folio page="P.4" desk="THE PERMANENT RECORD" tone="paper" />
+    <header class="edu-masthead">
+      <div class="mast-row">
+        <span class="kicker">education · pes university</span>
+        <span class="mast-rec">REC · PES1UG24CS127</span>
+      </div>
+      <div class="mast-headline">
+        <h2 class="mast-title" id="mast-title" aria-label="Permanent record">
+          <span class="mt-l1"><span class="mt-in">Permanent</span></span>
+          <span class="mt-l2"><span class="mt-stamp">Record</span></span>
+        </h2>
+        <span class="mast-stamp" data-live><span class="mast-dot" aria-hidden="true"></span><span class="mast-live-txt">SEM — · 0%</span></span>
+      </div>
+      <div class="mast-meta">{education.degree} · Class of 2028</div>
+      <div class="mast-rule" aria-hidden="true"></div>
+    </header>
+
+    <p class="edu-subline">
+      Honors land like inked rubber stamps, over a live degree timeline.
+    </p>
+
+    <section class="edu-card">
+      <div class="card-head">
+        <div class="school-block">
+          <span class="wordmark" data-text={wordmark}>{wordmark}</span>
+          <div class="school-meta">
+            {education.degree}<br />
+            <span class="dim">{placeMeta}</span>
+          </div>
+        </div>
+        <div class="head-right">
+          <div class="cgpa" aria-label={`CGPA ${education.cgpa}`}>
+            <span class="lab">CGPA</span>
+            <span class="val">{cgpaNum.toFixed(2)}</span>
+            <span class="scale">/ 10.00</span>
+          </div>
+          <button class="edu-btn edu-restamp" type="button">Re-Stamp</button>
+        </div>
+      </div>
+
+      <!-- ===== LIVE DEGREE TIMELINE ===== -->
+      <div class="timeline-label">// degree timeline · computed live</div>
+      <div class="readout">
+        <div class="readout-block">
+          <div class="ro-label">Degree progress // computed live</div>
+          <div class="ro-blocks">□□□□□□□□&nbsp;&nbsp;0% · SEMESTER —</div>
+        </div>
+        <div class="readout-block">
+          <div class="ro-label">Complete</div>
+          <div class="ro-counter"><span class="ro-num">0</span><small>%</small></div>
+        </div>
+        <!-- SGPA hard-meter fills the readout's negative space -->
+        <div class="readout-block sgpa-block">
+          <div class="sgpa-top">
+            <div class="ro-label">SGPA / Semester</div>
+            <div class="sgpa-cgpa">{cgpaNum.toFixed(2)}</div>
+          </div>
+          <div class="sgpa-chart" style={`--cgpa:${cgpaRef}%`}>
+            <div class="sgpa-ref" aria-hidden="true"></div>
+            {
+              ticks.map((s, i) => (
+                <div
+                  class={`sgpa-col ${s.sgpa == null ? 'ghost' : 'graded'}`}
+                  style={`--h:${s.sgpa == null ? 100 : +sgPct(s.sgpa).toFixed(2)}%; --d:${i * 55}ms`}
+                  title={`${s.term} · SGPA ${s.sgpa == null ? '—' : s.sgpa.toFixed(2)}`}
+                >
+                  <i class="fill" />
+                </div>
+              ))
+            }
+          </div>
+          <div class="sgpa-foot"><span>CGPA ref ┄</span><span>0–10 scale</span></div>
+        </div>
+      </div>
+
+      <div class="track-wrap">
+        <div class="track" data-start={START} data-end={END} aria-label="Degree timeline September 2024 to May 2028">
+          <div class="rail"><div class="rail-fill"></div></div>
+          {
+            ticks.map((s) => (
+              <div
+                class={`tick ${s.ach ? 'has-ach' : ''}`}
+                style={`left:${s.left}%`}
+                data-id={s.id}
+                data-start={s.start}
+                data-end={s.end}
+                data-name={s.name}
+                data-range={s.range}
+                data-sgpa={s.sgpa ?? ''}
+                data-ach={s.ach ?? ''}
+              >
+                {s.ach && <div class="star" aria-hidden="true">★</div>}
+                <div class="notch" />
+                <div class="node" />
+                <div class="lab">
+                  <div class="s">{s.term}</div>
+                  <div class="rng">{s.range}</div>
+                </div>
+                <button class="hot" type="button" aria-label={s.name} />
+              </div>
+            ))
+          }
+          <div class="marker" style="left:0%">
+            <div class="flag">TODAY</div>
+            <div class="stem"></div>
+            <div class="blk beat" aria-label="Today marker"></div>
+          </div>
+        </div>
+        <div class="pop" role="status" aria-live="polite">
+          <div class="pterm"></div>
+          <div class="prng"></div>
+          <div class="prow"><span>SGPA</span><b></b></div>
+          <div class="pach"><span class="st">★</span><span class="pach-txt"></span></div>
+          <div class="pstatus"></div>
+          <div class="ptoday">● TODAY-MARKER · COMPUTED FROM LIVE DATE</div>
+        </div>
+        <div class="track-note">// sep 2024 → may 2028 · 8 semesters · sgpa shown for graded terms</div>
+      </div>
+
+      <hr class="card-rule" />
+
+      <!-- ===== ACHIEVEMENT STAMPS ===== -->
+      <div class="stamp-rail">
+        {
+          STAMPS.map((s) => (
+            <div
+              class="stamp landed"
+              style={`--rot:${s.rot}deg; --rot-in:${s.rotIn}deg; --rot-hover:${s.rotHover}deg`}
+              data-overprint={s.over}
+            >
+              <span class="star" aria-hidden="true">★</span>
+              <div class="award">{s.award}</div>
+              {s.sub && <div class="s-sub">{s.sub}</div>}
+              <span class="semtag">{s.sem}</span>
+            </div>
+          ))
+        }
+      </div>
+
+      <div class="course-head">Selected Coursework</div>
+      <div class="chips">
+        {
+          education.coursework.map((c) => (
+            <button class="chip" type="button" aria-pressed="false" data-text={c} aria-label={c}>
+              <span class="wipe" />
+              <label>{c.toUpperCase()}</label>
+            </button>
+          ))
+        }
+      </div>
+    </section>
+  </div>
+</section>
+
+<style>
+  /* THE PERMANENT RECORD is filed on paper — a cream document sheet on the red
+     grid. Differentiates it from the dark-phone Switchboard before it and the
+     ink Night Desk after it; the red->paper->ink run reads as distinct acts.
+     The section is ink-on-cream, so the white-on-red tokens flip to ink-on-light
+     and most rules re-theme automatically (they use var(--ink)/--line/--muted). */
+  .edu-shell {
+    --red: #ed1c24;
+    --red-deep: #b3001b;
+    --red-dark: #7a0014;
+    --ink: #141414;
+    --cream: #f7f5f1;
+    --black: #0a0a0a;
+    --line: rgba(20, 20, 20, 0.22);
+    --muted: rgba(20, 20, 20, 0.55);
+    --lime: var(--neon-lime); /* one lime site-wide — was a legacy #c8e620 */
+    --font-display: 'Anton', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
+    color: var(--ink);
+    max-width: min(100%, 1320px);
+    margin: 0 auto;
+    background-color: var(--cream);
+    /* grain + a faint ledger grid so the record reads as ruled paper, not blank */
+    background-image: var(--press-grain),
+      linear-gradient(rgba(20, 20, 20, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(20, 20, 20, 0.05) 1px, transparent 1px);
+    background-size: 300px 300px, var(--grid-size) var(--grid-size), var(--grid-size) var(--grid-size);
+    border: 4px solid var(--ink);
+    box-shadow: 12px 12px 0 var(--black);
+    padding: clamp(22px, 3vw, 48px) clamp(12px, 3vw, 36px) clamp(30px, 4vw, 58px);
+  }
+  /* the record runs wide like the edition/projects — trim the section gutter */
+  #education.section {
+    padding-left: clamp(10px, 1.6vw, 24px);
+    padding-right: clamp(10px, 1.6vw, 24px);
+  }
+  .edu-subline {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: clamp(20px, 3vw, 34px);
+    max-width: 66ch;
+  }
+
+  /* ---------- MASTHEAD (creative headline) ---------- */
+  .edu-masthead {
+    margin-bottom: clamp(26px, 4vw, 52px);
+  }
+  .mast-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .mast-rec {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border: 2px solid var(--line);
+    padding: 5px 10px;
+    white-space: nowrap;
+  }
+  .mast-headline {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: clamp(14px, 3vw, 40px);
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+  .mast-title {
+    font-family: var(--font-display);
+    font-weight: 400;
+    text-transform: uppercase;
+    line-height: 0.8;
+    letter-spacing: 0.005em;
+    font-size: clamp(3.4rem, 15vw, 12rem);
+    color: var(--ink);
+  }
+  /* two lines: PERMANENT (clip-rises) over RECORD (punches in as a rubber stamp) */
+  .mast-title .mt-l1,
+  .mast-title .mt-l2 {
+    display: block;
+  }
+  .mast-title .mt-l1 {
+    overflow: hidden;
+    padding-bottom: 0.04em;
+  }
+  .mast-title .mt-in {
+    display: block;
+    transform: translateY(0);
+    transition: transform 0.6s cubic-bezier(0.2, 0.9, 0.2, 1);
+    will-change: transform;
+  }
+  .mast-title .mt-l2 {
+    margin-top: 0.06em;
+  }
+  /* RECORD = stamped impression (white ink on the red field) */
+  .mast-title .mt-stamp {
+    display: inline-block;
+    position: relative;
+    color: var(--ink);
+    border: 0.05em solid var(--ink);
+    padding: 0.02em 0.14em 0.08em;
+    transform: rotate(-3deg);
+    transform-origin: center center;
+    box-shadow: 0.07em 0.07em 0 var(--black);
+  }
+  /* faint registration ghost = double-print ink feel */
+  .mast-title .mt-stamp::before {
+    content: '';
+    position: absolute;
+    inset: 0.03em;
+    border: 0.02em solid rgba(20, 20, 20, 0.2);
+    transform: translate(0.045em, 0.03em);
+    pointer-events: none;
+  }
+  /* armed (JS + motion only) hides for the entrance; default state is visible (no-JS safe) */
+  .mast-title.armed .mt-in {
+    transform: translateY(112%);
+  }
+  .mast-title.armed.revealed .mt-in {
+    transform: translateY(0);
+  }
+  .mast-title.armed .mt-stamp {
+    opacity: 0;
+    transform: scale(1.18) rotate(-3deg);
+  }
+  .mast-title.armed.revealed .mt-stamp {
+    animation: mastStamp 300ms cubic-bezier(0.18, 1.5, 0.3, 1) 0.32s forwards;
+  }
+  /* the stamp slams down, flashing lime on impact (the single lime accent), then settles white */
+  @keyframes mastStamp {
+    0% {
+      opacity: 0;
+      transform: scale(1.18) rotate(-3deg);
+      border-color: var(--lime);
+    }
+    1% {
+      opacity: 1;
+    }
+    55% {
+      transform: scale(0.9) rotate(-3deg);
+      border-color: var(--lime);
+      box-shadow: 0 0 0 var(--black);
+    }
+    72% {
+      transform: scale(1.05) rotate(-3deg);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) rotate(-3deg);
+      border-color: var(--ink);
+      box-shadow: 0.07em 0.07em 0 var(--black);
+    }
+  }
+  .mast-stamp {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: clamp(11px, 1.3vw, 14px);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink);
+    border: 2px solid var(--ink);
+    padding: 9px 14px;
+    box-shadow: 5px 5px 0 var(--black);
+    transform: rotate(-4deg);
+    margin-bottom: clamp(8px, 1.6vw, 20px);
+    white-space: nowrap;
+  }
+  .mast-stamp .mast-dot {
+    width: 10px;
+    height: 10px;
+    background: var(--ink);
+    display: block;
+    animation: eduPulse 1.1s steps(2, end) infinite;
+  }
+  .mast-meta {
+    margin-top: 14px;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .mast-rule {
+    height: 2px;
+    background: var(--ink);
+    margin-top: 16px;
+  }
+  @media (max-width: 560px) {
+    .mast-stamp {
+      transform: rotate(-3deg);
+    }
+  }
+
+  .edu-btn {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--cream);
+    background: var(--ink);
+    border: 2px solid var(--black);
+    padding: 11px 22px;
+    cursor: pointer;
+    box-shadow: 5px 5px 0 var(--black);
+    transition: transform 110ms cubic-bezier(0.2, 0.9, 0.2, 1), box-shadow 110ms cubic-bezier(0.2, 0.9, 0.2, 1),
+      background 110ms steps(1, end), color 110ms steps(1, end);
+    user-select: none;
+  }
+  .edu-btn:hover,
+  .edu-btn:focus-visible {
+    background: var(--red);
+    color: var(--cream);
+    border-color: var(--red);
+    outline: none;
+  }
+  .edu-btn:active {
+    transform: translate(5px, 5px);
+    box-shadow: 0 0 0 var(--black);
+  }
+  @keyframes eduPulse {
+    0%,
+    49% {
+      opacity: 1;
+    }
+    50%,
+    100% {
+      opacity: 0.25;
+    }
+  }
+
+  /* ---------- CARD ---------- */
+  .edu-card {
+    position: relative;
+    background: transparent; /* the record's data sits on the cream sheet */
+    border: 2px solid var(--ink);
+    box-shadow: none;
+    padding: clamp(18px, 3vw, 34px);
+    transform-origin: center center;
+    transition: transform 0.12s cubic-bezier(0.2, 0.9, 0.2, 1), box-shadow 0.12s cubic-bezier(0.2, 0.9, 0.2, 1);
+    will-change: transform;
+  }
+  .edu-card.shake {
+    animation: eduShake 140ms steps(2, end) 1;
+  }
+  @keyframes eduShake {
+    0% {
+      transform: translate(0, 0);
+    }
+    25% {
+      transform: translate(-3px, 2px);
+    }
+    50% {
+      transform: translate(3px, -2px);
+    }
+    75% {
+      transform: translate(-2px, -1px);
+    }
+    100% {
+      transform: translate(0, 0);
+    }
+  }
+  .card-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    padding-bottom: 18px;
+    border-bottom: 2px solid var(--ink);
+    margin-bottom: clamp(18px, 2.6vw, 28px);
+  }
+  .school-block {
+    min-width: 0;
+  }
+  .wordmark {
+    font-family: var(--font-display);
+    font-size: clamp(1.7rem, 4.4vw, 3.1rem);
+    line-height: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    cursor: default;
+    user-select: none;
+    display: inline-block;
+  }
+  .school-meta {
+    margin-top: 8px;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink);
+    line-height: 1.5;
+  }
+  .school-meta .dim {
+    color: var(--muted);
+  }
+  .head-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    flex: none;
+  }
+  .head-right .edu-restamp {
+    padding: 9px 16px;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+  }
+  .cgpa {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    border: 2px solid var(--ink);
+    background: var(--ink);
+    color: var(--cream);
+    padding: 8px 14px 9px;
+    box-shadow: 5px 5px 0 var(--black);
+    flex: none;
+  }
+  .cgpa .lab {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+  }
+  .cgpa .val {
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 3vw, 2.3rem);
+    line-height: 0.9;
+    color: var(--red);
+  }
+  .cgpa .scale {
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: rgba(247, 245, 241, 0.68);
+  }
+
+  /* ---------- READOUT ---------- */
+  .timeline-label {
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 13px;
+  }
+  .readout {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 14px;
+  }
+  .readout-block {
+    border: 2px solid var(--ink);
+    background: rgba(0, 0, 0, 0.12);
+    box-shadow: 6px 6px 0 var(--black);
+    padding: 14px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    justify-content: center;
+  }
+  .ro-label {
+    font-size: 9.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .ro-blocks {
+    font-size: clamp(15px, 2.4vw, 24px);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--ink);
+    white-space: nowrap;
+    line-height: 1;
+  }
+  .ro-counter {
+    font-family: var(--font-display);
+    font-size: clamp(34px, 6vw, 58px);
+    line-height: 0.82;
+    color: var(--ink);
+  }
+  .ro-counter small {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    font-weight: 400;
+  }
+
+  /* ---------- SGPA HARD-METER (fills the readout's negative space) ---------- */
+  .sgpa-block {
+    flex: 1 1 200px;
+    min-width: 188px;
+  }
+  .sgpa-top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .sgpa-cgpa {
+    font-family: var(--font-display);
+    font-size: 18px;
+    line-height: 1;
+    color: var(--ink);
+  }
+  .sgpa-chart {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    gap: 5px;
+    height: 56px;
+    margin-top: 9px;
+  }
+  .sgpa-col {
+    position: relative;
+    width: 100%;
+    max-width: 16px;
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+  }
+  .sgpa-col .fill {
+    width: 100%;
+    height: var(--h);
+    background: var(--ink);
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition: transform 320ms steps(7, end);
+    transition-delay: var(--d);
+  }
+  .sgpa-col.ghost .fill {
+    background: transparent;
+    border: 2px dashed var(--line);
+  }
+  .sgpa-chart.is-drawn .sgpa-col .fill {
+    transform: scaleY(1);
+  }
+  .sgpa-ref {
+    position: absolute;
+    left: -3px;
+    right: -3px;
+    bottom: var(--cgpa);
+    height: 0;
+    border-top: 2px dashed rgba(20, 20, 20, 0.5);
+    pointer-events: none;
+    z-index: 2;
+  }
+  .sgpa-foot {
+    margin-top: 7px;
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 8.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ---------- TRACK ---------- */
+  .track-wrap {
+    position: relative;
+    margin-top: clamp(30px, 4.5vw, 56px);
+    padding: 0 6px;
+  }
+  .track {
+    position: relative;
+    height: 210px;
+  }
+  .rail {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 118px;
+    height: 14px;
+    border: 2px solid var(--ink);
+    background: rgba(0, 0, 0, 0.22);
+    overflow: hidden;
+  }
+  .rail-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    background: var(--ink);
+    transition: width 700ms cubic-bezier(0.2, 0.9, 0.2, 1);
+  }
+  .tick {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    transform: translateX(-50%);
+  }
+  .tick .notch {
+    position: absolute;
+    top: 110px;
+    height: 30px;
+    left: -1px;
+    width: 2px;
+    background: var(--ink);
+  }
+  .tick .node {
+    position: absolute;
+    top: 114px;
+    left: -9px;
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--ink);
+    background: var(--red);
+    z-index: 4;
+    transition: transform 120ms cubic-bezier(0.2, 0.9, 0.2, 1), background 120ms steps(1, end);
+  }
+  .tick.done .node {
+    background: var(--ink);
+  }
+  .tick.upcoming .node {
+    background: var(--red);
+    border-style: dashed;
+  }
+  .tick .hot {
+    position: absolute;
+    top: 96px;
+    left: -26px;
+    width: 52px;
+    height: 64px;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    z-index: 6;
+    padding: 0;
+  }
+  .tick .hot:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: -2px;
+  }
+  .tick:hover .node,
+  .tick.show .node {
+    transform: scale(1.42) rotate(45deg);
+  }
+  .tick .lab {
+    position: absolute;
+    top: 150px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .tick .lab .s {
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    color: var(--ink);
+  }
+  .tick.upcoming .lab .s {
+    color: var(--muted);
+  }
+  .tick .lab .rng {
+    font-size: 8.5px;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-top: 3px;
+    text-transform: uppercase;
+  }
+  .tick .star {
+    position: absolute;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 22px;
+    line-height: 1;
+    color: var(--ink);
+    pointer-events: none;
+    text-shadow: 2px 2px 0 var(--black);
+  }
+  .tick .star::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 26px;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 48px;
+    background: var(--line);
+  }
+  .marker {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    transform: translateX(-50%);
+    z-index: 8;
+    pointer-events: none;
+  }
+  .marker .stem {
+    position: absolute;
+    top: 80px;
+    left: -2px;
+    width: 4px;
+    height: 74px;
+    background: var(--ink);
+  }
+  .marker .blk {
+    position: absolute;
+    top: 96px;
+    left: -13px;
+    width: 26px;
+    height: 26px;
+    background: var(--ink);
+    border: 2px solid var(--black);
+    box-shadow: 4px 4px 0 var(--black);
+    z-index: 9;
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  .marker .blk:focus-visible {
+    outline: 3px solid var(--red);
+    outline-offset: 3px;
+  }
+  .marker .blk.beat {
+    animation: eduBeat 1.15s steps(3, end) infinite;
+  }
+  @keyframes eduBeat {
+    0%,
+    60% {
+      transform: scale(1);
+    }
+    61%,
+    100% {
+      transform: scale(1.28);
+    }
+  }
+  .marker .flag {
+    position: absolute;
+    top: 36px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--ink);
+    color: var(--red);
+    font-weight: 700;
+    font-size: 9.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 4px 8px;
+    white-space: nowrap;
+    border: 2px solid var(--black);
+    box-shadow: 3px 3px 0 var(--black);
+  }
+  .pop {
+    position: absolute;
+    z-index: 60;
+    min-width: 184px;
+    max-width: 240px;
+    background: var(--black);
+    color: var(--cream);
+    /* the one dark surface in this light manila section — flip the inherited
+       ink/muted/line tokens to their light forms so every descendant reads
+       (text was var(--ink) #141414 on #0a0a0a = 1.05:1, invisible) */
+    --ink: var(--cream);
+    --muted: rgba(247, 245, 241, 0.6);
+    --line: rgba(247, 245, 241, 0.22);
+    border: 2px solid var(--cream);
+    box-shadow: 6px 6px 0 var(--black);
+    padding: 11px 13px;
+    transform: translateX(-50%);
+    pointer-events: none;
+    opacity: 0;
+    display: none;
+  }
+  .pop.on {
+    opacity: 1;
+  }
+  .pop .pterm {
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .pop .prng {
+    font-size: 9.5px;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-top: 3px;
+    text-transform: uppercase;
+  }
+  .pop .prow {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: baseline;
+    margin-top: 9px;
+    padding-top: 9px;
+    border-top: 2px solid var(--line);
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .pop .prow b {
+    font-family: var(--font-display);
+    font-size: 20px;
+    letter-spacing: 0.02em;
+    color: var(--ink);
+  }
+  .pop .pach {
+    margin-top: 8px;
+    font-size: 9.5px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink);
+    line-height: 1.4;
+  }
+  .pop .pach .st {
+    color: var(--ink);
+    margin-right: 5px;
+  }
+  .pop .pstatus,
+  .pop .ptoday {
+    margin-top: 7px;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .track-note {
+    margin-top: 18px;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .card-rule {
+    height: 0;
+    border: 0;
+    border-top: 2px solid var(--line);
+    margin: clamp(26px, 4vw, 42px) 0 0;
+  }
+
+  /* ---------- STAMPS ---------- */
+  .stamp-rail {
+    display: flex;
+    flex-wrap: wrap;
+    gap: clamp(18px, 3vw, 40px);
+    align-items: flex-start;
+    padding: clamp(14px, 2.4vw, 26px) 6px clamp(22px, 3vw, 34px);
+    margin-bottom: clamp(18px, 2.6vw, 28px);
+    border-top: 2px dashed var(--line);
+    border-bottom: 2px dashed var(--line);
+  }
+  .stamp {
+    position: relative;
+    flex: 1 1 220px;
+    max-width: 320px;
+    min-width: 200px;
+    padding: 18px 18px 16px;
+    background-color: #fff; /* a white rubber-stamp impression on the cream sheet */
+    color: var(--red-deep);
+    border: 3px double var(--red-deep);
+    outline: 2px solid var(--red-deep);
+    outline-offset: 3px;
+    cursor: pointer;
+    transform-origin: center center;
+    background-image: radial-gradient(circle at 18% 30%, rgba(122, 0, 20, 0.12) 0 1px, transparent 1.4px),
+      radial-gradient(circle at 62% 70%, rgba(122, 0, 20, 0.1) 0 1px, transparent 1.4px),
+      radial-gradient(circle at 84% 22%, rgba(122, 0, 20, 0.1) 0 1px, transparent 1.4px),
+      radial-gradient(circle at 40% 86%, rgba(122, 0, 20, 0.1) 0 1px, transparent 1.4px);
+    background-size: 7px 7px, 9px 9px, 11px 11px, 8px 8px;
+    will-change: transform;
+    transition: transform 130ms cubic-bezier(0.2, 0.9, 0.2, 1), box-shadow 130ms cubic-bezier(0.2, 0.9, 0.2, 1);
+  }
+  .stamp::before {
+    content: '';
+    position: absolute;
+    inset: 5px;
+    border: 1.5px solid rgba(122, 0, 20, 0.55);
+    pointer-events: none;
+  }
+  .stamp::after {
+    content: attr(data-overprint);
+    position: absolute;
+    right: 8px;
+    bottom: 7px;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 8px;
+    letter-spacing: 0.16em;
+    color: rgba(122, 0, 20, 0.34);
+    transform: rotate(-6deg);
+    pointer-events: none;
+  }
+  .stamp.landed {
+    transform: rotate(var(--rot));
+  }
+  .stamp:hover {
+    transform: translateY(-4px) rotate(var(--rot-hover));
+    box-shadow: 6px 8px 0 var(--black);
+  }
+  .stamp .star {
+    font-family: var(--font-display);
+    font-size: 34px;
+    line-height: 1;
+    color: var(--red);
+    display: block;
+    margin-bottom: 8px;
+    text-shadow: 2px 2px 0 rgba(122, 0, 20, 0.35);
+  }
+  .stamp .award {
+    font-family: var(--font-display);
+    font-size: clamp(1rem, 1.9vw, 1.4rem);
+    line-height: 0.96;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    color: var(--red-deep);
+  }
+  .stamp .s-sub {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--red-dark);
+    margin-top: 6px;
+  }
+  .stamp .semtag {
+    display: inline-block;
+    margin-top: 11px;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--cream);
+    background: var(--red-deep);
+    border: 2px solid var(--red-deep);
+    padding: 3px 9px;
+  }
+  .stamp.armed {
+    opacity: 0;
+    transform: scale(2.2) rotate(var(--rot-in));
+  }
+  .stamp.punch {
+    animation: eduPunch 240ms cubic-bezier(0.18, 1.5, 0.3, 1) 1 forwards;
+  }
+  @keyframes eduPunch {
+    0% {
+      opacity: 0;
+      transform: scale(2.2) rotate(var(--rot-in));
+    }
+    1% {
+      opacity: 1;
+    }
+    55% {
+      transform: scale(0.86) rotate(var(--rot));
+      box-shadow: 0 0 0 var(--black);
+    }
+    72% {
+      transform: scale(1.07) rotate(var(--rot));
+    }
+    86% {
+      transform: scale(0.97) rotate(var(--rot));
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) rotate(var(--rot));
+    }
+  }
+  .stamp.thunk {
+    box-shadow: 6px 8px 0 var(--black);
+  }
+
+  /* ---------- CHIPS ---------- */
+  .course-head {
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: clamp(20px, 2.6vw, 28px);
+    margin-bottom: 12px;
+  }
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+  }
+  .chip {
+    position: relative;
+    overflow: hidden;
+    border: 1.5px solid var(--ink);
+    border-radius: 100px;
+    padding: 5px 11px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink);
+    background: transparent;
+    cursor: pointer;
+    line-height: 1.1;
+    transition: transform 110ms cubic-bezier(0.2, 0.9, 0.2, 1);
+  }
+  .chip:active {
+    transform: scale(0.96);
+  }
+  .chip .wipe {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: var(--ink);
+    clip-path: inset(0 100% 0 0);
+    transition: clip-path 180ms steps(6, end);
+  }
+  .chip label {
+    position: relative;
+    z-index: 1;
+    display: block;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .chip.inv .wipe {
+    clip-path: inset(0 0 0 0);
+  }
+  .chip.inv label {
+    color: var(--red);
+  }
+  .chip:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--black);
+  }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width: 760px) {
+    .tick .lab .rng {
+      display: none;
+    }
+    .tick .star::after {
+      height: 36px;
+      top: 24px;
+    }
+  }
+  @media (max-width: 640px) {
+    .card-head {
+      flex-direction: column;
+    }
+    .head-right {
+      align-items: flex-start;
+    }
+    .cgpa {
+      align-items: flex-start;
+    }
+  }
+  @media (max-width: 560px) {
+    .track {
+      height: 190px;
+    }
+    .tick .lab .s {
+      font-size: 11px;
+    }
+  }
+
+  /* ---------- REDUCED MOTION ---------- */
+  @media (prefers-reduced-motion: reduce) {
+    .edu-card.shake {
+      animation: none;
+    }
+    .mast-stamp .mast-dot {
+      animation: none;
+      opacity: 1;
+    }
+    .mast-title .mt-in {
+      transition: none;
+    }
+    .mast-title .mt-stamp {
+      animation: none !important;
+    }
+    .marker .blk.beat {
+      animation: none;
+    }
+    .rail-fill {
+      transition: none;
+    }
+    .sgpa-col .fill {
+      transition: none;
+    }
+    .stamp.armed {
+      opacity: 1;
+      transform: rotate(var(--rot));
+    }
+    .stamp.punch {
+      animation: none;
+      opacity: 1;
+      transform: rotate(var(--rot));
+    }
+    .chip .wipe {
+      transition: none;
+    }
+    .edu-card,
+    .stamp,
+    .edu-btn {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  function initEducation() {
+    const root = document.getElementById('education');
+    if (!root) return;
+    const REDUCE = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+
+    const track = root.querySelector('.track') as HTMLElement;
+    const START = Number(track.dataset.start);
+    const END = Number(track.dataset.end);
+    const railFill = root.querySelector('.rail-fill') as HTMLElement;
+    const marker = root.querySelector('.marker') as HTMLElement;
+    const mblk = root.querySelector('.marker .blk') as HTMLElement;
+    const pop = root.querySelector('.pop') as HTMLElement;
+    const tickEls = Array.from(root.querySelectorAll('.tick')) as HTMLElement[];
+    const blockReadout = root.querySelector('.ro-blocks') as HTMLElement;
+    const pctCounter = root.querySelector('.ro-num') as HTMLElement;
+    const card = root.querySelector('.edu-card') as HTMLElement;
+    const sgChart = root.querySelector('.sgpa-chart') as HTMLElement;
+    const liveTxt = root.querySelector('.mast-live-txt') as HTMLElement | null;
+    const mastTitle = root.querySelector('.mast-title') as HTMLElement | null;
+
+    /* ---------- live date math ---------- */
+    function computeState() {
+      const now = Date.now();
+      const p = clamp(((now - START) / (END - START)) * 100, 0, 100);
+      let completed = 0;
+      tickEls.forEach((t) => {
+        if (Number(t.dataset.end) < now) completed++;
+      });
+      let current = 0;
+      for (const t of tickEls) {
+        const s = Number(t.dataset.start);
+        const e = Number(t.dataset.end);
+        if (now >= s && now <= e) {
+          current = Number(t.dataset.id);
+          break;
+        }
+      }
+      if (current === 0) current = completed > 0 ? completed : 1;
+      const block = '■'.repeat(completed) + '□'.repeat(8 - completed) + '  ' + Math.round(p) + '% · SEMESTER ' + current;
+      return { now, pct: p, completed, current, block };
+    }
+    let state = computeState();
+
+    function applyLive() {
+      state = computeState();
+      tickEls.forEach((t) => {
+        const done = Number(t.dataset.end) < state.now;
+        t.classList.toggle('done', done);
+        t.classList.toggle('upcoming', !done);
+        t.classList.toggle('current', Number(t.dataset.id) === state.current);
+      });
+      marker.style.left = state.pct + '%';
+      railFill.style.width = state.pct + '%';
+      blockReadout.textContent = state.block;
+      pctCounter.textContent = String(Math.round(state.pct));
+      if (liveTxt) liveTxt.textContent = 'SEM ' + state.current + ' · ' + Math.round(state.pct) + '%';
+    }
+    if (REDUCE) railFill.style.transition = 'none';
+    applyLive();
+
+    /* ---------- popover ---------- */
+    const pTerm = pop.querySelector('.pterm') as HTMLElement;
+    const pRng = pop.querySelector('.prng') as HTMLElement;
+    const pSg = pop.querySelector('.prow b') as HTMLElement;
+    const pAch = pop.querySelector('.pach') as HTMLElement;
+    const pAchTxt = pop.querySelector('.pach-txt') as HTMLElement;
+    const pStatus = pop.querySelector('.pstatus') as HTMLElement;
+    const pToday = pop.querySelector('.ptoday') as HTMLElement;
+
+    function openPop(t: HTMLElement, isToday: boolean) {
+      const sgRaw = t.dataset.sgpa || '';
+      const ach = t.dataset.ach || '';
+      const end = Number(t.dataset.end);
+      const id = Number(t.dataset.id);
+      pTerm.textContent = t.dataset.name || '';
+      pRng.textContent = t.dataset.range || '';
+      pSg.textContent = sgRaw ? Number(sgRaw).toFixed(2) : '—';
+      if (ach) {
+        pAch.style.display = '';
+        pAchTxt.textContent = ach;
+      } else {
+        pAch.style.display = 'none';
+      }
+      pStatus.textContent = end < state.now ? 'COMPLETED' : id === state.current ? 'IN PROGRESS' : 'UPCOMING · NOT YET GRADED';
+      pToday.style.display = isToday ? '' : 'none';
+
+      const wrap = track.parentElement as HTMLElement;
+      const a = t.getBoundingClientRect();
+      const w = wrap.getBoundingClientRect();
+      let cx = a.left + a.width / 2 - w.left;
+      pop.style.display = 'block';
+      pop.classList.add('on');
+      const pw = pop.offsetWidth;
+      cx = clamp(cx, pw / 2 + 4, w.width - pw / 2 - 4);
+      pop.style.left = cx + 'px';
+      pop.style.top = '-2px';
+      pop.style.transform = 'translate(-50%, -100%)';
+    }
+    function closePop() {
+      pop.classList.remove('on');
+      pop.style.display = 'none';
+    }
+    closePop();
+
+    tickEls.forEach((t) => {
+      const hot = t.querySelector('.hot') as HTMLElement;
+      const show = () => {
+        openPop(t, false);
+        t.classList.add('show');
+      };
+      const hide = () => {
+        closePop();
+        t.classList.remove('show');
+      };
+      hot.addEventListener('mouseenter', show);
+      hot.addEventListener('mouseleave', hide);
+      hot.addEventListener('focus', show);
+      hot.addEventListener('blur', hide);
+    });
+
+    const curTick = () => tickEls.find((t) => Number(t.dataset.id) === state.current) || tickEls[0];
+    mblk.setAttribute('tabindex', '0');
+    mblk.setAttribute('role', 'button');
+    mblk.addEventListener('mouseenter', () => openPop(curTick(), true));
+    mblk.addEventListener('mouseleave', closePop);
+    mblk.addEventListener('focus', () => openPop(curTick(), true));
+    mblk.addEventListener('blur', closePop);
+
+    /* ---------- count-up ---------- */
+    function countUp(target: number) {
+      if (REDUCE) {
+        pctCounter.textContent = String(target);
+        return;
+      }
+      const dur = 700;
+      const t0 = performance.now();
+      function step(t: number) {
+        const k = clamp((t - t0) / dur, 0, 1);
+        const e = 1 - Math.pow(1 - k, 3);
+        pctCounter.textContent = String(Math.round(target * e));
+        if (k < 1) requestAnimationFrame(step);
+        else pctCounter.textContent = String(target);
+      }
+      requestAnimationFrame(step);
+    }
+
+    /* ---------- chips: decode-in + press-to-invert ---------- */
+    const CHARSET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/#*<>';
+    const rnd = () => CHARSET[(Math.random() * CHARSET.length) | 0];
+    const chipEls = Array.from(root.querySelectorAll('.chip')) as HTMLElement[];
+    chipEls.forEach((c) => {
+      const lab = c.querySelector('label') as HTMLElement;
+      const real = (c.dataset.text || lab.textContent || '').toUpperCase();
+      (c as any)._real = real;
+      (c as any)._lab = lab;
+      if (!REDUCE) lab.textContent = '';
+      else lab.textContent = real;
+      c.addEventListener('click', () => {
+        const inv = c.classList.toggle('inv');
+        c.setAttribute('aria-pressed', inv ? 'true' : 'false');
+      });
+    });
+    function decodeChip(c: HTMLElement, delay: number) {
+      const real: string = (c as any)._real;
+      const lab: HTMLElement = (c as any)._lab;
+      const len = real.length;
+      const dur = 450;
+      let t0: number | null = null;
+      window.setTimeout(() => {
+        function frame(t: number) {
+          if (t0 === null) t0 = t;
+          const k = clamp((t - t0) / dur, 0, 1);
+          const resolved = Math.floor(k * len);
+          let out = '';
+          for (let i = 0; i < len; i++) {
+            const ch = real[i];
+            out += i < resolved || ch === ' ' || ch === '&' ? ch : rnd();
+          }
+          lab.textContent = out;
+          if (k < 1) requestAnimationFrame(frame);
+          else lab.textContent = real;
+        }
+        requestAnimationFrame(frame);
+      }, delay);
+    }
+
+    /* ---------- stamps: punch-in ---------- */
+    const stampEls = Array.from(root.querySelectorAll('.stamp')) as HTMLElement[];
+    function fireShake() {
+      if (REDUCE) return;
+      card.classList.remove('shake');
+      void card.offsetWidth;
+      card.classList.add('shake');
+    }
+    function punch(el: HTMLElement, delay: number) {
+      if (REDUCE) {
+        el.classList.remove('armed', 'punch');
+        el.classList.add('landed');
+        return;
+      }
+      el.classList.remove('punch', 'landed');
+      el.classList.add('armed');
+      void el.offsetWidth;
+      window.setTimeout(() => {
+        el.classList.remove('armed');
+        el.classList.add('punch');
+        window.setTimeout(() => {
+          el.classList.add('thunk');
+          fireShake();
+          window.setTimeout(() => el.classList.remove('thunk'), 140);
+        }, 130);
+        window.setTimeout(() => {
+          el.classList.remove('punch');
+          el.classList.add('landed');
+        }, 260);
+      }, delay);
+    }
+    function stampSeq() {
+      if (REDUCE) {
+        stampEls.forEach((el) => punch(el, 0));
+        return;
+      }
+      stampEls.forEach((el, i) => punch(el, i * 150));
+    }
+    const restamp = root.querySelector('.edu-restamp') as HTMLElement | null;
+    if (restamp) restamp.addEventListener('click', stampSeq);
+
+    /* ---------- reveals: each block animates only when it scrolls into view ---------- */
+    const stampRail = root.querySelector('.stamp-rail') as HTMLElement;
+    const chipsWrap = root.querySelector('.chips') as HTMLElement;
+    const readoutEl = root.querySelector('.readout') as HTMLElement;
+
+    function whenInView(el: HTMLElement, cb: () => void, threshold: number) {
+      if (!('IntersectionObserver' in window)) {
+        cb();
+        return;
+      }
+      let done = false;
+      const fire = () => {
+        if (done) return;
+        done = true;
+        cb();
+        io.disconnect();
+      };
+      const io = new IntersectionObserver((entries) => entries.forEach((en) => en.isIntersecting && fire()), {
+        threshold,
+      });
+      io.observe(el);
+      window.setTimeout(() => {
+        const r = el.getBoundingClientRect();
+        if (r.top < window.innerHeight * 0.85 && r.bottom > 0) fire();
+      }, 120);
+    }
+
+    if (REDUCE) {
+      stampEls.forEach((el) => {
+        el.classList.remove('armed', 'punch');
+        el.classList.add('landed');
+      });
+      chipEls.forEach((c) => {
+        const lab = c.querySelector('label') as HTMLElement;
+        lab.textContent = (c as any)._real;
+      });
+      sgChart.classList.add('is-drawn');
+      pctCounter.textContent = String(Math.round(state.pct));
+    } else {
+      whenInView(
+        readoutEl,
+        () => {
+          sgChart.classList.add('is-drawn');
+          pctCounter.textContent = '0';
+          requestAnimationFrame(() => countUp(Math.round(state.pct)));
+        },
+        0.4
+      );
+      whenInView(stampRail, stampSeq, 0.4);
+      whenInView(chipsWrap, () => chipEls.forEach((c, i) => decodeChip(c, i * 45)), 0.3);
+      if (mastTitle) {
+        mastTitle.classList.add('armed');
+        whenInView(mastTitle, () => mastTitle.classList.add('revealed'), 0.2);
+      }
+    }
+
+    /* ---------- wordmark decode-on-hover ---------- */
+    const wm = root.querySelector('.wordmark') as HTMLElement;
+    const wmReal = wm.dataset.text || wm.textContent || '';
+    let wmRaf = 0;
+    function decodeWord() {
+      if (REDUCE) {
+        wm.textContent = wmReal;
+        return;
+      }
+      cancelAnimationFrame(wmRaf);
+      const len = wmReal.length;
+      const dur = 420;
+      let t0: number | null = null;
+      function frame(t: number) {
+        if (t0 === null) t0 = t;
+        const k = clamp((t - t0) / dur, 0, 1);
+        const resolved = Math.floor(k * len);
+        let out = '';
+        for (let i = 0; i < len; i++) {
+          const ch = wmReal[i];
+          out += i < resolved || ch === ' ' ? ch : rnd();
+        }
+        wm.textContent = out;
+        if (k < 1) wmRaf = requestAnimationFrame(frame);
+        else wm.textContent = wmReal;
+      }
+      wmRaf = requestAnimationFrame(frame);
+    }
+    wm.setAttribute('tabindex', '0');
+    wm.addEventListener('mouseenter', decodeWord);
+    wm.addEventListener('focus', decodeWord);
+
+    /* keep it honest as real time passes */
+    window.setInterval(applyLive, 30000);
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initEducation);
+  else initEducation();
+</script>

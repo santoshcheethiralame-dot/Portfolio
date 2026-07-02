@@ -1,0 +1,1223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Santosh Cheethirala — Edition Prints Over</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+/* ============================================================ SAFE SHARED GLOBALS ONLY */
+*{ box-sizing:border-box; margin:0; padding:0; }
+html{ -webkit-font-smoothing:antialiased; }
+/* body bg neutral; no global pollution. native cursor everywhere. */
+body{ background:#efece4; }
+::selection{ background:#141414; color:#f7f5f1; }
+a{ color:inherit; text-decoration:none; }
+
+/* ============================================================ HERO (.me-top) — fully scoped */
+/* STICKY hero: the edition sheet rises over it via native scroll, no JS. */
+.me-top{
+  --bink:#141414; --bcream:#f7f5f1; --bcream2:#efece4; --bred:#ed1c24; --blime:#b4ff2e; --bgray:#928b80;
+  position:sticky;
+  top:0;
+  z-index:0;
+  width:100%;
+  height:100svh;
+  background:var(--bred);
+  padding:clamp(10px,1.4vw,20px);
+  display:flex;
+  flex-direction:column;
+  cursor:auto; /* native cursor restored — no probe */
+}
+
+.hero-panel{
+  flex:1;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  background:var(--bcream);
+  border:4px solid var(--bink);
+  box-shadow:10px 10px 0 var(--bink);
+  overflow:hidden;
+}
+
+/* ── TOP BAR ── */
+.hp-bar{
+  display:flex;
+  align-items:center;
+  gap:clamp(12px,2vw,26px);
+  flex-wrap:wrap;
+  min-height:56px;
+  padding:8px clamp(16px,2.4vw,30px);
+  border-bottom:3px solid var(--bink);
+  font-family:"JetBrains Mono",monospace;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--bink);
+}
+.hp-pill{
+  background:var(--bink);
+  color:var(--bcream);
+  padding:4px 10px;
+}
+.hp-meta{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+.hp-avail .dot{
+  width:8px; height:8px;
+  border-radius:50%;
+  background:var(--bink);
+  box-shadow:0 0 0 2px var(--bink);
+  animation:hp-blink 1.6s steps(1) infinite;
+}
+@keyframes hp-blink{ 50%{ opacity:.25; } }
+
+/* ── STAGE ── */
+.hp-stage{
+  flex:1;
+  min-height:0;
+  display:grid;
+  grid-template-columns:1.33fr 1fr;
+  gap:clamp(6px,.7vw,11px);
+  padding:clamp(16px,2.2vw,32px) clamp(16px,2.6vw,34px);
+}
+.hp-left{
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-start;
+  min-width:0;
+}
+.hp-name{ min-width:0; }
+.hero-name{
+  font-family:"Anton",sans-serif;
+  font-weight:500;
+  /* FIX: clamp max reduced + wrapping allowed so CHEETHIRALA never runs under the cat */
+  font-size:clamp(2.4rem,11.5vw,8.6rem);
+  line-height:.82;
+  letter-spacing:.005em;
+  text-transform:uppercase;
+  color:var(--bink);
+  white-space:normal;
+  word-break:break-word;
+}
+.hero-name.is-out{
+  color:transparent;
+  -webkit-text-stroke:2px var(--bink);
+}
+
+/* ============================================================ FOLDED TEASER — the about shortcut */
+.teaser-wrap{
+  margin-top:clamp(14px,1.8vw,26px);
+  flex:1;
+  min-height:0;
+  display:flex;
+  align-items:stretch;
+}
+.teaser{
+  position:relative;
+  width:100%;
+  /* fill the left column (width + height) — no narrow cap; this kills the void below the name */
+  height:100%;
+  display:flex; flex-direction:column;
+  background:var(--bcream);
+  border:2.5px solid var(--bink);
+  box-shadow:8px 8px 0 var(--bink);
+  padding:clamp(12px,1.3vw,20px) clamp(14px,1.5vw,22px) clamp(12px,1.3vw,18px);
+  cursor:pointer;
+  /* ONE allowed micro-interaction: hover lift; no looping animation */
+  transition:transform .14s ease, box-shadow .14s ease;
+  outline:none;
+}
+/* small stack of papers underneath — hard edged, no animation */
+.teaser::before,
+.teaser::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:var(--bcream2);
+  border:2.5px solid var(--bink);
+  z-index:-1;
+}
+.teaser::before{ transform:translate(4px,4px); }
+.teaser::after{ transform:translate(8px,8px); z-index:-2; }
+.teaser:hover{ transform:translate(2px,2px); box-shadow:6px 6px 0 var(--bink); }
+.teaser:focus-visible{ box-shadow:8px 8px 0 var(--bink), 0 0 0 3px var(--bred); }
+
+/* folio strip */
+.teaser .ts-folio{
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap;
+  gap:2px 10px;
+  font-family:"JetBrains Mono",monospace;
+  font-size:9px; font-weight:500; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--bgray);
+  margin-bottom:6px;
+}
+.teaser .ts-rule{ border:none; border-top:3px solid var(--bink); margin:0 0 7px; }
+.teaser .ts-mast{
+  font-family:"Anton",sans-serif; font-weight:500;
+  font-size:clamp(1.8rem,2.7vw,2.7rem);
+  line-height:.9; letter-spacing:.01em; text-transform:uppercase;
+  color:var(--bink);
+  text-align:center;
+  margin-bottom:8px;
+}
+.teaser .ts-dateline{
+  background:var(--bink); color:var(--bcream);
+  font-family:"JetBrains Mono",monospace;
+  font-size:8px; font-weight:700; letter-spacing:.16em; text-transform:uppercase;
+  padding:4px 8px;
+  display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; text-align:center;
+}
+
+/* the crease — fold line ~40% down */
+.teaser .crease{
+  margin:10px 0 0;
+  border-top:1px solid rgba(20,20,20,.55);
+  box-shadow:0 -7px 10px -7px rgba(20,20,20,.35) inset,
+             0 7px 10px -7px rgba(20,20,20,.18) inset;
+  height:8px;
+}
+
+/* front-page preview below the fold — fills the teaser; clipped + masked so it reads as folded under */
+.teaser .ts-front{
+  position:relative;
+  flex:1; min-height:0; overflow:hidden;
+  margin-top:4px;
+}
+.teaser .ts-front::after{
+  content:"";
+  position:absolute; left:0; right:0; bottom:0; height:2.6em;
+  background:linear-gradient(180deg, rgba(247,245,241,0), var(--bcream));
+  pointer-events:none;
+}
+.teaser .ts-head{
+  font-family:"Anton",sans-serif; font-weight:500;
+  font-size:clamp(1.15rem,1.75vw,1.7rem);
+  line-height:1.02; letter-spacing:.01em; text-transform:uppercase;
+  color:var(--bink);
+  margin-bottom:7px;
+}
+.teaser .ts-deck{
+  font-family:"Instrument Serif",serif; font-style:italic;
+  font-size:clamp(.9rem,1.15vw,1.1rem); line-height:1.25;
+  color:var(--bink);
+  margin-bottom:9px; padding-bottom:9px;
+  border-bottom:1px solid rgba(20,20,20,.28);
+}
+.teaser .ts-cols{
+  columns:2; column-gap:18px; column-rule:1px solid rgba(20,20,20,.22);
+  font-family:"Instrument Serif",serif;
+  font-size:clamp(.74rem,.92vw,.9rem); line-height:1.5; text-align:justify;
+  color:var(--bink);
+}
+.teaser .ts-cols p{ margin:0 0 .6em; break-inside:avoid; }
+.teaser .ts-cols p:first-child::first-letter{
+  font-family:"Anton",sans-serif; font-weight:500;
+  font-size:2.2em; line-height:.8; float:left; margin:2px 5px 0 0; color:var(--bink);
+}
+
+/* hint row */
+.teaser .ts-hint{
+  display:flex; align-items:center; gap:8px;
+  margin-top:10px;
+  font-family:"JetBrains Mono",monospace;
+  font-size:9px; font-weight:700; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--bred);
+}
+.teaser .ts-hint .tri{ color:var(--blime); font-size:11px; line-height:1; }
+.teaser .ts-hint .arrow{ margin-left:auto; }
+
+/* ── CAT SIDE ── */
+.hp-side{
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  justify-content:stretch;
+  min-width:0;
+}
+.hp-photo{
+  flex:1;
+  width:100%;
+  min-height:0;
+  align-self:stretch;
+  border:6px solid var(--bink);
+  box-shadow:8px 8px 0 var(--bink);
+  background:var(--bink);
+  position:relative;
+  overflow:hidden;
+}
+.hp-cat{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  object-fit:cover;
+  object-position:center 38%;
+  image-rendering:pixelated;
+}
+.cat-scene{ position:absolute; inset:0; }
+.cat-parallax{
+  position:absolute;
+  inset:-7%;
+  will-change:transform;
+}
+.cat-rain{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  z-index:2; pointer-events:none;
+}
+.cat-scan{
+  position:absolute; inset:0;
+  z-index:3; pointer-events:none;
+  opacity:.1; mix-blend-mode:multiply;
+  background:repeating-linear-gradient(0deg,rgba(10,10,10,.6) 0 1px,transparent 1px 3px);
+}
+.hp-photo-tag{
+  position:absolute; bottom:10px; left:12px;
+  font-family:"JetBrains Mono",monospace;
+  font-size:10px; letter-spacing:.16em; text-transform:uppercase;
+  color:rgba(247,245,241,.7);
+  background:rgba(20,20,20,.6);
+  padding:3px 6px;
+  z-index:10;
+}
+
+/* ── MARQUEE ── */
+.hp-marquee{
+  border-top:3px solid var(--bink);
+  background:var(--bink);
+  overflow:hidden;
+}
+.mq-track{
+  display:flex;
+  width:max-content;
+  animation:mq-scroll 46s linear infinite;
+}
+.mq-track span{
+  white-space:nowrap;
+  padding:12px 0;
+  font-family:"Anton",sans-serif;
+  font-weight:500;
+  font-size:clamp(1rem,1.6vw,1.45rem);
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  color:var(--bcream);
+}
+@keyframes mq-scroll{ to{ transform:translateX(-50%); } }
+
+@media(prefers-reduced-motion:reduce){
+  .mq-track, .hp-avail .dot{ animation:none; }
+}
+
+/* HERO RESPONSIVE */
+@media(max-width:820px){
+  .hp-stage{ grid-template-columns:1fr; gap:18px; }
+  .hero-name{ font-size:clamp(2.2rem,13vw,6rem); }
+  .hp-photo{ min-height:150px; }
+  /* stacked column: teaser sizes to content, single-column front page */
+  .teaser-wrap{ flex:none; }
+  .teaser{ height:auto; padding:12px 14px; }
+  .teaser .ts-front{ flex:none; max-height:8.5em; }
+  .teaser .ts-cols{ columns:1; }
+}
+@media(max-width:600px){
+  /* collapse: masthead bar + hint only */
+  .teaser .ts-folio,
+  .teaser .ts-rule,
+  .teaser .ts-dateline,
+  .teaser .crease,
+  .teaser .ts-front{ display:none; }
+  .teaser .ts-mast{ margin-bottom:6px; text-align:left; font-size:1.5rem; }
+  .teaser::before, .teaser::after{ display:none; }
+}
+
+/* ============================================================ EDITION (.edition) — fully scoped */
+/* OPAQUE sheet that rises over the sticky hero. The cover motion is browser-composited, no JS. */
+.edition{
+  --ink:#141414; --cream:#f7f5f1; --cream2:#efece4; --red:#ed1c24;
+  --lime:#b4ff2e;
+  --black:#0a0a0a; --gray:#928b80;
+  --fd:"Anton",sans-serif; --fm:"JetBrains Mono",monospace; --fi:"Instrument Serif",serif;
+
+  position:relative;
+  z-index:1;
+  background:var(--cream); /* OPAQUE — must fully cover the hero */
+  color:var(--ink);
+  font-family:var(--fi);
+
+  border:5px solid var(--ink);
+  border-top:5px solid var(--ink);
+  /* the sheet-laid-on-top edge — STATIC, never animated */
+  box-shadow:0 -10px 40px rgba(10,10,10,.35), 12px 12px 0 var(--ink);
+
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  margin:0 clamp(10px,1.4vw,20px) clamp(10px,1.4vw,20px);
+}
+
+/* ============================================================ PRESS-RUN — scoped to .edition */
+.edition.pressrun .mast-rule-top,
+.edition.pressrun .mast-rule-bot{ transform:scaleX(0); transform-origin:left center; }
+.edition.pressrun.go .mast-rule-top{ transform:scaleX(1); transition:transform .5s cubic-bezier(.7,0,.25,1); }
+.edition.pressrun.go .mast-rule-bot{ transform:scaleX(1); transition:transform .5s cubic-bezier(.7,0,.25,1) .14s; }
+
+.edition.pressrun .dateline-strip,
+.edition.pressrun .ticker{ opacity:0; }
+.edition.pressrun.go .dateline-strip{ opacity:1; transition:opacity .3s ease .26s; }
+.edition.pressrun.go .ticker{ opacity:1; transition:opacity .3s ease .34s; }
+
+.edition.pressrun .masthead-title{ opacity:0; transform:translateY(-28px) scale(1.06); }
+.edition.pressrun.go .masthead-title{ opacity:1; transform:none; transition:transform .5s cubic-bezier(.18,1.35,.3,1) .2s, opacity .32s ease .2s; }
+
+.edition.pressrun .sticker-late{ opacity:0; transform:rotate(6deg) scale(1.5); }
+.edition.pressrun.go .sticker-late{ opacity:1; transform:rotate(6deg) scale(1); transition:transform .35s cubic-bezier(.18,1.5,.3,1) .55s, opacity .2s ease .55s; }
+
+.edition.pressrun .deck-kicker,
+.edition.pressrun .deck-head,
+.edition.pressrun .deck-sub,
+.edition.pressrun .byline{ opacity:0; }
+.edition.pressrun.go .deck-kicker{ opacity:1; transition:opacity .3s ease .36s; }
+.edition.pressrun.go .deck-head{ opacity:1; transition:opacity .25s ease .4s; }
+.edition.pressrun.go .deck-sub{ opacity:1; transition:opacity .3s ease .58s; }
+.edition.pressrun.go .byline{ opacity:1; transition:opacity .3s ease .64s; }
+
+.edition.pressrun .dropcap{ opacity:0; transform:translateY(-10px) scale(1.5); display:inline-block; }
+.edition.pressrun.go .dropcap{ opacity:1; transform:none; transition:transform .4s cubic-bezier(.18,1.45,.3,1) .72s, opacity .25s ease .72s; }
+
+.edition.pressrun .article-flow,
+.edition.pressrun .sidebar,
+.edition.pressrun .classifieds{ opacity:0; transform:translateY(18px); }
+.edition.pressrun.go .article-flow{ opacity:1; transform:none; transition:opacity .4s ease .5s, transform .55s cubic-bezier(.2,.9,.25,1) .5s; }
+.edition.pressrun.go .sidebar{ opacity:1; transform:none; transition:opacity .4s ease .6s, transform .55s cubic-bezier(.2,.9,.25,1) .6s; }
+.edition.pressrun.go .classifieds{ opacity:1; transform:none; transition:opacity .4s ease .7s, transform .5s cubic-bezier(.2,.9,.25,1) .7s; }
+
+/* safety reveal lock */
+.edition.pr-done .masthead-title, .edition.pr-done .sticker-late,
+.edition.pr-done .dateline-strip, .edition.pr-done .ticker,
+.edition.pr-done .mast-rule-top, .edition.pr-done .mast-rule-bot,
+.edition.pr-done .deck-kicker, .edition.pr-done .deck-head,
+.edition.pr-done .deck-sub, .edition.pr-done .byline,
+.edition.pr-done .dropcap, .edition.pr-done .article-flow,
+.edition.pr-done .sidebar, .edition.pr-done .classifieds{
+  opacity:1 !important; transform:none !important;
+  /* no permanent will-change once locked */
+  will-change:auto !important;
+}
+
+/* ============================================================ EDITION INTERNALS */
+.edition hr.rule{ border:none; border-top:1px solid var(--ink); margin:0; }
+.edition hr.rule-heavy{ border:none; border-top:3px solid var(--ink); margin:0; }
+
+.edition .page{
+  max-width:1200px; margin:0 auto;
+  padding:14px clamp(12px,3vw,36px) 60px;
+}
+
+.edition .folio{
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap;
+  gap:4px 16px; padding:6px 0 8px;
+  font-family:var(--fm); font-size:9.5px; font-weight:500; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--gray);
+}
+.edition .folio-center{ text-align:center; flex:1; }
+.edition .folio-right{ text-align:right; display:flex; align-items:center; gap:8px; }
+.edition #clock{ font-weight:700; color:var(--ink); }
+
+.edition .masthead{ text-align:center; position:relative; padding:6px 0 0; }
+.edition hr.mast-rule-top{ border:none; border-top:3px solid var(--ink); margin:0; }
+.edition .masthead-inner{ position:relative; display:block; padding:clamp(14px,2.4vw,30px) 0 clamp(10px,1.6vw,18px); }
+.edition .masthead-title{
+  font-family:var(--fd); font-weight:500;
+  font-size:clamp(2.7rem,9vw,7rem);
+  line-height:.84; letter-spacing:.01em;
+  text-transform:uppercase; color:var(--ink); display:block;
+}
+.edition .dateline-strip{
+  background:var(--ink); color:var(--cream);
+  padding:5px 12px;
+  font-family:var(--fm); font-size:9px; font-weight:700; letter-spacing:.18em; text-transform:uppercase;
+  display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap;
+}
+.edition hr.mast-rule-bot{ border:none; border-top:3px solid var(--ink); margin:0; }
+.edition .sticker-late{
+  position:absolute; top:-4px; right:2px; z-index:12;
+  background:var(--red); color:var(--cream);
+  border:2px solid var(--ink); box-shadow:3px 3px 0 var(--ink);
+  font-family:var(--fm); font-size:8px; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
+  padding:4px 8px; white-space:nowrap; transform:rotate(6deg);
+  line-height:1.5; text-align:center;
+}
+
+.edition .ticker{
+  display:flex; align-items:stretch;
+  border-top:1px solid rgba(247,245,241,.25);
+  background:var(--ink); color:var(--cream); overflow:hidden;
+}
+.edition .ticker-flag{
+  flex:none; display:flex; align-items:center; gap:6px;
+  background:var(--red); color:var(--cream);
+  font-family:var(--fm); font-size:9px; font-weight:700; letter-spacing:.16em; text-transform:uppercase;
+  padding:5px 10px; white-space:nowrap; border-right:2px solid var(--cream);
+}
+.edition .ticker-flag .blip{ width:7px; height:7px; border-radius:50%; background:var(--cream); animation:blip 1.3s steps(1) infinite; }
+@keyframes blip{ 50%{ opacity:.2; } }
+.edition .ticker-viewport{ position:relative; flex:1; overflow:hidden; }
+.edition .ticker-track{
+  display:inline-flex; white-space:nowrap; will-change:transform;
+  animation:ticker 38s linear infinite; padding:5px 0;
+}
+.edition .ticker:hover .ticker-track{ animation-play-state:paused; }
+.edition .ticker-track .tk{
+  font-family:var(--fm); font-size:9.5px; font-weight:500; letter-spacing:.1em;
+  text-transform:uppercase; color:rgba(247,245,241,.9); padding:0 4px;
+}
+.edition .ticker-track .tk .sep{ color:var(--red); padding:0 14px; }
+.edition .ticker-track .tk b{ color:var(--red); font-weight:700; }
+@keyframes ticker{ to{ transform:translateX(-50%); } }
+
+.edition .lead-zone{ border-bottom:1px solid var(--ink); padding:20px 0 0; }
+.edition .lead-headline{
+  display:grid; grid-template-columns:minmax(0,1fr) clamp(190px,26%,280px);
+  gap:0 clamp(18px,2.6vw,42px); align-items:stretch;
+  border-bottom:1px solid var(--ink); padding-bottom:12px; margin-bottom:12px;
+}
+.edition .lead-main{ min-width:0; }
+.edition .lead-refer{
+  border-left:1px solid var(--ink); padding-left:clamp(14px,1.6vw,22px);
+  display:flex; flex-direction:column; align-self:stretch;
+}
+.edition .refer-head{ font-family:var(--fm); font-size:9px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:var(--red); border-bottom:2px solid var(--ink); padding-bottom:6px; margin-bottom:8px; }
+.edition .refer-list{ list-style:none; margin:0; padding:0; flex:1; font-family:var(--fm); font-size:10px; font-weight:500; letter-spacing:.02em; color:var(--ink); }
+.edition .refer-list li{ display:flex; align-items:baseline; gap:6px; padding:5px 0; }
+.edition .refer-list .dots{ flex:1; border-bottom:1px dotted rgba(20,20,20,.4); transform:translateY(-3px); min-width:14px; }
+.edition .refer-list b{ color:var(--red); font-weight:700; white-space:nowrap; }
+.edition .refer-list a{ display:flex; flex:1; align-items:baseline; gap:6px; color:inherit; cursor:pointer; }
+.edition .refer-list a:hover b{ color:var(--ink); }
+.edition .refer-foot{ font-family:var(--fm); font-size:8.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--gray); border-top:1px solid rgba(20,20,20,.2); padding-top:8px; margin-top:8px; line-height:1.55; }
+.edition .deck-sub{ grid-column:1 / -1; }
+.edition .byline{ grid-column:1 / -1; }
+.edition .deck-kicker{
+  font-family:var(--fm); font-size:9px; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:var(--red);
+  margin-bottom:8px; display:block;
+}
+.edition .deck-head{
+  font-family:var(--fd); font-weight:500;
+  font-size:clamp(2rem,6.5vw,5rem);
+  line-height:.88; letter-spacing:.01em; text-transform:uppercase; color:var(--ink); margin-bottom:14px;
+}
+.edition .deck-sub{
+  font-family:var(--fi); font-style:italic;
+  font-size:clamp(1rem,1.8vw,1.35rem);
+  line-height:1.4; color:var(--ink); max-width:68ch; margin-bottom:10px;
+}
+.edition .byline{ font-family:var(--fm); font-size:9.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--gray); }
+.edition .byline b{ color:var(--red); }
+
+.edition .body-grid{
+  display:grid; grid-template-columns:1fr 1fr minmax(220px,280px);
+  gap:0; padding:16px 0 0; border-bottom:3px solid var(--ink); align-items:stretch;
+}
+.edition .article-flow{
+  position:relative; grid-column:1 / 3;
+  columns:2; column-gap:clamp(20px,2.6vw,36px); column-rule:1px solid transparent;
+  hyphens:auto;
+  padding:0 clamp(18px,2.2vw,28px) 22px 0; border-right:1px solid var(--ink);
+}
+.edition .article-flow p{
+  font-family:var(--fi); font-size:clamp(1rem,1.18vw,1.18rem);
+  line-height:1.82; text-align:justify; margin-bottom:1em; break-inside:avoid-column;
+}
+.edition .dropcap{
+  font-family:var(--fd); font-weight:500; font-size:3.9em; line-height:.72;
+  float:left; margin:6px 8px -2px 0; color:var(--ink);
+}
+.edition .endmark{ display:inline-block; width:.62em; height:.62em; background:var(--ink); margin-left:6px; vertical-align:baseline; }
+
+.edition .col-rule{
+  position:absolute; top:0; bottom:0; left:50%;
+  width:1px; background:var(--ink); transform:translateX(-50%); pointer-events:none;
+}
+.edition .press-tick{
+  position:absolute; left:50%; top:0;
+  width:9px; height:16px; background:var(--lime);
+  border:1.5px solid var(--ink); box-shadow:1px 1px 0 var(--ink); transform:translateX(-50%);
+}
+
+.edition .pull{
+  column-span:all;
+  font-family:var(--fi); font-style:italic;
+  font-size:clamp(1.5rem,2.8vw,2.3rem); line-height:1.18; text-align:left !important;
+  color:var(--ink); margin:6px 0 16px; padding:12px 0 14px;
+  border-top:2px solid var(--ink); border-bottom:2px solid var(--ink);
+}
+.edition .penned{ position:relative; white-space:normal; }
+.edition .penned .pen{ position:absolute; left:-2px; right:-2px; bottom:-6px; width:calc(100% + 4px); height:.5em; overflow:visible; }
+.edition .penned .pen path{ fill:none; stroke:var(--red); stroke-width:3; stroke-linecap:round; stroke-dasharray:100; stroke-dashoffset:100; }
+.edition .penned.drawn .pen path{ stroke-dashoffset:0; transition:stroke-dashoffset .75s cubic-bezier(.6,0,.3,1); }
+
+.edition .continued{
+  column-span:all; display:block; margin-top:14px; padding-top:10px;
+  border-top:1px solid var(--ink);
+  font-family:var(--fm); font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--red); cursor:pointer;
+}
+.edition .continued:hover{ color:var(--ink); }
+.edition .continued .arr{ display:inline-block; transition:transform .15s ease; }
+.edition .continued:hover .arr{ transform:translateX(4px); }
+
+.edition .cat-figure{
+  border:2px solid var(--ink); box-shadow:5px 5px 0 var(--ink);
+  margin:0 0 14px 0; break-inside:avoid; display:block; width:100%;
+}
+.edition .cat-img-wrap{ position:relative; overflow:hidden; display:block; }
+.edition .cat-img-wrap img{
+  display:block; width:100%; border-bottom:2px solid var(--ink);
+  filter:grayscale(1) contrast(1.4) brightness(1.05); transition:filter .8s ease; transform:scale(1.001);
+}
+.edition .cat-img-wrap::after{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background-image:radial-gradient(var(--ink) 31%,transparent 33%);
+  background-size:4px 4px; mix-blend-mode:multiply; opacity:.6; transition:opacity .8s ease;
+}
+.edition .cat-figure.resolved .cat-img-wrap img,
+.edition .cat-figure:hover .cat-img-wrap img{ filter:none; }
+.edition .cat-figure.resolved .cat-img-wrap::after,
+.edition .cat-figure:hover .cat-img-wrap::after{ opacity:0; }
+.edition .cat-caption{ font-family:var(--fm); font-size:8.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--gray); padding:5px 8px; line-height:1.5; background:var(--cream2); }
+.edition .cat-caption b{ color:var(--ink); }
+
+.edition .sidebar{ grid-column:3; padding-left:clamp(14px,1.8vw,22px); padding-top:2px; }
+.edition .box{ border:2px solid var(--ink); box-shadow:5px 5px 0 var(--ink); background:var(--cream2); margin-bottom:14px; }
+.edition .box-head{ background:var(--ink); color:var(--cream); font-family:var(--fm); font-size:9px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; padding:6px 10px; }
+.edition .status-badge{ background:var(--red); color:var(--cream); border:2px solid var(--ink); box-shadow:3px 3px 0 var(--ink); font-family:var(--fm); font-size:8px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; padding:7px 10px; line-height:1.55; margin-bottom:14px; display:block; }
+.edition .stat-pull{ padding:10px 10px 12px; font-family:var(--fm); }
+.edition .stat-pull .stat-num{ font-size:2rem; font-weight:700; color:var(--red); line-height:1; display:block; margin-bottom:4px; }
+.edition .stat-pull .stat-desc{ font-size:8.5px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; color:var(--ink); line-height:1.5; }
+.edition .rules-list{ list-style:none; padding:0; margin:0; font-family:var(--fm); font-size:9px; font-weight:500; letter-spacing:.04em; }
+.edition .rules-list li{ padding:6px 10px; border-bottom:1px solid rgba(20,20,20,.18); line-height:1.55; color:var(--ink); }
+.edition .rules-list li:last-child{ border-bottom:none; }
+.edition .rules-list .rule-num{ color:var(--red); font-weight:700; margin-right:4px; }
+.edition .stderr-log{ padding:8px 10px; font-family:var(--fm); font-size:8.5px; font-weight:500; letter-spacing:.04em; color:var(--ink); line-height:1.65; min-height:74px; }
+.edition .stderr-log .log-line{ display:block; color:var(--gray); border-bottom:1px solid rgba(20,20,20,.12); padding:3px 0; }
+.edition .stderr-log .log-line:last-child{ border-bottom:none; padding-bottom:0; color:var(--ink); }
+.edition .stderr-log .log-line b{ color:var(--red); }
+.edition .proj-line{ padding:9px 10px; font-family:var(--fi); font-size:.92rem; line-height:1.4; color:var(--ink); }
+.edition .proj-line a{ color:var(--red); font-family:var(--fm); font-size:.72rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
+.edition .proj-line a:hover{ color:var(--ink); }
+
+.edition .classifieds{ padding:14px 0 0; border-bottom:1px solid var(--ink); }
+.edition .classifieds-head{ font-family:var(--fd); font-weight:500; font-size:clamp(1.1rem,2.2vw,1.6rem); line-height:.9; letter-spacing:.04em; text-transform:uppercase; color:var(--ink); border-bottom:2px solid var(--ink); padding-bottom:7px; margin-bottom:10px; }
+.edition .classified{ padding:10px 0; font-family:var(--fm); }
+.edition .cl-type{ font-size:8px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:var(--red); margin-bottom:4px; display:block; }
+.edition .cl-body{ font-size:9px; font-weight:500; line-height:1.65; color:var(--ink); letter-spacing:.02em; }
+
+/* PAGE-TURN OVERLAY */
+#pageturn{
+  position:fixed; inset:0; z-index:2000;
+  background:#f7f5f1; border-left:5px solid #141414;
+  box-shadow:-16px 0 40px rgba(10,10,10,.28);
+  transform:translateX(100%); will-change:transform;
+  display:grid; place-items:center;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+}
+#pageturn .pt-inner{ text-align:center; }
+#pageturn .pt-k{ font-family:"JetBrains Mono",monospace; font-size:11px; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:#ed1c24; display:block; margin-bottom:8px; }
+#pageturn .pt-h{ font-family:"Anton",sans-serif; font-size:clamp(2rem,7vw,5rem); text-transform:uppercase; line-height:.9; color:#141414; }
+body.turning #pageturn{ transform:translateX(0); transition:transform .55s cubic-bezier(.66,0,.2,1); }
+body.turning .edition .page{ transform:translateX(-7%); opacity:.5; transition:transform .55s cubic-bezier(.66,0,.2,1), opacity .55s ease; }
+
+/* EDITION RESPONSIVE */
+@media(max-width:900px){
+  .edition .body-grid{ grid-template-columns:1fr 1fr; }
+  .edition .article-flow{ grid-column:1 / 3; padding-right:0; border-right:none; border-bottom:1px solid var(--ink); padding-bottom:16px; margin-bottom:16px; }
+  .edition .sidebar{ grid-column:1 / 3; padding-left:0; display:grid; grid-template-columns:1fr 1fr; gap:14px; align-items:start; }
+  .edition .status-badge{ margin-bottom:0; }
+}
+@media(max-width:680px){
+  .edition .lead-headline{ grid-template-columns:1fr; }
+  .edition .lead-refer{ border-left:none; border-top:1px solid var(--ink); padding-left:0; padding-top:10px; margin-top:8px; }
+  .edition .refer-list{ flex:none; }
+}
+@media(max-width:600px){
+  .edition .body-grid{ grid-template-columns:1fr; }
+  .edition .article-flow{ grid-column:1; columns:1; padding-right:0; border-right:none; }
+  .edition .col-rule, .edition .press-tick{ display:none; }
+  .edition .sidebar{ grid-template-columns:1fr; }
+  .edition .masthead-title{ font-size:clamp(2rem,11vw,3.4rem); }
+}
+@media(max-width:820px){
+  .edition{ margin:0 clamp(6px,.8vw,10px) clamp(6px,.8vw,10px); }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .edition *{ transition:none !important; animation:none !important; }
+  .edition .ticker-track{ animation:none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================ HERO (sticky; edition rises over it) -->
+<header class="me-top" id="top">
+  <div class="hero-panel">
+    <div class="hp-bar">
+      <span class="hp-pill">PORTFOLIO '26</span>
+      <span class="hp-meta">BENGALURU, IN</span>
+      <span class="hp-meta hp-avail"><i class="dot" aria-hidden="true"></i>OPEN TO WORK</span>
+      <span class="hp-meta hp-clock" id="hero-clock-time">—</span>
+    </div>
+
+    <div class="hp-stage">
+      <!-- LEFT: big name + folded teaser -->
+      <div class="hp-left">
+        <div class="hp-name">
+          <h1 class="hero-name">SANTOSH</h1>
+          <h1 class="hero-name is-out">CHEETHIRALA</h1>
+        </div>
+
+        <!-- FOLDED TEASER — the about shortcut (was the black box zone) -->
+        <div class="teaser-wrap">
+          <figure class="teaser" id="teaser" role="button" tabindex="0" aria-label="Read today's edition">
+            <div class="ts-folio">
+              <span>VOL. PES1UG24CS127</span>
+              <span>PRICE: ONE FILTER COFFEE</span>
+            </div>
+            <hr class="ts-rule" />
+            <div class="ts-mast">THE DAILY CHEETHIRALA</div>
+            <div class="ts-dateline">
+              <span>EST. 2024</span><span>&middot;</span>
+              <span>CS EDITION</span><span>&middot;</span>
+              <span>&ldquo;ALL THE BUGS FIT TO PRINT&rdquo;</span>
+            </div>
+
+            <div class="crease" aria-hidden="true"></div>
+
+            <div class="ts-front" aria-hidden="true">
+              <div class="ts-head">THE INTERESTING WORK IS INSIDE THE BOX EVERYONE ELSE LEAVES SEALED</div>
+              <div class="ts-deck">I open black boxes &mdash; neural nets, version control, whatever&rsquo;s opaque.</div>
+              <div class="ts-cols">
+                <p>i spent more time planning to study than actually studying. orbit started as the fix &mdash; a planner that thinks in forgetting curves, not to-do lists. that turned out to be the pattern for everything since: when something annoys me, or i can&rsquo;t see how it works, i build my own until i can.</p>
+                <p>i wrote a neural net by hand in the browser &mdash; backprop and all, no framework. i built a tool to watch GPT-2 think. the throughline&rsquo;s simple: a black box is just a system nobody&rsquo;s opened yet, and i&rsquo;d rather open it than take its word.</p>
+                <p>i&rsquo;m a CS undergrad at PES University, heading into PESU&rsquo;s intelligence lab to work on interpretability and why models hallucinate. i care more about why something fails than whether it passed.</p>
+              </div>
+            </div>
+
+            <div class="ts-hint">
+              <span class="tri" aria-hidden="true">&#9658;</span>
+              <span>TODAY&rsquo;S EDITION</span>
+              <span class="arrow" aria-hidden="true">&darr;</span>
+            </div>
+          </figure>
+        </div>
+      </div>
+
+      <!-- RIGHT: pixel cat (slow parallax + canvas rain only) -->
+      <div class="hp-side">
+        <div class="hp-photo">
+          <div class="cat-scene">
+            <div class="cat-parallax" id="hp-cat-parallax">
+              <img class="hp-cat" src="cat.jpg" alt="Pixel-art portrait" />
+            </div>
+            <canvas class="cat-rain" id="hp-cat-rain"></canvas>
+            <div class="cat-scan" aria-hidden="true"></div>
+          </div>
+          <span class="hp-photo-tag" id="hp-cat-tag" data-decode="[ it me ]">[ it me ]</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hp-marquee" aria-hidden="true">
+      <div class="mq-track">
+        <span>LOCAL-FIRST TOOLS   ✱   TRANSPARENT ML   ✱   GPU KERNELS IN THE BROWSER   ✱   THE INTERNALS OF GPT-2   ✱   GIT REBUILT IN C   ✱  LOCAL-FIRST TOOLS   ✱   TRANSPARENT ML   ✱   GPU KERNELS IN THE BROWSER   ✱   THE INTERNALS OF GPT-2   ✱   GIT REBUILT IN C   ✱  </span>
+        <span aria-hidden="true">LOCAL-FIRST TOOLS   ✱   TRANSPARENT ML   ✱   GPU KERNELS IN THE BROWSER   ✱   THE INTERNALS OF GPT-2   ✱   GIT REBUILT IN C   ✱  LOCAL-FIRST TOOLS   ✱   TRANSPARENT ML   ✱   GPU KERNELS IN THE BROWSER   ✱   THE INTERNALS OF GPT-2   ✱   GIT REBUILT IN C   ✱  </span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ============================================================ EDITION (rises over the sticky hero) -->
+<section class="edition" id="edition">
+  <div class="page">
+
+    <div class="folio">
+      <span class="folio-left">VOL. PES1UG24CS127 &middot; No. 4</span>
+      <span class="folio-center">PRICE: ONE FILTER COFFEE</span>
+      <span class="folio-right">BENGALURU &middot; 2026&nbsp;&nbsp;<span id="clock">--:--:-- IST</span></span>
+    </div>
+
+    <div class="masthead">
+      <span class="sticker-late">LATE EDITION<br>&#9658; BREAKING</span>
+      <hr class="mast-rule-top" />
+      <div class="masthead-inner">
+        <span class="masthead-title">THE DAILY<br>CHEETHIRALA</span>
+      </div>
+      <div class="dateline-strip">
+        <span>ESTABLISHED 2024</span><span>&middot;</span>
+        <span>CS EDITION</span><span>&middot;</span>
+        <span>&ldquo;ALL THE BUGS FIT TO PRINT&rdquo;</span>
+      </div>
+      <div class="ticker" aria-hidden="true">
+        <span class="ticker-flag"><span class="blip"></span>BREAKING</span>
+        <div class="ticker-viewport">
+          <div class="ticker-track" id="tickerTrack">
+            <span class="tk">AREA MAN REBUILDS GIT FOR NO REASON<span class="sep">&#10022;</span>STDERR: &ldquo;&gt; approved. reluctantly.&rdquo;<span class="sep">&#10022;</span>NEURAL NET TRAINED IN BROWSER; SERVER NOT INVITED<span class="sep">&#10022;</span>GPT-2 SEEN THINKING; DETAILS INSIDE<span class="sep">&#10022;</span><b>OPEN TO SWE / ML INTERNSHIPS &middot; SUMMER 2026</b><span class="sep">&#10022;</span>WEATHER: FILTER COFFEE, HOT, CHANCE OF SEGFAULTS<span class="sep">&#10022;</span>NOODLE BAR COSTED OUT &ldquo;FOR FUN&rdquo;<span class="sep">&#10022;</span>STDERR: &ldquo;&gt; it compiles. doesn&rsquo;t mean it&rsquo;s good.&rdquo;<span class="sep">&#10022;</span></span>
+            <span class="tk" aria-hidden="true">AREA MAN REBUILDS GIT FOR NO REASON<span class="sep">&#10022;</span>STDERR: &ldquo;&gt; approved. reluctantly.&rdquo;<span class="sep">&#10022;</span>NEURAL NET TRAINED IN BROWSER; SERVER NOT INVITED<span class="sep">&#10022;</span>GPT-2 SEEN THINKING; DETAILS INSIDE<span class="sep">&#10022;</span><b>OPEN TO SWE / ML INTERNSHIPS &middot; SUMMER 2026</b><span class="sep">&#10022;</span>WEATHER: FILTER COFFEE, HOT, CHANCE OF SEGFAULTS<span class="sep">&#10022;</span>NOODLE BAR COSTED OUT &ldquo;FOR FUN&rdquo;<span class="sep">&#10022;</span>STDERR: &ldquo;&gt; it compiles. doesn&rsquo;t mean it&rsquo;s good.&rdquo;<span class="sep">&#10022;</span></span>
+          </div>
+        </div>
+      </div>
+      <hr class="mast-rule-bot" />
+    </div>
+
+    <div class="lead-zone">
+      <div class="lead-headline">
+        <div class="lead-main">
+          <span class="deck-kicker">&#9654; FRONT PAGE &middot; BENGALURU BUREAU &middot; CS / ML / LOCAL-FIRST</span>
+          <h1 class="deck-head">THE INTERESTING WORK IS INSIDE THE BOX EVERYONE ELSE LEAVES SEALED</h1>
+        </div>
+        <aside class="lead-refer">
+          <div class="refer-head">// INSIDE TODAY</div>
+          <ul class="refer-list">
+            <li>The throughline<span class="dots"></span><b>p.1</b></li>
+            <li>House rules<span class="dots"></span><b>p.1</b></li>
+            <li>Stderr, live<span class="dots"></span><b>p.1</b></li>
+            <li>The personals<span class="dots"></span><b>p.1</b></li>
+            <li><a class="to-projects" href="../projects/">Projects desk<span class="dots"></span><b>&rarr;</b></a></li>
+          </ul>
+          <div class="refer-foot">~97% MNIST &middot; no framework &middot; no server</div>
+        </aside>
+        <p class="deck-sub">I open black boxes &mdash; neural nets, version control, whatever&rsquo;s opaque.</p>
+        <span class="byline">Santosh Cheethirala (he/him) &middot; Filed from Bengaluru, IST &nbsp;&nbsp;<b>&#9670; SUMMER 2026 EDITION</b></span>
+      </div>
+
+      <div class="body-grid">
+        <div class="article-flow">
+          <span class="col-rule" aria-hidden="true"><span class="press-tick" id="pressTick"></span></span>
+
+          <figure class="cat-figure" id="catFig">
+            <div class="cat-img-wrap"><img src="cat.jpg" alt="Stderr, the subject's self-appointed code reviewer" /></div>
+            <figcaption class="cat-caption"><b>ABOVE:</b> Stderr, the subject&rsquo;s self-appointed code reviewer. Declined to comment.</figcaption>
+          </figure>
+
+          <p data-quip="&gt; a planner. for the planning. sure."><span class="dropcap">I</span> spent more time planning to study than actually studying. orbit started as the fix &mdash; a planner that thinks in forgetting curves, not to-do lists. that turned out to be the pattern for everything since: when something annoys me, or i can&rsquo;t see how it works, i build my own until i can.</p>
+
+          <p data-quip="&gt; backprop by hand. nobody asked.">mostly that means going a layer deeper than i need to. i wrote a neural net by hand in the browser &mdash; backprop and all, no framework &mdash; just to see what <code>model.fit()</code> had been doing the whole time (gradient). i built a tool to watch GPT-2 think, because trusting outputs i couldn&rsquo;t see the reasons for had stopped feeling okay (glassbox).</p>
+
+          <p class="pull">&ldquo;a black box is just a system nobody&rsquo;s opened yet &mdash; <span class="penned" id="penned">i&rsquo;d rather open it than take its word.<svg class="pen" viewBox="0 0 100 12" preserveAspectRatio="none" aria-hidden="true"><path d="M1 8 Q 26 3 50 6 T 99 5" pathLength="100"/></svg></span>&rdquo;</p>
+
+          <p data-quip="&gt; 'why it fails.' deep.">i&rsquo;m a CS undergrad at PES University in bengaluru, heading into PESU&rsquo;s intelligence lab to work on interpretability and why models hallucinate &mdash; the same instinct, pointed at the systems that need it most. i care more about why something fails than whether it passed, i keep things local-first when i can (your data, your GPU, no server), and the one thing i won&rsquo;t ship is boring.</p>
+
+          <p data-quip="&gt; 10m. show-off.">away from the screen i shoot 10m air rifle, competitively, at national level &mdash; mostly an exercise in breathing slow and not flinching, which turns out to be the same skill as 3 a.m. with a stack trace. i run on filter coffee and once costed out an entire noodle bar for fun.</p>
+
+          <p data-quip="&gt; finally. the important part.">there&rsquo;s also a cat. it reviews my commits. it remains unimpressed.<span class="endmark"></span></p>
+
+          <a class="continued to-projects" id="continued" href="../projects/">Continued on the projects desk <span class="arr">&rarr;</span></a>
+        </div>
+
+        <aside class="sidebar">
+          <span class="status-badge"><span class="status-arrow">&#9658;</span> OPEN &mdash; SWE / ML INTERNSHIPS &middot; SUMMER 2026</span>
+
+          <div class="box">
+            <div class="box-head">// THE ONLY NUMBER THAT MATTERS</div>
+            <div class="stat-pull">
+              <span class="stat-num">~97%</span>
+              <span class="stat-desc">on MNIST &mdash; neural net trained in the browser, backprop hand-written, no framework. (project: Gradient)</span>
+            </div>
+          </div>
+
+          <div class="box">
+            <div class="box-head">// HOUSE RULES</div>
+            <ul class="rules-list">
+              <li><span class="rule-num">1.</span>If I can&rsquo;t rebuild it, I don&rsquo;t understand it.</li>
+              <li><span class="rule-num">2.</span>Local-first by default &mdash; your data, your GPU, no server.</li>
+              <li><span class="rule-num">3.</span>Whether it works is easy; why it fails is the work.</li>
+              <li><span class="rule-num">4.</span>Boring is the only thing I refuse to ship.</li>
+            </ul>
+          </div>
+
+          <div class="box">
+            <div class="box-head">// STDERR (editor, unpaid) &mdash; live</div>
+            <div class="stderr-log" id="stderrLog">
+              <span class="log-line">&gt; tailing the reader&hellip;</span>
+            </div>
+          </div>
+
+          <div class="box">
+            <div class="box-head">// PROJECTS</div>
+            <div class="proj-line">GlassBox &middot; Gradient &middot; Orbit<br><a class="to-projects" href="../projects/">each one gets a proper page &rarr;</a></div>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <div class="classifieds">
+      <div class="classifieds-head">CLASSIFIEDS &amp; PERSONALS</div>
+      <div class="classified">
+        <span class="cl-type">&#9654; PERSONALS &middot; FROM THE CAT</span>
+        <p class="cl-body">STDERR &mdash; wandered onto the PESU campus during a 3 a.m. debugging session. stayed. currently serving as unpaid, unqualified, deeply opinionated code reviewer.<br><br>&gt; reviews commits. remains unimpressed.<br>&gt; saw your TODO list. bold of you.<br>&gt; i was asleep for the tests. they still passed.<br><br>terms: one tin of food, one patch of sunlight, zero stand-up meetings. the segfaults are not my fault. that is my statement.</p>
+      </div>
+    </div>
+
+    <hr class="rule" style="margin:0;" />
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:7px 0 0;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#928b80;">
+      <span>&#169; 2026 THE DAILY CHEETHIRALA &middot; ALL BUGS RESERVED</span>
+      <span>PES1UG24CS127</span>
+    </div>
+
+  </div>
+</section>
+
+<!-- PAGE-TURN OVERLAY -->
+<div id="pageturn" aria-hidden="true">
+  <div class="pt-inner">
+    <span class="pt-k">&#9654; turn to</span>
+    <span class="pt-h">THE PROJECTS<br>DESK</span>
+  </div>
+</div>
+
+<!-- ============================================================ SCRIPT 1: HERO ENGINE (parallax + rain only) -->
+<script>
+(function(){
+  'use strict';
+  try{
+    var photo = document.querySelector('.me-top .hp-photo');
+    var hero = document.querySelector('.me-top');
+    var parallax = document.getElementById('hp-cat-parallax');
+    var rainCv = document.getElementById('hp-cat-rain');
+    var tag = document.getElementById('hp-cat-tag');
+    if(!photo||!hero||!parallax||!(rainCv instanceof HTMLCanvasElement)) return;
+
+    var PRM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    /* 1. slow head-lean parallax (the ONE subtle motion alongside rain) */
+    var LEAN=9, tx=0, ty=0, cx=0, cy=0;
+    hero.addEventListener('pointermove', function(e){
+      var r=photo.getBoundingClientRect();
+      var nx=((e.clientX-r.left)/r.width-0.5)*2;
+      var ny=((e.clientY-r.top)/r.height-0.5)*2;
+      tx=Math.max(-1,Math.min(1,nx))*LEAN;
+      ty=Math.max(-1,Math.min(1,ny))*LEAN*0.7;
+    });
+    hero.addEventListener('pointerleave', function(){ tx=0; ty=0; });
+
+    /* 2. live rain canvas */
+    var ctx=rainCv.getContext('2d');
+    var dpr=Math.min(2,window.devicePixelRatio||1);
+    var drops=[];
+    function seed(){
+      var w=rainCv.width/dpr, h=rainCv.height/dpr;
+      var n=Math.max(40,Math.min(120,Math.round((w*h)/2600)));
+      drops=[];
+      for(var i=0;i<n;i++){
+        var near=Math.random()>0.55;
+        drops.push({
+          x:Math.random()*w, y:Math.random()*h,
+          len:near?14+Math.random()*16:7+Math.random()*9,
+          sp:near?9+Math.random()*6:4+Math.random()*4,
+          w:near?2:1,
+          a:near?0.3+Math.random()*0.2:0.12+Math.random()*0.1
+        });
+      }
+    }
+    function sizeRain(){
+      var r=photo.getBoundingClientRect();
+      rainCv.width=Math.max(1,Math.round(r.width*dpr));
+      rainCv.height=Math.max(1,Math.round(r.height*dpr));
+      if(ctx) ctx.setTransform(dpr,0,0,dpr,0,0);
+      seed();
+    }
+    function drawRain(){
+      if(!ctx) return;
+      var w=rainCv.width/dpr, h=rainCv.height/dpr;
+      ctx.clearRect(0,0,w,h);
+      for(var i=0;i<drops.length;i++){
+        var d=drops[i];
+        ctx.fillStyle='rgba(247,245,241,'+d.a+')';
+        ctx.fillRect(Math.round(d.x),Math.round(d.y),d.w,d.len);
+        if(!PRM){ d.y+=d.sp; d.x+=0.6; }
+        if(d.y>h){ d.y=-d.len; d.x=Math.random()*w; }
+      }
+    }
+
+    /* rAF loop */
+    function loop(){
+      cx+=(tx-cx)*0.12;
+      cy+=(ty-cy)*0.12;
+      parallax.style.transform=PRM?'translate(0,0)':'translate('+Math.round(cx)+'px,'+Math.round(cy)+'px)';
+      drawRain();
+      requestAnimationFrame(loop);
+    }
+
+    /* 3. decode [ it me ] tag */
+    function decodeTag(){
+      if(!tag) return;
+      var txt=tag.getAttribute('data-decode')||tag.textContent||'';
+      if(PRM){ tag.textContent=txt; return; }
+      var G='ABCDEFGHJKLMNPQRSTUVWXYZ#@/[]0123456789'.split('');
+      var s=performance.now();
+      (function f(now){
+        var k=Math.min(1,(now-s)/700);
+        var rev=Math.floor(k*txt.length);
+        var out='';
+        for(var i=0;i<txt.length;i++){
+          var c=txt[i];
+          out+=(i<rev||c===' '||c==='['||c===']')?c:G[(Math.random()*G.length)|0];
+        }
+        tag.textContent=out;
+        if(k<1) requestAnimationFrame(f); else tag.textContent=txt;
+      })(s);
+    }
+
+    /* hero clock (IST) */
+    var heroClock=document.getElementById('hero-clock-time');
+    function heroTick(){
+      try{
+        if(heroClock) heroClock.textContent=new Intl.DateTimeFormat('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false,timeZone:'Asia/Kolkata'}).format(new Date())+' IST';
+      }catch(e){ if(heroClock) heroClock.textContent='—'; }
+    }
+    heroTick(); setInterval(heroTick, 1000);
+
+    sizeRain();
+    window.addEventListener('resize', sizeRain);
+    decodeTag();
+    requestAnimationFrame(loop);
+  }catch(e){ /* hero engine failed silently */ }
+})();
+</script>
+
+<!-- ============================================================ SCRIPT 2: TEASER SHORTCUT -->
+<script>
+(function(){
+  'use strict';
+  try{
+    var teaser = document.getElementById('teaser');
+    var edition = document.getElementById('edition');
+    if(!teaser || !edition) return;
+
+    /* The teaser is a SHORTCUT only: it scrolls to the edition the same way a manual
+       scroll would. The IntersectionObserver in the edition engine fires the press-run
+       once the sheet starts covering the hero — identical code path for both. */
+    function jump(){
+      var PRM = matchMedia('(prefers-reduced-motion:reduce)').matches;
+      edition.scrollIntoView({ behavior: PRM ? 'auto' : 'smooth', block:'start' });
+    }
+
+    teaser.addEventListener('click', jump);
+    teaser.addEventListener('keydown', function(e){
+      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); jump(); }
+    });
+  }catch(e){ /* teaser shortcut failed silently */ }
+})();
+</script>
+
+<!-- ============================================================ SCRIPT 3: EDITION ENGINE -->
+<script>
+(function(){
+  'use strict';
+  try{
+    var edition = document.querySelector('.edition');
+    if(!edition) return;
+
+    var REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var clamp = function(v,a,b){ return v<a?a:v>b?b:v; };
+    var GLYPHS = 'ABCDEFGHJKLMNPQRSTUVWXYZ#@/*0123456789'.split('');
+
+    /* press-run elements that get a temporary will-change */
+    var PR_SEL = '.mast-rule-top,.mast-rule-bot,.dateline-strip,.ticker,.masthead-title,.sticker-late,.deck-kicker,.deck-head,.deck-sub,.byline,.dropcap,.article-flow,.sidebar,.classifieds';
+
+    /* ---------- IST clock in edition folio ---------- */
+    var clock = edition.querySelector('#clock');
+    function tick(){
+      try{ if(clock) clock.textContent=new Intl.DateTimeFormat('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false,timeZone:'Asia/Kolkata'}).format(new Date())+' IST'; }
+      catch(e){ if(clock) clock.textContent='--:--:-- IST'; }
+    }
+    tick(); setInterval(tick, 1000);
+
+    /* ---------- structure-preserving linotype decode ---------- */
+    function collectChars(ct){
+      if(ct._chars) return ct._chars;
+      var walker=document.createTreeWalker(ct,NodeFilter.SHOW_TEXT,null), n, nodes=[], total=0;
+      while((n=walker.nextNode())){ nodes.push({node:n,orig:n.nodeValue}); total+=n.nodeValue.length; }
+      ct._chars={nodes:nodes,total:total}; return ct._chars;
+    }
+    function render(ct, rev){
+      var info=collectChars(ct), seen=0;
+      info.nodes.forEach(function(it){
+        var o=it.orig, s='';
+        for(var i=0;i<o.length;i++){
+          var c=o[i];
+          s+=((seen+i)<rev||c===' '||c==='\n'||c==='—'||c==='·'||c===','||c==='.'||c==='’')?c:GLYPHS[(Math.random()*GLYPHS.length)|0];
+        }
+        it.node.nodeValue=s; seen+=o.length;
+      });
+    }
+    function decodeEl(ct, dur){
+      var info=collectChars(ct);
+      if(REDUCE){ render(ct,info.total); return; }
+      if(ct._raf) cancelAnimationFrame(ct._raf);
+      var start=null;
+      function f(now){
+        if(start===null) start=now;
+        var k=clamp((now-start)/(dur||600),0,1);
+        render(ct,Math.floor(k*info.total));
+        if(k<1) ct._raf=requestAnimationFrame(f); else{ render(ct,info.total); ct._raf=null; }
+      }
+      ct._raf=requestAnimationFrame(f);
+    }
+
+    function decodeHeadline(){
+      var dh=edition.querySelector('.deck-head');
+      if(dh && !REDUCE) decodeEl(dh, 720);
+    }
+
+    /* ---------- PRESS-RUN ---------- */
+    /* default: fully visible (no-JS / reduced-motion = finished newspaper) */
+    function setWillChange(on){
+      try{
+        [].forEach.call(edition.querySelectorAll(PR_SEL), function(el){
+          el.style.willChange = on ? 'transform,opacity' : '';
+        });
+      }catch(e){}
+    }
+    function runPressRun(){
+      if(edition.classList.contains('go')) return;
+      /* reduced motion / already locked: never arm pressrun — just lock the finished edition (no hide-then-reveal flash) */
+      if(REDUCE || edition.classList.contains('pr-done')){ edition.classList.add('pr-done'); return; }
+      /* if the edition was never armed (loaded already in view), it is already the finished newspaper — lock it instead of re-hiding */
+      if(!edition.classList.contains('pressrun')){ edition.classList.add('pr-done'); return; }
+      /* add will-change just before firing */
+      setWillChange(true);
+      requestAnimationFrame(function(){
+        edition.classList.add('go');
+        setTimeout(decodeHeadline, 420);
+        setTimeout(function(){
+          edition.classList.add('pr-done');
+          setWillChange(false); /* remove will-change when locked — no permanent will-change */
+        }, 1600);
+      });
+    }
+
+    if(!REDUCE && typeof IntersectionObserver !== 'undefined'){
+      var r=edition.getBoundingClientRect();
+      var belowFold = r.top > window.innerHeight * 0.6;
+      if(belowFold){
+        edition.classList.add('pressrun');
+        /* fire as the edition top rises to cover ~15% of the viewport (sheet starts overlapping) */
+        var io=new IntersectionObserver(function(entries){
+          entries.forEach(function(e){
+            if(e.isIntersecting && !edition.classList.contains('go')){
+              io.disconnect();
+              runPressRun();
+            }
+          });
+        }, { rootMargin:'0px 0px -85% 0px' });
+        io.observe(edition);
+      } else {
+        /* loaded already in view (deep link / refresh mid-page / bfcache restore):
+           never armed, so it is already the finished newspaper — lock it so the backstop never re-hides it */
+        edition.classList.add('pr-done');
+      }
+    } else if(REDUCE){
+      /* reduced motion: skip the press-run entirely, lock the finished edition */
+      edition.classList.add('pr-done');
+    }
+    /* backstop: reveal on the first scroll that brings the edition into view (covers any IO miss).
+       Never pre-reveals while idle on the hero — the print always plays on scroll/teaser. */
+    window.addEventListener('scroll', function _reveal(){
+      if(edition.classList.contains('go')){ window.removeEventListener('scroll', _reveal); return; }
+      if(edition.getBoundingClientRect().top < window.innerHeight * 0.85){
+        runPressRun();
+        window.removeEventListener('scroll', _reveal);
+      }
+    }, {passive:true});
+
+    /* ---------- lime press-tick (reading-position cue) ---------- */
+    var pressTick = edition.querySelector('#pressTick');
+    var articleFlow = edition.querySelector('.article-flow');
+    function placeTick(){
+      if(!pressTick||!articleFlow) return;
+      if(getComputedStyle(pressTick).display==='none') return;
+      var ar=articleFlow.getBoundingClientRect();
+      var viewH=window.innerHeight;
+      var articleTop=ar.top; var articleBot=ar.bottom;
+      var p=clamp((viewH-articleTop)/(articleBot-articleTop+viewH),0,1);
+      var travel=articleFlow.clientHeight-pressTick.offsetHeight;
+      pressTick.style.top=(p*travel).toFixed(1)+'px';
+    }
+
+    /* ---------- STDERR live-edits ---------- */
+    var logBox = edition.querySelector('#stderrLog');
+    function pushLog(text){
+      if(!logBox) return;
+      var el=document.createElement('span'); el.className='log-line'; logBox.appendChild(el);
+      while(logBox.children.length>4){ logBox.removeChild(logBox.firstChild); }
+      el._chars=null; el.textContent=text; decodeEl(el, 420);
+    }
+
+    if(typeof IntersectionObserver !== 'undefined'){
+      var quipObs=new IntersectionObserver(function(es){
+        es.forEach(function(e){
+          if(e.isIntersecting&&!e.target._fired){
+            e.target._fired=true;
+            var q=e.target.getAttribute('data-quip'); if(q) pushLog(q);
+          }
+        });
+      }, { rootMargin:'0px 0px -45% 0px', threshold:0.01 });
+      [].forEach.call(edition.querySelectorAll('p[data-quip]'), function(p){ quipObs.observe(p); });
+
+      var catFig=edition.querySelector('#catFig');
+      if(catFig){
+        var halfObs=new IntersectionObserver(function(es){
+          es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('resolved'); halfObs.unobserve(e.target); } });
+        }, { threshold:0.35 });
+        halfObs.observe(catFig);
+      }
+
+      var penned=edition.querySelector('#penned');
+      if(penned){
+        var penObs=new IntersectionObserver(function(es){
+          es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('drawn'); penObs.unobserve(e.target); } });
+        }, { threshold:0.6 });
+        penObs.observe(penned);
+      }
+    } else {
+      var cf=edition.querySelector('#catFig'); if(cf) cf.classList.add('resolved');
+      var pn=edition.querySelector('#penned'); if(pn) pn.classList.add('drawn');
+    }
+
+    /* Stderr figure tilt */
+    var catWrap=edition.querySelector('#catFig .cat-img-wrap');
+    if(catWrap&&!REDUCE){
+      window.addEventListener('pointermove', function(ev){
+        var r=catWrap.getBoundingClientRect(); if(!r.width) return;
+        var dx=clamp(((ev.clientX-(r.left+r.width/2))/window.innerWidth)*2,-1,1);
+        var dy=clamp(((ev.clientY-(r.top+r.height/2))/window.innerHeight)*2,-1,1);
+        catWrap.style.transform='translate('+(dx*5).toFixed(1)+'px,'+(dy*4).toFixed(1)+'px) rotate('+(dx*1.1).toFixed(2)+'deg)';
+      }, {passive:true});
+    }
+
+    /* scroll loop */
+    var ticking=false;
+    function onScroll(){ if(ticking) return; ticking=true; requestAnimationFrame(function(){ placeTick(); ticking=false; }); }
+    window.addEventListener('scroll', onScroll, {passive:true});
+    window.addEventListener('resize', placeTick);
+    placeTick();
+
+    /* page-turn → projects desk */
+    function turn(href){
+      if(REDUCE){ window.location.href=href; return; }
+      document.body.classList.add('turning');
+      setTimeout(function(){ window.location.href=href; }, 560);
+    }
+    [].forEach.call(edition.querySelectorAll('.to-projects'), function(a){
+      a.addEventListener('click', function(ev){ ev.preventDefault(); turn(a.getAttribute('href')||'../projects/'); });
+    });
+
+  }catch(e){ /* edition engine failed silently */ }
+})();
+</script>
+
+</body>
+</html>

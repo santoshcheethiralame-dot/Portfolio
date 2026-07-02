@@ -1,0 +1,22 @@
+# build output
+dist/
+# generated types
+.astro/
+# dependencies
+node_modules/
+# logs
+npm-debug.log*
+# environment / editor
+.env
+.env.production
+.DS_Store
+# deploy
+.vercel
+
+.vercel
+
+# local editor / tooling config
+.claude/
+
+# local backup snapshots
+_backup/

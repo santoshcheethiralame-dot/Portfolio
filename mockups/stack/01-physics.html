@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>STACK / 01 — PHYSICS CHIPS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --red:#ed1c24;
+    --red-deep:#b3001b;
+    --red-dark:#7a0014;
+    --ink:#ffffff;
+    --black:#0a0a0a;
+    --line:rgba(255,255,255,0.26);
+    --font-display:"Anton",sans-serif;
+    --font-mono:"JetBrains Mono",monospace;
+    --bar-h:64px;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+
+  html,body{ height:100%; }
+
+  body{
+    background:var(--red);
+    color:var(--ink);
+    font-family:var(--font-mono);
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    overflow-x:hidden;
+    /* subtle brutalist grid texture, not decorative gradient */
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:48px 48px;
+    background-position:-1px -1px;
+  }
+
+  /* ---------- TOP BAR ---------- */
+  .topbar{
+    position:fixed; top:0; left:0; right:0; height:var(--bar-h);
+    z-index:100;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 clamp(14px,4vw,40px);
+    background:var(--red);
+    border-bottom:2px solid var(--ink);
+  }
+
+  .index-btn{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--font-mono); font-weight:700;
+    font-size:12px; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--ink); text-decoration:none;
+    padding:9px 16px;
+    border:2px solid var(--ink);
+    background:transparent;
+    box-shadow:4px 4px 0 var(--black);
+    transition:transform 120ms cubic-bezier(.2,.9,.2,1),
+               box-shadow 120ms cubic-bezier(.2,.9,.2,1),
+               background 120ms steps(1,end),
+               color 120ms steps(1,end);
+  }
+  .index-btn:hover,.index-btn:focus-visible{
+    background:var(--ink); color:var(--red);
+    transform:translate(2px,2px);
+    box-shadow:2px 2px 0 var(--black);
+    outline:none;
+  }
+
+  .caption{ text-align:right; line-height:1.35; }
+  .caption .cap-main{
+    font-weight:700; font-size:12px; letter-spacing:.12em; text-transform:uppercase;
+  }
+  .caption .cap-hint{
+    font-weight:400; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase;
+    color:rgba(255,255,255,.72);
+  }
+
+  /* ---------- SECTION ---------- */
+  .section{
+    padding:calc(var(--bar-h) + clamp(22px,4vw,46px)) clamp(20px,6vw,90px) clamp(40px,7vw,90px);
+    max-width:1500px; margin:0 auto;
+  }
+
+  .kicker{
+    font-size:13px; font-weight:500; letter-spacing:.18em;
+    color:rgba(255,255,255,.82);
+    margin-bottom:10px;
+  }
+
+  .title{
+    font-family:var(--font-display);
+    text-transform:uppercase;
+    color:var(--ink);
+    line-height:.82;
+    font-size:clamp(2.4rem,10vw,8rem);
+    letter-spacing:.005em;
+    margin-bottom:clamp(20px,3vw,34px);
+  }
+
+  /* ---------- CONTROLS ---------- */
+  .controls{
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+    margin-bottom:clamp(20px,3vw,30px);
+  }
+
+  .btn{
+    font-family:var(--font-mono); font-weight:700;
+    font-size:13px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--black); background:var(--ink);
+    border:2px solid var(--black);
+    padding:11px 22px;
+    cursor:pointer;
+    box-shadow:5px 5px 0 var(--black);
+    transition:transform 110ms cubic-bezier(.2,.9,.2,1),
+               box-shadow 110ms cubic-bezier(.2,.9,.2,1),
+               background 110ms steps(1,end),
+               color 110ms steps(1,end);
+    user-select:none;
+  }
+  .btn:hover,.btn:focus-visible{
+    background:var(--black); color:var(--ink);
+    outline:none;
+  }
+  .btn:active{
+    transform:translate(5px,5px);
+    box-shadow:0 0 0 var(--black);
+  }
+
+  /* toggle (CLACK) */
+  .toggle{
+    display:inline-flex; align-items:center; gap:10px;
+    font-family:var(--font-mono); font-weight:700;
+    font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--ink);
+    border:2px solid var(--ink);
+    padding:7px 14px 7px 12px;
+    cursor:pointer;
+    background:transparent;
+    user-select:none;
+    transition:background 110ms steps(1,end), color 110ms steps(1,end);
+  }
+  .toggle .led{
+    width:14px; height:14px; border:2px solid var(--ink);
+    background:transparent;
+    transition:background 90ms steps(1,end);
+  }
+  .toggle[aria-pressed="true"]{ background:var(--ink); color:var(--red); }
+  .toggle[aria-pressed="true"] .led{ border-color:var(--red); background:var(--red); }
+  .toggle:focus-visible{ outline:none; box-shadow:0 0 0 2px var(--black); }
+
+  .hint-inline{
+    font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+    color:rgba(255,255,255,.6);
+  }
+
+  /* ---------- ROWS / LANES ---------- */
+  .rows{ display:flex; flex-direction:column; gap:14px; }
+
+  .row{
+    display:grid;
+    grid-template-columns:clamp(108px,15vw,200px) 1fr;
+    align-items:stretch;
+    border:2px solid var(--ink);
+    background:rgba(0,0,0,0.10);
+    box-shadow:6px 6px 0 var(--black);
+  }
+
+  .row-label{
+    display:flex; flex-direction:column; justify-content:center;
+    gap:4px;
+    padding:0 14px;
+    border-right:2px solid var(--ink);
+    background:var(--red-deep);
+  }
+  .row-label .grp{
+    font-weight:700; font-size:clamp(11px,1.3vw,15px);
+    letter-spacing:.08em; text-transform:uppercase; line-height:1.05;
+  }
+  .row-label .grp-meta{
+    font-weight:400; font-size:10px; letter-spacing:.1em;
+    color:rgba(255,255,255,.6);
+  }
+
+  /* the physics lane */
+  .lane{
+    position:relative;
+    overflow:hidden;
+    /* height set inline by JS based on chip count; min fallback */
+    min-height:92px;
+  }
+  .lane canvas{
+    position:absolute; inset:0;
+    width:100%; height:100%;
+    pointer-events:auto;
+    z-index:3;
+    cursor:grab;
+    touch-action:none;
+  }
+  .lane.dragging canvas{ cursor:grabbing; }
+
+  /* DOM chip layer (under canvas, visible) */
+  .chip-layer{
+    position:absolute; inset:0;
+    z-index:2;
+    pointer-events:none;
+  }
+
+  /* a physical white tile */
+  .chip{
+    position:absolute; top:0; left:0;
+    display:flex; align-items:center; justify-content:center;
+    height:34px;
+    padding:0 14px;
+    background:var(--ink);
+    color:var(--black);
+    border:2px solid var(--black);
+    box-shadow:4px 4px 0 var(--black);
+    font-family:var(--font-mono); font-weight:700;
+    font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+    white-space:nowrap;
+    transform-origin:center center;
+    will-change:transform;
+    user-select:none;
+    /* small proficiency notch on the left edge */
+  }
+  .chip .dots{
+    display:inline-flex; gap:2px; margin-left:9px;
+  }
+  .chip .dots i{
+    width:4px; height:4px; background:var(--black); display:block;
+  }
+  .chip .dots i.off{ background:transparent; outline:1px solid var(--black); outline-offset:-1px; }
+
+  .chip.grabbed{
+    background:var(--red);
+    color:var(--ink);
+    border-color:var(--ink);
+    box-shadow:4px 4px 0 var(--black);
+    z-index:5;
+  }
+  .chip.grabbed .dots i{ background:var(--ink); }
+  .chip.grabbed .dots i.off{ background:transparent; outline-color:var(--ink); }
+
+  /* reduced-motion static grid fallback */
+  .static-grid .lane{ display:flex; flex-wrap:wrap; align-content:center; gap:8px; padding:12px 14px; }
+  .static-grid .lane canvas,
+  .static-grid .chip-layer{ display:none; }
+  .static-chip{
+    display:inline-flex; align-items:center; justify-content:center;
+    height:34px; padding:0 14px;
+    background:var(--ink); color:var(--black);
+    border:2px solid var(--black);
+    box-shadow:4px 4px 0 var(--black);
+    font-weight:700; font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+    white-space:nowrap;
+  }
+  .static-chip .dots{ display:inline-flex; gap:2px; margin-left:9px; }
+  .static-chip .dots i{ width:4px; height:4px; background:var(--black); display:block; }
+  .static-chip .dots i.off{ background:transparent; outline:1px solid var(--black); outline-offset:-1px; }
+
+  .footnote{
+    margin-top:22px;
+    font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+    color:rgba(255,255,255,.5);
+  }
+
+  @media (max-width:640px){
+    .row{ grid-template-columns:96px 1fr; }
+    .caption .cap-hint{ display:none; }
+  }
+</style>
+</head>
+<body>
+
+  <header class="topbar">
+    <a class="index-btn" href="index.html">&larr; Index</a>
+    <div class="caption">
+      <div class="cap-main">Style 01 / Physics Chips</div>
+      <div class="cap-hint">drag &amp; fling a chip · press SHAKE or [space]</div>
+    </div>
+  </header>
+
+  <main class="section" id="section">
+    <div class="kicker">// stack</div>
+    <h1 class="title">What I<br>Work With</h1>
+
+    <div class="controls">
+      <button class="btn" id="shakeBtn" type="button">Shake</button>
+      <button class="toggle" id="clackToggle" type="button" aria-pressed="false">
+        <span class="led" aria-hidden="true"></span>
+        <span>Clack</span>
+      </button>
+      <span class="hint-inline">space = shake · tiles are rigid bodies</span>
+    </div>
+
+    <div class="rows" id="rows"></div>
+
+    <div class="footnote">// matter.js rigid bodies — low restitution, high friction · drag to fling</div>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+  <script>
+  (function(){
+    "use strict";
+
+    /* ----------------------------- DATA ----------------------------- */
+    const DATA = [
+      { group:"Languages", items:[["C",4],["Python",5],["TypeScript",5],["JavaScript",4],["SQL",3],["HTML",4],["CSS",4],["WGSL",3]] },
+      { group:"ML / AI", items:[["PyTorch",4],["TensorFlow",3],["scikit-learn",4],["NumPy",4],["Pandas",4],["TransformerLens",4],["LLM Evaluation",4],["RAG",4],["Failure Taxonomy",3],["Deep Learning",4]] },
+      { group:"Web / Frontend", items:[["React",5],["Tailwind CSS",4],["Vite",4],["WebGPU",4],["PWA",4],["IndexedDB / Dexie.js",4],["Canvas",3],["Web Workers",3]] },
+      { group:"Backend / Data", items:[["FastAPI",4],["Pydantic",3],["Node.js",4],["Express",3],["MongoDB",3],["REST APIs",4]] },
+      { group:"Tools / Systems", items:[["Git",4],["Linux",4],["OpenRouter API",3]] }
+    ];
+
+    const REDUCE = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const rowsEl = document.getElementById("rows");
+
+    /* ------------------- helper: build a chip element ------------------- */
+    function dotsHTML(weight){
+      let s = '<span class="dots" aria-hidden="true">';
+      for(let i=0;i<5;i++){ s += '<i class="'+(i<weight?'':'off')+'"></i>'; }
+      s += '</span>';
+      return s;
+    }
+
+    /* ===================================================================
+       REDUCED-MOTION: clean static grid, no physics, no autorun.
+       =================================================================== */
+    if(REDUCE){
+      document.body.classList.add("static-grid");
+      DATA.forEach(cat=>{
+        const row = document.createElement("div");
+        row.className = "row";
+        const label = document.createElement("div");
+        label.className = "row-label";
+        label.innerHTML = '<span class="grp">'+cat.group+'</span><span class="grp-meta">'+cat.items.length+' items</span>';
+        const lane = document.createElement("div");
+        lane.className = "lane";
+        cat.items.forEach(([name,w])=>{
+          const c = document.createElement("span");
+          c.className = "static-chip";
+          c.innerHTML = name + dotsHTML(w);
+          lane.appendChild(c);
+        });
+        row.appendChild(label);
+        row.appendChild(lane);
+        rowsEl.appendChild(row);
+      });
+      // disable controls visually
+      document.getElementById("shakeBtn").disabled = true;
+      return;
+    }
+
+    /* ===================================================================
+       PHYSICS PATH — one Matter engine per lane (isolated rows).
+       =================================================================== */
+    const M = Matter;
+
+    // tuned for weighty Scrabble-tile feel
+    const GRAVITY_Y   = 1.5;     // engine gravity scale
+    const RESTITUTION = 0.14;    // not bouncy
+    const FRICTION    = 0.55;
+    const FRICTION_AIR= 0.012;
+    const DENSITY     = 0.0022;
+    const CHIP_H      = 34;
+    const WALL        = 200;     // thick offscreen walls so nothing escapes
+
+    const lanes = []; // {cat, laneEl, layerEl, canvas, engine, render(noop), world, chips:[{body,el,w,h}], mouseConstraint, w, h, running}
+
+    /* approximate chip width from label length (mono) */
+    function estChipWidth(name, weight){
+      // base padding 28 + chars*~7.2 + dots block (~ 5*6 + margin 9)
+      const dotsW = 5*4 + 4*2 + 9; // dots + gaps + left margin
+      return Math.round(28 + name.length*7.4 + dotsW + 4);
+    }
+
+    function buildRow(cat){
+      const row = document.createElement("div");
+      row.className = "row";
+
+      const label = document.createElement("div");
+      label.className = "row-label";
+      label.innerHTML = '<span class="grp">'+cat.group+'</span><span class="grp-meta">'+cat.items.length+' tiles</span>';
+
+      const lane = document.createElement("div");
+      lane.className = "lane";
+
+      const layer = document.createElement("div");
+      layer.className = "chip-layer";
+
+      const canvas = document.createElement("canvas");
+
+      lane.appendChild(layer);
+      lane.appendChild(canvas);
+      row.appendChild(label);
+      row.appendChild(lane);
+      rowsEl.appendChild(row);
+
+      // create chip DOM elements first so we can measure exact width
+      const chips = cat.items.map(([name,w])=>{
+        const el = document.createElement("div");
+        el.className = "chip";
+        el.innerHTML = name + dotsHTML(w);
+        layer.appendChild(el);
+        return { name, weight:w, el, body:null, w:0, h:CHIP_H };
+      });
+
+      // measure widths (real DOM measurement = crisp + accurate)
+      chips.forEach(ch=>{
+        const r = ch.el.getBoundingClientRect();
+        ch.w = Math.max(40, Math.round(r.width)) || estChipWidth(ch.name, ch.weight);
+      });
+
+      // decide lane height: enough rows to hold all tiles loosely
+      const laneInnerW = lane.clientWidth || 600;
+      const totalW = chips.reduce((s,c)=>s+c.w+8,0);
+      const rowsNeeded = Math.max(1, Math.ceil(totalW / Math.max(220, laneInnerW - 24)));
+      const laneH = Math.max(92, rowsNeeded * (CHIP_H + 10) + 16);
+      lane.style.height = laneH + "px";
+
+      const laneObj = { cat, row, laneEl:lane, layerEl:layer, canvas, chips, engine:null,
+                        world:null, mouseConstraint:null, runner:null, w:0, h:0, running:false };
+      lanes.push(laneObj);
+      return laneObj;
+    }
+
+    function initPhysics(laneObj){
+      const { laneEl, canvas, chips } = laneObj;
+      const w = laneEl.clientWidth;
+      const h = laneEl.clientHeight;
+      laneObj.w = w; laneObj.h = h;
+
+      // crisp canvas backing store
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.max(1, Math.floor(w*dpr));
+      canvas.height = Math.max(1, Math.floor(h*dpr));
+
+      const engine = M.Engine.create();
+      engine.gravity.y = GRAVITY_Y;
+      engine.gravity.x = 0;
+      // a few extra position iterations => stable stacks, no jitter
+      engine.positionIterations = 8;
+      engine.velocityIterations = 6;
+      laneObj.engine = engine;
+      laneObj.world = engine.world;
+
+      buildBounds(laneObj);
+
+      // create bodies for chips, spawn ABOVE the lane, staggered, slight random spin
+      chips.forEach((ch, i)=>{
+        const bx = 20 + ch.w/2 + Math.random()*(Math.max(30, w - ch.w - 40));
+        const by = -40 - i*(CHIP_H + 8) - Math.random()*40; // stacked above => clatter in
+        const body = M.Bodies.rectangle(bx, by, ch.w, ch.h, {
+          restitution:RESTITUTION,
+          friction:FRICTION,
+          frictionStatic:0.7,
+          frictionAir:FRICTION_AIR,
+          density:DENSITY,
+          chamfer:{ radius:0 }
+        });
+        M.Body.setAngularVelocity(body, (Math.random()-0.5)*0.12);
+        ch.body = body;
+        M.World.add(engine.world, body);
+      });
+
+      // ----- mouse / touch dragging via canvas -----
+      const mouse = M.Mouse.create(canvas);
+      // fix pixel ratio for mouse coords
+      mouse.pixelRatio = dpr;
+      // matter scales offset by pixelRatio internally for canvas of differing size; ensure element scale
+      const mc = M.MouseConstraint.create(engine, {
+        mouse,
+        constraint:{ stiffness:0.18, damping:0.12, render:{ visible:false } }
+      });
+      M.World.add(engine.world, mc);
+      laneObj.mouseConstraint = mc;
+      laneObj.mouse = mouse;
+
+      // remove matter's wheel hijack (let page scroll)
+      mouse.element.removeEventListener("wheel", mouse.mousewheel);
+      mouse.element.removeEventListener("DOMMouseScroll", mouse.mousewheel);
+
+      // visual feedback on grab
+      M.Events.on(mc, "startdrag", function(e){
+        if(e.body && e.body._chipRef){ e.body._chipRef.el.classList.add("grabbed"); }
+        laneEl.classList.add("dragging");
+      });
+      M.Events.on(mc, "enddrag", function(e){
+        if(e.body && e.body._chipRef){ e.body._chipRef.el.classList.remove("grabbed"); }
+        laneEl.classList.remove("dragging");
+      });
+
+      // back-reference body -> chip
+      chips.forEach(ch=>{ ch.body._chipRef = ch; });
+
+      // collision -> clack
+      M.Events.on(engine, "collisionStart", function(ev){
+        if(!clackOn) return;
+        const pairs = ev.pairs;
+        for(let i=0;i<pairs.length;i++){
+          const p = pairs[i];
+          const rv = (p.collision && p.collision.depth) || 0;
+          // approximate impact from relative speed
+          const a=p.bodyA, b=p.bodyB;
+          const dv = Math.hypot((a.velocity.x-b.velocity.x),(a.velocity.y-b.velocity.y));
+          if(dv > 2.4){ clack(Math.min(1, dv/14)); }
+        }
+      });
+
+      laneObj.running = true;
+    }
+
+    function buildBounds(laneObj){
+      const { engine, laneEl } = laneObj;
+      const w = laneEl.clientWidth;
+      const h = laneEl.clientHeight;
+      // remove old bounds if any
+      if(laneObj._bounds){ M.World.remove(engine.world, laneObj._bounds); }
+      const opt = { isStatic:true, friction:FRICTION, restitution:RESTITUTION };
+      const floor   = M.Bodies.rectangle(w/2, h + WALL/2 - 2, w + WALL*2, WALL, opt);
+      const left    = M.Bodies.rectangle(-WALL/2 + 2, h/2, WALL, h*3, opt);
+      const right   = M.Bodies.rectangle(w + WALL/2 - 2, h/2, WALL, h*3, opt);
+      // a ceiling far above so flung chips don't fly forever out the top during shake settling
+      const ceil    = M.Bodies.rectangle(w/2, -h*2.4, w + WALL*2, WALL, opt);
+      const bounds = [floor,left,right,ceil];
+      M.World.add(engine.world, bounds);
+      laneObj._bounds = bounds;
+    }
+
+    /* ------------------------ RENDER LOOP ------------------------ */
+    let rafId = null;
+    function tick(){
+      for(let i=0;i<lanes.length;i++){
+        const lo = lanes[i];
+        if(!lo.running) continue;
+        M.Engine.update(lo.engine, 1000/60);
+        // sync DOM transforms
+        const chips = lo.chips;
+        for(let j=0;j<chips.length;j++){
+          const ch = chips[j];
+          const b = ch.body;
+          // top-left placement: body pos is center
+          const x = b.position.x - ch.w/2;
+          const y = b.position.y - ch.h/2;
+          ch.el.style.transform = "translate("+x.toFixed(2)+"px,"+y.toFixed(2)+"px) rotate("+b.angle.toFixed(4)+"rad)";
+        }
+      }
+      rafId = requestAnimationFrame(tick);
+    }
+
+    /* ------------------------ SHAKE ------------------------ */
+    function shake(){
+      lanes.forEach(lo=>{
+        if(!lo.running) return;
+        lo.chips.forEach(ch=>{
+          const b = ch.body;
+          // upward + random lateral impulse; force scaled by mass so all jump similarly
+          const fx = (Math.random()-0.5) * 0.10 * b.mass;
+          const fy = -(0.16 + Math.random()*0.10) * b.mass;
+          M.Body.applyForce(b, b.position, { x:fx, y:fy });
+          M.Body.setAngularVelocity(b, (Math.random()-0.5)*0.34);
+        });
+      });
+      pulseBtn();
+    }
+
+    function pulseBtn(){
+      const btn = document.getElementById("shakeBtn");
+      btn.style.transform = "translate(5px,5px)";
+      btn.style.boxShadow = "0 0 0 var(--black)";
+      setTimeout(()=>{ btn.style.transform=""; btn.style.boxShadow=""; }, 110);
+    }
+
+    /* ------------------------ CLACK (WebAudio) ------------------------ */
+    let clackOn = false;
+    let actx = null;
+    let lastClack = 0;
+    function ensureAudio(){
+      if(!actx){
+        try{ actx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ actx=null; }
+      }
+      if(actx && actx.state === "suspended"){ actx.resume(); }
+    }
+    function clack(intensity){
+      if(!clackOn || !actx) return;
+      const now = performance.now();
+      if(now - lastClack < 22) return; // throttle
+      lastClack = now;
+      const t = actx.currentTime;
+      // short noise-ish click: square blip + quick decay
+      const o = actx.createOscillator();
+      const g = actx.createGain();
+      o.type = "square";
+      o.frequency.setValueAtTime(120 + Math.random()*90, t);
+      o.frequency.exponentialRampToValueAtTime(60, t+0.04);
+      const vol = 0.06 + intensity*0.10;
+      g.gain.setValueAtTime(vol, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t+0.05);
+      o.connect(g); g.connect(actx.destination);
+      o.start(t); o.stop(t+0.06);
+    }
+
+    const clackToggle = document.getElementById("clackToggle");
+    clackToggle.addEventListener("click", function(){
+      clackOn = !clackOn;
+      clackToggle.setAttribute("aria-pressed", clackOn ? "true":"false");
+      if(clackOn) ensureAudio();
+    });
+
+    /* ------------------------ CONTROLS ------------------------ */
+    document.getElementById("shakeBtn").addEventListener("click", shake);
+    window.addEventListener("keydown", function(e){
+      if(e.code === "Space"){
+        // don't hijack space when focused on a button (it would double-fire its click)
+        const tag = (document.activeElement && document.activeElement.tagName) || "";
+        if(tag === "BUTTON") return;
+        e.preventDefault();
+        shake();
+      }
+    });
+
+    /* ------------------------ RESIZE (rebuild) ------------------------ */
+    let resizeTO = null;
+    function handleResize(){
+      lanes.forEach(lo=>{
+        const lane = lo.laneEl;
+        const newW = lane.clientWidth;
+        // recompute needed height from chip widths
+        const totalW = lo.chips.reduce((s,c)=>s+c.w+8,0);
+        const rowsNeeded = Math.max(1, Math.ceil(totalW / Math.max(220, newW - 24)));
+        const laneH = Math.max(92, rowsNeeded * (CHIP_H + 10) + 16);
+        lane.style.height = laneH + "px";
+
+        // resize canvas backing store
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        lo.canvas.width = Math.max(1, Math.floor(lane.clientWidth*dpr));
+        lo.canvas.height = Math.max(1, Math.floor(lane.clientHeight*dpr));
+        if(lo.mouse){ lo.mouse.pixelRatio = dpr; M.Mouse.setElement(lo.mouse, lo.canvas); lo.mouse.pixelRatio = dpr; }
+
+        // rebuild static bounds for new size
+        if(lo.engine){ buildBounds(lo); }
+
+        // nudge any chips now stuck below the new floor back in
+        lo.chips.forEach(ch=>{
+          const b = ch.body;
+          if(b.position.x > lane.clientWidth - ch.w/2){ M.Body.setPosition(b, { x:lane.clientWidth - ch.w/2 - 4, y:b.position.y }); }
+          if(b.position.y > lane.clientHeight + 60){ M.Body.setPosition(b, { x:b.position.x, y:lane.clientHeight - ch.h }); M.Body.setVelocity(b,{x:0,y:0}); }
+        });
+      });
+    }
+    window.addEventListener("resize", function(){
+      clearTimeout(resizeTO);
+      resizeTO = setTimeout(handleResize, 140);
+    });
+
+    /* ------------------------ INTERSECTION: drop on scroll-in ------------------------ */
+    // build rows immediately (so layout + measurement is ready)
+    DATA.forEach(cat=> buildRow(cat));
+
+    // init physics for each lane, but only START the drop when it scrolls into view
+    let started = false;
+    function startAll(){
+      if(started) return;
+      started = true;
+      lanes.forEach(lo=>{ if(!lo.engine) initPhysics(lo); });
+      if(!rafId) tick();
+    }
+
+    if("IntersectionObserver" in window){
+      const io = new IntersectionObserver(function(entries){
+        let any = false;
+        entries.forEach(en=>{ if(en.isIntersecting) any=true; });
+        if(any){ startAll(); io.disconnect(); }
+      }, { threshold:0.08 });
+      io.observe(rowsEl);
+      // fallback: if already in view on load
+      requestAnimationFrame(()=>{
+        const r = rowsEl.getBoundingClientRect();
+        if(r.top < window.innerHeight && r.bottom > 0){ startAll(); io.disconnect(); }
+      });
+    } else {
+      startAll();
+    }
+
+    // first user gesture primes audio context (so toggling clack works immediately)
+    window.addEventListener("pointerdown", function primeAudio(){
+      if(clackOn) ensureAudio();
+    }, { once:false });
+
+  })();
+  </script>
+</body>
+</html>

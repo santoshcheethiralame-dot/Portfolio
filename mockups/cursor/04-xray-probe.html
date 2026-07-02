@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en" data-mock="xray-probe">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>X-RAY PROBE — the cursor opens the black box</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Instrument+Serif:ital@0&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --red:#ed1c24; --red-hot:#ff5247; --red-deep:#a8001a;
+    --ink:#0d0d0d; --paper:#f7f5f1; --lime:#c8e620;
+    --fd:"Anton",sans-serif; --fm:"JetBrains Mono",monospace; --fi:"Instrument Serif",serif;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  html{ -webkit-font-smoothing:antialiased; }
+  body{ background:var(--red); color:var(--paper); font-family:var(--fm); overflow:hidden; cursor:none; }
+  ::selection{ background:var(--ink); color:var(--lime); }
+
+  /* ───────── SURFACE (the red page, on top) ───────── */
+  #surface{ position:fixed; inset:0; z-index:2; padding:clamp(20px,3vw,40px);
+    padding-bottom:clamp(70px,9vh,104px); display:flex; flex-direction:column; }
+  #surface::before{ content:""; position:absolute; inset:0; z-index:-1;
+    background-image:linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px); background-size:46px 46px; }
+  .nav{ display:flex; align-items:center; justify-content:space-between; padding-bottom:18px;
+    border-bottom:2px solid rgba(255,255,255,.5); }
+  .nav .brand{ font-weight:700; letter-spacing:.14em; text-transform:uppercase; font-size:13px; }
+  .nav .links{ display:flex; gap:22px; font-size:11px; letter-spacing:.14em; text-transform:uppercase; }
+  /* interactive elements look like PLAIN content — you only learn they're live by probing them */
+  .act{ position:relative; color:rgba(255,255,255,.85); background:none; border:none; font:inherit; cursor:none;
+    -webkit-tap-highlight-color:transparent; }
+  .nav .links .act{ color:rgba(255,255,255,.85); }
+  .act.lit{ color:var(--lime); }
+  .act.pulse::after{ content:""; position:absolute; left:0; right:0; bottom:-3px; height:2px; background:var(--lime);
+    animation:underline .4s ease; }
+  @keyframes underline{ from{ transform:scaleX(0); transform-origin:left; } to{ transform:scaleX(1); } }
+  .hero{ flex:1; display:flex; flex-direction:column; justify-content:center; gap:14px; }
+  .hero h1{ font-family:var(--fd); font-weight:400; text-transform:uppercase; line-height:.8;
+    font-size:clamp(3.4rem,16vw,13rem); letter-spacing:.005em; }
+  .hero .thesis{ font-family:var(--fi); font-size:clamp(1.3rem,3vw,2.4rem); line-height:1.1; max-width:24ch; }
+  .blocks{ display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(12px,1.6vw,22px); margin-top:6px; }
+  .block{ display:block; text-align:left; border:2px solid rgba(255,255,255,.5); padding:14px 16px; min-height:96px;
+    transition:border-color .15s, background .15s; }
+  .block .bk{ font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:rgba(255,255,255,.7); }
+  .block .bn{ font-family:var(--fd); font-weight:400; font-size:1.5rem; text-transform:uppercase; margin-top:6px; }
+  .block p{ font-size:11px; line-height:1.55; color:rgba(255,255,255,.85); margin-top:6px; }
+  .block .more{ display:none; margin-top:10px; padding-top:10px; border-top:2px dashed rgba(200,230,32,.6);
+    font-size:11px; line-height:1.55; color:var(--lime); }
+  .block.opened{ border-color:var(--lime); background:rgba(200,230,32,.07); }
+  .block.opened .more{ display:block; }
+  .foot{ display:flex; justify-content:space-between; font-size:10px; letter-spacing:.12em; text-transform:uppercase;
+    color:rgba(255,255,255,.7); border-top:2px solid rgba(255,255,255,.5); padding-top:12px; margin-top:14px; }
+  @media (max-width:760px){ .blocks{ grid-template-columns:1fr; } .block:nth-child(n+2){ display:none; } }
+
+  /* ───────── UNDER LAYER (revealed inside the probe window) ───────── */
+  #xray{ position:fixed; inset:0; z-index:4; pointer-events:none;
+    clip-path:inset(100% 100% 100% 100%); will-change:clip-path; }
+
+  /* ───────── THE PROBE WINDOW (the cursor) ───────── */
+  #win{ position:fixed; z-index:6; pointer-events:none; left:0; top:0; will-change:transform; display:none;
+    border:3px solid var(--ink); box-shadow:0 0 0 2px var(--lime), 8px 8px 0 rgba(10,10,10,.45); }
+  #win.locked{ box-shadow:0 0 0 2px var(--lime), 0 0 22px 2px rgba(200,230,32,.5), 8px 8px 0 rgba(10,10,10,.45); }
+  #win .corner{ position:absolute; width:14px; height:14px; border:3px solid var(--lime); }
+  #win .c1{ top:-3px; left:-3px; border-right:none; border-bottom:none; }
+  #win .c2{ top:-3px; right:-3px; border-left:none; border-bottom:none; }
+  #win .c3{ bottom:-3px; left:-3px; border-right:none; border-top:none; }
+  #win .c4{ bottom:-3px; right:-3px; border-left:none; border-top:none; }
+  .wlabel{ position:absolute; font-size:9.5px; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+    background:var(--ink); color:var(--lime); padding:3px 6px; white-space:nowrap; border:1.5px solid var(--lime); }
+  .wlabel.tl{ top:-23px; left:-3px; }
+  .wlabel.tr{ top:-23px; right:-3px; color:var(--paper); border-color:var(--paper); }
+  .wlabel.bl{ bottom:-23px; left:-3px; background:var(--lime); color:var(--ink); border-color:var(--ink); }
+
+  /* the focal reticle — the EXACT, always-visible hit point (fixes the invisible-cursor problem) */
+  #focal{ position:absolute; left:50%; top:50%; width:46px; height:46px; transform:translate(-50%,-50%);
+    filter:drop-shadow(0 0 1px rgba(13,13,13,.95)); }
+  #focal line{ stroke:var(--lime); stroke-width:2; }
+  #focal circle{ fill:none; stroke:var(--lime); stroke-width:2; }
+  #focal .hit{ fill:var(--lime); stroke:none; }
+  #win.locked #focal .hit{ r:4; }
+  #win.locked #focal .ring{ stroke-dasharray:none; }
+
+  /* identity readout — reveals what's actually under the focal point */
+  #ident{ position:absolute; left:50%; top:calc(50% + 34px); transform:translateX(-50%); display:none;
+    flex-direction:column; align-items:center; gap:3px; white-space:nowrap; }
+  #win.locked #ident{ display:flex; }
+  #ident .who{ background:var(--lime); color:var(--ink); border:1.5px solid var(--ink); padding:3px 8px;
+    font-size:10px; font-weight:700; letter-spacing:.08em; }
+  #ident .do{ background:var(--ink); color:var(--lime); border:1.5px solid var(--lime); padding:2px 7px;
+    font-size:8.5px; font-weight:700; letter-spacing:.14em; }
+
+  /* ───────── chrome ───────── */
+  .modes{ position:fixed; z-index:30; bottom:clamp(16px,2.4vw,30px); left:clamp(16px,2.4vw,30px); display:flex; }
+  .modes button{ font:inherit; font-size:10.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+    background:transparent; color:var(--paper); border:2px solid var(--paper); padding:8px 12px; cursor:pointer; }
+  .modes button + button{ border-left:none; }
+  .modes button[aria-pressed="true"]{ background:var(--lime); color:var(--ink); border-color:var(--lime); }
+  .legend{ position:fixed; z-index:30; bottom:clamp(16px,2.4vw,30px); right:clamp(16px,2.4vw,30px); text-align:right;
+    font-size:10.5px; letter-spacing:.04em; color:rgba(255,255,255,.82); pointer-events:none; line-height:1.7; }
+  .legend kbd{ font-family:var(--fm); border:1px solid rgba(255,255,255,.5); padding:1px 5px; border-radius:3px; }
+  .legend .k{ color:var(--lime); font-weight:700; }
+  /* transient action toast */
+  #toast{ position:fixed; z-index:35; left:50%; bottom:clamp(64px,9vh,96px); transform:translateX(-50%) translateY(8px);
+    background:var(--ink); color:var(--lime); border:2px solid var(--lime); box-shadow:5px 5px 0 rgba(10,10,10,.4);
+    padding:7px 13px; font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; white-space:nowrap;
+    opacity:0; transition:opacity .2s, transform .2s; pointer-events:none; }
+  #toast.in{ opacity:1; transform:translateX(-50%) translateY(0); }
+  #toast .e{ color:var(--paper); }
+  #tag{ position:fixed; left:50%; bottom:7px; transform:translateX(-50%); z-index:40; font-size:9.5px;
+    letter-spacing:.14em; text-transform:uppercase; color:rgba(255,255,255,.5); pointer-events:none; }
+  @media (max-width:720px){ .legend{ display:none; } }
+</style>
+</head>
+<body>
+  <!-- the red surface (what everyone sees) — interactive bits look like plain text -->
+  <div id="surface">
+    <nav class="nav" data-wire data-label="nav">
+      <span class="brand" data-wire data-label="brand">Santosh Cheethirala</span>
+      <span class="links">
+        <button class="act" data-wire data-label="a.work"  data-act data-kind="LINK" data-id="/work">Work</button>
+        <button class="act" data-wire data-label="a.writ"  data-act data-kind="LINK" data-id="/writing">Writing</button>
+        <button class="act" data-wire data-label="a.cont"  data-act data-kind="LINK" data-id="/contact">Contact</button>
+      </span>
+    </nav>
+    <div class="hero">
+      <h1 data-wire data-label="h1.hero">Black<br/>Box</h1>
+      <p class="thesis" data-wire data-label="p.thesis">A black box is just a system nobody's opened yet.</p>
+    </div>
+    <div class="blocks">
+      <button class="block" data-wire data-label="card[0]" data-act data-kind="MODULE" data-id="glassbox">
+        <span class="bk">// 01</span><div class="bn">GlassBox</div><p>GPT-2 internals, made visible.</p>
+        <div class="more">144 attention heads · activation patching localizes the “France” fact to layer 0.</div>
+      </button>
+      <button class="block" data-wire data-label="card[1]" data-act data-kind="MODULE" data-id="gradient">
+        <span class="bk">// 02</span><div class="bn">Gradient</div><p>An MLP trained on your GPU, in the browser.</p>
+        <div class="more">~97% MNIST · 44/44 WGSL kernel checks · 0 deps · no server.</div>
+      </button>
+      <button class="block" data-wire data-label="card[2]" data-act data-kind="MODULE" data-id="pes-vcs">
+        <span class="bk">// 03</span><div class="bn">pes-vcs</div><p>Git rebuilt from scratch in C.</p>
+        <div class="more">.pes/ store · SHA-256 content-addressable objects · tree snapshots · staging index.</div>
+      </button>
+    </div>
+    <div class="foot" data-wire data-label="footer"><span>Portfolio ’26</span><span>Bengaluru · IST</span><span>Open to SWE / ML</span></div>
+  </div>
+
+  <!-- what is under the red -->
+  <canvas id="xray"></canvas>
+
+  <!-- the probe window = the cursor -->
+  <div id="win">
+    <i class="corner c1"></i><i class="corner c2"></i><i class="corner c3"></i><i class="corner c4"></i>
+    <span class="wlabel tl">▸ PROBE</span>
+    <span class="wlabel tr" id="winCoord">G7</span>
+    <span class="wlabel bl" id="winMode">WIREFRAME</span>
+    <svg id="focal" viewBox="0 0 46 46" aria-hidden="true">
+      <circle class="ring" cx="23" cy="23" r="11" stroke-dasharray="3 4"></circle>
+      <line x1="23" y1="0"  x2="23" y2="9"></line>
+      <line x1="23" y1="37" x2="23" y2="46"></line>
+      <line x1="0"  y1="23" x2="9"  y2="23"></line>
+      <line x1="37" y1="23" x2="46" y2="23"></line>
+      <circle class="hit" cx="23" cy="23" r="2.4"></circle>
+    </svg>
+    <div id="ident"><span class="who" id="identWho">LINK</span><span class="do" id="identDo">▸ CLICK TO OPEN</span></div>
+  </div>
+
+  <div class="modes" role="group" aria-label="x-ray layer">
+    <button data-mode="wire" aria-pressed="true">Wireframe</button>
+    <button data-mode="source" aria-pressed="false">Source</button>
+    <button data-mode="binary" aria-pressed="false">Binary</button>
+    <button data-mode="invert" aria-pressed="false">Invert</button>
+  </div>
+  <div class="legend">
+    <div><span class="k">click</span> — open what's under the focal point</div>
+    <div><span class="k">scroll</span> / <kbd>1</kbd>–<kbd>4</kbd> — change the lens</div>
+  </div>
+
+  <div id="toast"><span class="e">▸</span> <span id="toastText"></span></div>
+  <div id="tag">04 · x-ray probe · the cursor opens the black box — then opens what's inside</div>
+
+<script>
+(function(){
+  'use strict';
+  var $=function(id){ return document.getElementById(id); };
+  var xc=$('xray'), x=xc.getContext('2d'), win=$('win'), winCoord=$('winCoord'), winMode=$('winMode');
+  var ident=$('ident'), identWho=$('identWho'), identDo=$('identDo'), toast=$('toast'), toastText=$('toastText');
+  var dpr=Math.min(2, window.devicePixelRatio||1);
+  var CELL=46, S=240, mode='wire';
+  var cssCache={}; function css(v){ return cssCache[v]||(cssCache[v]=getComputedStyle(document.documentElement).getPropertyValue(v).trim()); }
+  function colName(c){ var s=''; c=c+1; while(c>0){ var m=(c-1)%26; s=String.fromCharCode(65+m)+s; c=(c-(m+1))/26|0; } return s; }
+
+  var SRC=[
+    '<!doctype html>','<html lang="en" data-state="opened">','<head>',
+    '  <meta charset="utf-8" />','  <title>black box — opened</title>','</head>',
+    '<body class="surface">','  <nav class="nav">',
+    '    <a class="brand">santosh cheethirala</a>','    <a href="/work">work</a>',
+    '    <a href="/writing">writing</a>','  </nav>','  <header class="hero">',
+    '    <h1>black box</h1>','    <p class="thesis">a system nobody has opened yet.</p>',
+    '  </header>','  <section class="blocks">','    <article id="glassbox">gpt-2 internals</article>',
+    '    <article id="gradient">browser-trained mlp</article>','    <article id="pes-vcs">git in c</article>',
+    '  </section>','  <footer>open to swe / ml · ist</footer>','</body>','</html>',
+    'function open(box){ return reveal(box.layers); }','// nothing is opaque once you look'
+  ];
+
+  var wires=[];
+  function build(){
+    CELL=Math.max(40, Math.min(56, Math.round(innerWidth/26)));
+    S=Math.max(190, Math.min(330, Math.round(innerWidth*0.24)));
+    win.style.width=S+'px'; win.style.height=S+'px';
+    xc.width=Math.round(innerWidth*dpr); xc.height=Math.round(innerHeight*dpr);
+    xc.style.width=innerWidth+'px'; xc.style.height=innerHeight+'px'; x.setTransform(dpr,0,0,dpr,0,0);
+    collectWires(); render();
+  }
+  function collectWires(){
+    wires=[].slice.call(document.querySelectorAll('[data-wire]')).map(function(el){
+      var r=el.getBoundingClientRect();
+      return {x:r.left,y:r.top,w:r.width,h:r.height,label:el.getAttribute('data-label'),act:el.hasAttribute('data-act')}; });
+  }
+
+  function grid(color){ var w=innerWidth,h=innerHeight; x.strokeStyle=color; x.lineWidth=1; x.beginPath();
+    for(var c=0;c<=Math.ceil(w/CELL);c++){ var px=Math.round(c*CELL)+.5; x.moveTo(px,0); x.lineTo(px,h); }
+    for(var r=0;r<=Math.ceil(h/CELL);r++){ var py=Math.round(r*CELL)+.5; x.moveTo(0,py); x.lineTo(w,py); } x.stroke(); }
+
+  function renderWire(invert){
+    var w=innerWidth,h=innerHeight, bg=invert?css('--paper'):css('--ink'),
+        fg=invert?css('--ink'):css('--lime'), dim=invert?'rgba(13,13,13,.5)':'rgba(247,245,241,.45)';
+    x.fillStyle=bg; x.fillRect(0,0,w,h);
+    grid(invert?'rgba(13,13,13,.10)':'rgba(247,245,241,.10)');
+    x.font='700 9px "JetBrains Mono",monospace'; x.fillStyle=dim; x.textBaseline='top'; x.textAlign='center';
+    for(var c=0;c<Math.ceil(w/CELL);c++) x.fillText(colName(c), c*CELL+CELL/2, 3);
+    x.textAlign='left'; x.textBaseline='middle';
+    for(var r=0;r<Math.ceil(h/CELL);r++) x.fillText(String(r+1).padStart(2,'0'), 3, r*CELL+CELL/2);
+    wires.forEach(function(b){
+      // interactive nodes are drawn HOT — the x-ray reveals what's actually live under the red
+      var live=b.act;
+      x.strokeStyle= live ? css('--lime') : fg; x.lineWidth= live?2.5:1.5;
+      if(live){ x.fillStyle=invert?'rgba(200,230,32,.16)':'rgba(200,230,32,.12)'; x.fillRect(b.x,b.y,b.w,b.h); }
+      x.strokeRect(b.x,b.y,b.w,b.h);
+      x.beginPath(); x.moveTo(b.x,b.y); x.lineTo(b.x+b.w,b.y+b.h); x.moveTo(b.x+b.w,b.y); x.lineTo(b.x,b.y+b.h);
+      x.strokeStyle=invert?'rgba(13,13,13,.22)':'rgba(200,230,32,.28)'; x.lineWidth=1; x.stroke();
+      x.fillStyle= live ? css('--lime') : fg; x.font='700 9.5px "JetBrains Mono",monospace'; x.textAlign='left'; x.textBaseline='top';
+      x.fillText((live?'◉ ':'')+b.label, b.x+4, b.y+4);
+      x.fillStyle=dim; x.textAlign='right'; x.textBaseline='bottom';
+      x.fillText(Math.round(b.w)+'×'+Math.round(b.h), b.x+b.w-4, b.y+b.h-4);
+    });
+  }
+
+  function tokenize(line){
+    var runs=[], re=/(<[^>]*>)|("[^"]*")|(\/\/.*$)|([^<"]+)/g, m;
+    while((m=re.exec(line))){ if(m[1]) runs.push([m[1],css('--lime')]);
+      else if(m[2]) runs.push([m[2],'#d7e89a']);
+      else if(m[3]) runs.push([m[3],'rgba(247,245,241,.4)']);
+      else runs.push([m[4],'rgba(247,245,241,.82)']); }
+    return runs;
+  }
+  function renderSource(){
+    var w=innerWidth,h=innerHeight; x.fillStyle=css('--ink'); x.fillRect(0,0,w,h);
+    var lh=20, fs=13, gut=44; x.textBaseline='middle'; x.font='500 '+fs+'px "JetBrains Mono",monospace';
+    var rows=Math.ceil(h/lh)+1;
+    for(var i=0;i<rows;i++){
+      var y=i*lh+lh/2, line=SRC[i%SRC.length];
+      x.textAlign='right'; x.fillStyle='rgba(247,245,241,.28)'; x.fillText(String(i+1).padStart(3,'0'), gut-10, y);
+      x.textAlign='left'; var cx=gut, runs=tokenize(line);
+      for(var j=0;j<runs.length;j++){ x.fillStyle=runs[j][1]; x.fillText(runs[j][0], cx, y); cx+=x.measureText(runs[j][0]).width; }
+    }
+    x.strokeStyle='rgba(247,245,241,.18)'; x.lineWidth=1; x.beginPath(); x.moveTo(gut-6.5,0); x.lineTo(gut-6.5,h); x.stroke();
+  }
+
+  function renderBinary(){
+    var w=innerWidth,h=innerHeight; x.fillStyle=css('--ink'); x.fillRect(0,0,w,h);
+    var cw=12, ch=18, cols=Math.ceil(w/cw), rows=Math.ceil(h/ch);
+    x.font='700 12px "JetBrains Mono",monospace'; x.textAlign='center'; x.textBaseline='middle';
+    for(var r=0;r<rows;r++) for(var c=0;c<cols;c++){
+      var seed=(r*131+c*17), bit=(seed*2654435761)>>>0, on=(bit&1), hot=((seed%53)===0);
+      x.fillStyle= hot? css('--lime') : (on? 'rgba(247,245,241,.34)':'rgba(247,245,241,.13)');
+      x.fillText( hot? '0123456789ABCDEF'[(bit>>4)&15] : (on?'1':'0'), c*cw+cw/2, r*ch+ch/2);
+    }
+    x.fillStyle=css('--lime'); x.font='700 10px "JetBrains Mono",monospace'; x.textAlign='left';
+    x.fillText('0x00 ── 48 45 4C 4C 4F', 16, h-40);
+    x.fillText('0x08 ── 42 4F 58 20 4F 50 45 4E', 16, h-22);
+  }
+
+  function render(){
+    if(mode==='source') renderSource();
+    else if(mode==='binary') renderBinary();
+    else if(mode==='invert') renderWire(true);
+    else renderWire(false);
+  }
+
+  // ───── pointer + focal lock ─────
+  var mx=-1,my=-1, locked=null;
+  function placeWindow(){
+    if(mx<0){ win.style.display='none'; xc.style.clipPath='inset(100% 100% 100% 100%)'; return; }
+    win.style.display='block';
+    var half=S/2, l=mx-half, t=my-half;
+    win.style.transform='translate('+l+'px,'+t+'px)';
+    var top=Math.max(0,t), left=Math.max(0,l),
+        right=Math.max(0,innerWidth-(l+S)), bottom=Math.max(0,innerHeight-(t+S));
+    xc.style.clipPath='inset('+top+'px '+right+'px '+bottom+'px '+left+'px)';
+    winCoord.textContent=colName(Math.floor(mx/CELL))+(Math.floor(my/CELL)+1);
+    // what's under the focal point?
+    var el=document.elementFromPoint(mx,my);
+    var act= el && el.closest ? el.closest('[data-act]') : null;
+    if(act!==locked){ locked=act;
+      win.classList.toggle('locked', !!act);
+      if(act){ identWho.textContent=act.dataset.kind+' · '+act.dataset.id;
+        identDo.textContent= act.dataset.kind==='MODULE' ? (act.classList.contains('opened')?'▸ CLICK TO CLOSE':'▸ CLICK TO OPEN') : '▸ CLICK TO FOLLOW'; }
+    } else if(act && act.dataset.kind==='MODULE'){
+      identDo.textContent= act.classList.contains('opened')?'▸ CLICK TO CLOSE':'▸ CLICK TO OPEN';
+    }
+  }
+  addEventListener('pointermove', function(e){ mx=e.clientX; my=e.clientY; placeWindow(); }, {passive:true});
+  addEventListener('pointerleave', function(){ mx=-1; locked=null; win.classList.remove('locked'); placeWindow(); });
+  document.addEventListener('mouseleave', function(){ mx=-1; locked=null; win.classList.remove('locked'); placeWindow(); });
+
+  // ───── INTERACT: clicking activates the real element under the focal point ─────
+  function showToast(t){ toastText.textContent=t; toast.classList.add('in');
+    clearTimeout(showToast._t); showToast._t=setTimeout(function(){ toast.classList.remove('in'); }, 1500); }
+  [].forEach.call(document.querySelectorAll('[data-act]'), function(el){
+    el.addEventListener('click', function(){
+      if(el.dataset.kind==='MODULE'){ el.classList.toggle('opened');
+        collectWires(); render();
+        showToast((el.classList.contains('opened')?'OPENED':'CLOSED')+' MODULE · '+el.dataset.id);
+      } else {
+        el.classList.remove('pulse'); void el.offsetWidth; el.classList.add('pulse');
+        showToast('FOLLOWED '+el.dataset.kind+' · '+el.dataset.id);
+      }
+      // refresh the identity line after the state change
+      placeWindow();
+    });
+  });
+
+  // ───── SWITCH LENS: scroll wheel, number keys, or the chips (NOT plain click) ─────
+  var ORDER=['wire','source','binary','invert'];
+  function setMode(m){
+    mode=m; render();
+    winMode.textContent={wire:'WIREFRAME',source:'SOURCE',binary:'BINARY',invert:'INVERT'}[m];
+    [].forEach.call(document.querySelectorAll('.modes button'), function(b){
+      b.setAttribute('aria-pressed', b.getAttribute('data-mode')===m?'true':'false'); });
+  }
+  [].forEach.call(document.querySelectorAll('.modes button'), function(b){
+    b.addEventListener('click', function(ev){ ev.stopPropagation(); setMode(b.getAttribute('data-mode')); }); });
+  addEventListener('keydown', function(e){ if(e.key>='1'&&e.key<='4') setMode(ORDER[+e.key-1]); });
+  addEventListener('wheel', function(e){ e.preventDefault();
+    var d=e.deltaY>0?1:-1; setMode(ORDER[(ORDER.indexOf(mode)+d+4)%4]); }, {passive:false});
+
+  addEventListener('resize', build);
+  if(document.fonts && document.fonts.ready){ document.fonts.ready.then(build); }
+  build();
+})();
+</script>
+</body>
+</html>

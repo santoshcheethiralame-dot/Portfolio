@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en" data-mock="decode-wake">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DECODE WAKE — the page is read as you move across it</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --red:#ed1c24; --red-hot:#ff5247; --ink:#0d0d0d; --paper:#f7f5f1; --lime:#c8e620;
+    --fd:"Anton",sans-serif; --fm:"JetBrains Mono",monospace;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  html{ -webkit-font-smoothing:antialiased; }
+  body{ background:var(--red); color:var(--paper); font-family:var(--fm); overflow:hidden; cursor:none; }
+  ::selection{ background:var(--ink); color:var(--lime); }
+  #grid,#wake{ position:fixed; inset:0; display:block; }
+  #wake{ z-index:5; pointer-events:none; }
+  #dot{ position:fixed; z-index:8; width:9px; height:9px; margin:-4.5px 0 0 -4.5px; background:var(--lime);
+    border:1.5px solid var(--ink); pointer-events:none; will-change:transform; display:none; }
+
+  .chrome{ position:fixed; z-index:20; pointer-events:none; }
+  .tl{ top:clamp(16px,2.4vw,30px); left:clamp(16px,2.4vw,30px); }
+  .kicker{ font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:rgba(255,255,255,.8); }
+  .kicker::before{ content:"// "; color:#fff; }
+  h1{ font-family:var(--fd); font-weight:400; text-transform:uppercase; line-height:.84;
+    font-size:clamp(2.2rem,6vw,4.6rem); margin-top:8px; -webkit-text-stroke:1px var(--paper); color:transparent; }
+  .deck{ margin-top:12px; max-width:42ch; font-size:12.5px; line-height:1.6; color:rgba(255,255,255,.9); }
+  .deck b{ color:#fff; }
+  #tag{ position:fixed; left:50%; bottom:7px; transform:translateX(-50%); z-index:40; font-size:9.5px;
+    letter-spacing:.14em; text-transform:uppercase; color:rgba(255,255,255,.55); pointer-events:none; }
+  @media (max-width:720px){ .deck{ display:none; } }
+</style>
+</head>
+<body>
+  <canvas id="grid"></canvas>
+  <canvas id="wake"></canvas>
+  <div id="dot"></div>
+
+  <header class="chrome tl">
+    <p class="kicker">cursor study · 03</p>
+    <h1>Decode<br />Wake</h1>
+    <p class="deck">The page sits in <b>ciphertext</b>. Cells the cursor passes decode to the
+      <b>real words</b> underneath — then scramble back. Sweep a line and you literally read it;
+      the decode-in motion becomes a cursor wake.</p>
+  </header>
+
+  <div id="tag">03 · decode wake · scramble → resolve → fade</div>
+
+<script>
+(function(){
+  'use strict';
+  var REDUCE=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var $=function(id){ return document.getElementById(id); };
+  var gc=$('grid'), gx=gc.getContext('2d'), wc=$('wake'), wx=wc.getContext('2d'), dot=$('dot');
+  var dpr=Math.min(2, window.devicePixelRatio||1);
+  var GLYPHS='ABCDEFGHJKLMNPQRSTUVWXYZ0123456789#/<>[]{}*+=·.@%&'.split('');
+  // the page is "encrypted" at rest; the cursor decodes the REAL text in its wake
+  var MESSAGE='LOCAL-FIRST SOFTWARE   BLACK-BOX ML TURNED TO GLASS   THE INTERNALS OF GPT-2   GIT REBUILT IN C   NOTHING IS OPAQUE ONCE YOU LOOK   ';
+  var CELL=46, cols=0, rows=0;
+  var LIFE=950, SCRAMBLE=260, HOLD=170;     // ms phases
+  function target(r,c){ var ch=MESSAGE[(r*cols+c)%MESSAGE.length]; return ch===' '?'':ch; }
+  function baseGlyph(r,c){ if(target(r,c)==='') return '';   // stable scramble — looks like ciphertext, not the answer
+    return GLYPHS[(((r*7+c*29+13)>>>0)%GLYPHS.length)]; }
+
+  function size(cv,c){ cv.width=Math.round(innerWidth*dpr); cv.height=Math.round(innerHeight*dpr);
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px'; c.setTransform(dpr,0,0,dpr,0,0); }
+  function build(){
+    CELL=Math.max(38, Math.min(56, Math.round(innerWidth/28)));
+    cols=Math.ceil(innerWidth/CELL); rows=Math.ceil(innerHeight/CELL);
+    size(gc,gx); size(wc,wx); drawGrid();
+    wx.font='700 '+Math.round(CELL*0.46)+'px "JetBrains Mono",monospace';
+    wx.textAlign='center'; wx.textBaseline='middle';
+  }
+  function drawGrid(){
+    var w=innerWidth,h=innerHeight; gx.clearRect(0,0,w,h);
+    gx.strokeStyle='rgba(255,255,255,.10)'; gx.lineWidth=1; gx.beginPath();
+    for(var x=0;x<=cols;x++){ var px=Math.round(x*CELL)+.5; gx.moveTo(px,0); gx.lineTo(px,h); }
+    for(var y=0;y<=rows;y++){ var py=Math.round(y*CELL)+.5; gx.moveTo(0,py); gx.lineTo(w,py); }
+    gx.stroke();
+    // faint ciphertext at rest — every glyph here is WRONG until the cursor decodes it
+    gx.font='700 '+Math.round(CELL*0.46)+'px "JetBrains Mono",monospace';
+    gx.textAlign='center'; gx.textBaseline='middle'; gx.fillStyle='rgba(255,255,255,.11)';
+    for(var r=0;r<rows;r++) for(var c=0;c<cols;c++){ var bg=baseGlyph(r,c); if(bg) gx.fillText(bg, c*CELL+CELL/2, r*CELL+CELL/2+1); }
+  }
+
+  // active cells keyed by "r,c"
+  var cells=new Map(), running=false, lastC=-1, lastR=-1, now=0;
+  function touch(c,r){ if(c<0||r<0||c>=cols||r>=rows) return; if(target(r,c)==='') return;  // don't light up word-gaps
+    cells.set(r+','+c,{c:c,r:r,t0:now,seed:(r*131+c*17)}); }
+  function march(c0,r0,c1,r1){ // light line-march so fast drags leave a continuous wake
+    var dc=c1-c0, dr=r1-r0, steps=Math.max(Math.abs(dc),Math.abs(dr));
+    if(steps===0){ touch(c1,r1); return; }
+    for(var i=0;i<=steps;i++){ touch(Math.round(c0+dc*i/steps), Math.round(r0+dr*i/steps)); }
+  }
+
+  function frame(t){
+    now=t;
+    wx.clearRect(0,0,innerWidth,innerHeight);
+    cells.forEach(function(cell,key){
+      var age=t-cell.t0, k=age/LIFE;
+      if(k>=1){ cells.delete(key); return; }
+      var x=cell.c*CELL+CELL/2, y=cell.r*CELL+CELL/2+1;
+      var glyph, alpha, color, boxA;
+      if(age<SCRAMBLE){                                   // scrambling
+        glyph=GLYPHS[(((age/45)|0)+cell.seed)%GLYPHS.length];
+        alpha=1; color='200,230,32'; boxA=0.9*(1-age/SCRAMBLE);
+      }else if(age<SCRAMBLE+HOLD){                         // resolved, bright
+        glyph=target(cell.r,cell.c); alpha=1; color='247,245,241'; boxA=0;
+      }else{                                               // fading out
+        glyph=target(cell.r,cell.c);
+        var f=(age-SCRAMBLE-HOLD)/(LIFE-SCRAMBLE-HOLD); alpha=1-f; color='247,245,241'; boxA=0;
+      }
+      if(boxA>0){ wx.strokeStyle='rgba(200,230,32,'+boxA+')'; wx.lineWidth=1.5;
+        wx.strokeRect(cell.c*CELL+2.5, cell.r*CELL+2.5, CELL-5, CELL-5); }
+      wx.fillStyle='rgba('+color+','+alpha+')'; wx.fillText(glyph, x, y);
+    });
+    if(cells.size>0){ requestAnimationFrame(frame); } else { running=false; }
+  }
+  function start(){ if(!running && !REDUCE){ running=true; requestAnimationFrame(frame); } }
+
+  addEventListener('pointermove', function(e){
+    dot.style.display='block'; dot.style.transform='translate('+e.clientX+'px,'+e.clientY+'px)';
+    var c=Math.floor(e.clientX/CELL), r=Math.floor(e.clientY/CELL);
+    if(c===lastC && r===lastR) return;
+    now=performance.now();
+    if(lastC<0){ touch(c,r); } else { march(lastC,lastR,c,r); }
+    lastC=c; lastR=r; start();
+  }, {passive:true});
+  addEventListener('pointerleave', function(){ dot.style.display='none'; lastC=-1; lastR=-1; });
+
+  addEventListener('resize', build);
+  if(document.fonts && document.fonts.ready){ document.fonts.ready.then(build); }
+  build();
+  if(REDUCE){ /* static hint: resolve a few cells so the idea reads without motion */
+    now=0; [[3,3],[4,3],[5,3],[6,4],[7,4]].forEach(function(p){ touch(p[0],p[1]); });
+    wx.font='700 '+Math.round(CELL*0.46)+'px "JetBrains Mono",monospace'; wx.textAlign='center'; wx.textBaseline='middle';
+    cells.forEach(function(cell){ wx.fillStyle='rgba(247,245,241,.9)'; wx.fillText(target(cell.r,cell.c), cell.c*CELL+CELL/2, cell.r*CELL+CELL/2+1); });
+  }
+})();
+</script>
+</body>
+</html>

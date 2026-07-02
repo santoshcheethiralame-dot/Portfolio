@@ -1,0 +1,299 @@
+---
+import Base from '../../layouts/Base.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+import { projects, site } from '../../data/site';
+
+export function getStaticPaths() {
+  return projects.map((project) => ({
+    params: { slug: project.slug },
+    props: { project },
+  }));
+}
+
+const { project } = Astro.props;
+const idx = projects.findIndex((p) => p.slug === project.slug);
+const pageNo = idx >= 0 ? idx + 1 : 1;
+---
+
+<Base title={`${project.name} — ${site.fullName}`} description={project.oneLiner}>
+  <Nav />
+
+  <main class="feat">
+    <article class="feat-sheet">
+      <a href="/#projects" class="feat-back">&larr; BACK TO THE FRONT PAGE</a>
+
+      <div class="feat-folio" aria-hidden="true">
+        <span class="ff-no">FEATURE&nbsp;&middot;&nbsp;FILE {String(pageNo).padStart(2, '0')}</span>
+        <span class="ff-mid">THE DAILY CHEETHIRALA</span>
+        <span class="ff-tags">{project.tags.join(' · ')}</span>
+      </div>
+      <hr class="feat-rule" />
+
+      <header class="feat-head">
+        <span class="feat-kicker">// the full story</span>
+        <h1 class="feat-title">{project.name}</h1>
+        <p class="feat-deck">{project.oneLiner}</p>
+
+        <div class="feat-meta">
+          <span><b>YEAR</b>{project.year}</span>
+          <span><b>ROLE</b>{project.role}</span>
+          <span><b>STATUS</b>{project.status}</span>
+        </div>
+
+        <div class="feat-links">
+          {project.links.demo && (
+            <a class="feat-btn feat-btn--live" href={project.links.demo} target="_blank" rel="noopener">VISIT LIVE &rarr;</a>
+          )}
+          {project.links.github && (
+            <a class="feat-btn" href={project.links.github} target="_blank" rel="noopener">VIEW SOURCE &nearr;</a>
+          )}
+        </div>
+      </header>
+
+      <div class="feat-stats">
+        {project.stats.map((s) => (
+          <div class="feat-stat">
+            <span class="fs-v">{s.v}</span>
+            <span class="fs-l">{s.l}</span>
+          </div>
+        ))}
+      </div>
+
+      <div class="feat-body">
+        <section class="feat-block" data-fade>
+          <span class="feat-block-h">The problem</span>
+          <p>{project.problem}</p>
+        </section>
+        <section class="feat-block" data-fade>
+          <span class="feat-block-h">What I built</span>
+          <p>{project.build}</p>
+        </section>
+        <section class="feat-block" data-fade>
+          <span class="feat-block-h">Highlights</span>
+          <ul class="feat-hl">
+            {project.highlights.map((h) => <li>{h}</li>)}
+          </ul>
+        </section>
+        {project.outcome && (
+          <section class="feat-block" data-fade>
+            <span class="feat-block-h">Outcome</span>
+            <p class="feat-outcome">{project.outcome}</p>
+          </section>
+        )}
+        <section class="feat-block" data-fade>
+          <span class="feat-block-h">Stack</span>
+          <div class="feat-stack">
+            {project.stack.map((s) => <span class="feat-chip">{s}</span>)}
+          </div>
+        </section>
+      </div>
+
+      <div class="feat-eof" aria-hidden="true">&mdash;&nbsp;30&nbsp;&mdash;</div>
+    </article>
+  </main>
+
+  <Footer />
+</Base>
+
+<style>
+  /* the feature page — a single broadsheet article on the red grid, same
+     ink/cream/Anton language as the edition. No rounded corners. */
+  .feat {
+    width: 100%;
+    padding: clamp(74px, 11vh, 120px) clamp(12px, 4vw, 40px) clamp(40px, 6vw, 70px);
+    display: flex;
+    justify-content: center;
+  }
+  .feat-sheet {
+    width: 100%;
+    max-width: 940px;
+    background: #f7f5f1;
+    background-image: var(--press-grain);
+    color: #141414;
+    border: 4px solid #141414;
+    box-shadow: 12px 12px 0 #0a0a0a;
+    padding: clamp(20px, 3.4vw, 44px) clamp(18px, 3.4vw, 48px) clamp(28px, 4vw, 52px);
+  }
+  .feat-back {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    color: #ed1c24;
+    border-bottom: 2px solid #ed1c24;
+    padding-bottom: 2px;
+    margin-bottom: clamp(20px, 3vw, 34px);
+  }
+  .feat-back:hover { background: #ed1c24; color: #f7f5f1; }
+
+  .feat-folio {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #928b80;
+  }
+  .feat-folio .ff-no { color: #141414; }
+  .feat-folio .ff-mid { color: #141414; opacity: 0.55; }
+  .feat-rule { border: none; border-top: 3px solid #141414; margin: 7px 0 0; }
+
+  .feat-head { padding-top: clamp(18px, 2.6vw, 30px); }
+  .feat-kicker {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: #ed1c24;
+  }
+  .feat-title {
+    font-family: 'Anton', sans-serif;
+    font-weight: 500;
+    font-size: clamp(2.8rem, 9vw, 6.5rem);
+    line-height: 0.86;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    color: #141414;
+    margin: 8px 0 0;
+  }
+  .feat-deck {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: clamp(1.15rem, 2.2vw, 1.7rem);
+    line-height: 1.3;
+    max-width: 40ch;
+    margin: 14px 0 0;
+  }
+  .feat-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 28px;
+    margin: clamp(20px, 3vw, 30px) 0 0;
+    padding-top: 18px;
+    border-top: 1.5px solid rgba(20, 20, 20, 0.2);
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    color: #141414;
+  }
+  .feat-meta span { display: flex; flex-direction: column; gap: 4px; }
+  .feat-meta b {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    color: #928b80;
+  }
+  .feat-links { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
+  .feat-btn {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #141414;
+    background: #f7f5f1;
+    border: 3px solid #141414;
+    box-shadow: 4px 4px 0 #141414;
+    padding: 11px 16px;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .feat-btn:hover { transform: translate(2px, 2px); box-shadow: 2px 2px 0 #141414; }
+  .feat-btn--live { background: #ed1c24; color: #f7f5f1; border-color: #ed1c24; box-shadow: 4px 4px 0 #141414; }
+
+  .feat-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border: 3px solid #141414;
+    box-shadow: 5px 5px 0 #141414;
+    margin: clamp(26px, 4vw, 40px) 0;
+  }
+  .feat-stat { padding: 16px 10px; text-align: center; border-right: 3px solid #141414; }
+  .feat-stat:last-child { border-right: none; }
+  .feat-stat .fs-v {
+    display: block;
+    font-family: 'Anton', sans-serif;
+    font-size: clamp(1.5rem, 3.4vw, 2.2rem);
+    line-height: 1;
+    text-transform: uppercase;
+    color: #ed1c24;
+  }
+  .feat-stat .fs-l {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #928b80;
+    margin-top: 7px;
+  }
+
+  .feat-body {
+    columns: 2;
+    column-gap: clamp(26px, 4vw, 48px);
+    margin-top: 8px;
+  }
+  .feat-block { break-inside: avoid; margin-bottom: clamp(22px, 3vw, 32px); }
+  .feat-block-h {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #ed1c24;
+    border-bottom: 1.5px solid #141414;
+    padding-bottom: 5px;
+    margin-bottom: 9px;
+  }
+  .feat-block p {
+    font-family: 'Instrument Serif', serif;
+    font-size: 1.06rem;
+    line-height: 1.5;
+    color: #141414;
+  }
+  .feat-outcome { font-style: italic; }
+  .feat-hl { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+  .feat-hl li {
+    position: relative;
+    padding-left: 20px;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: #141414;
+  }
+  .feat-hl li::before { content: '▸'; position: absolute; left: 0; color: #ed1c24; }
+  .feat-stack { display: flex; flex-wrap: wrap; gap: 7px; }
+  .feat-chip {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #141414;
+    border: 2px solid #141414;
+    padding: 5px 9px;
+  }
+
+  .feat-eof {
+    margin-top: clamp(26px, 4vw, 40px);
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5em;
+    text-indent: 0.5em;
+    color: #141414;
+  }
+
+  @media (max-width: 640px) {
+    .feat-body { columns: 1; }
+    .feat-folio .ff-mid { display: none; }
+  }
+</style>

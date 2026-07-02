@@ -1,0 +1,754 @@
+<!doctype html>
+<html lang="en" data-mock="datasheet">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PES1UG24CS127 — S. CHEETHIRALA DATASHEET</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --ink:#141414; --cream:#f7f5f1; --cream2:#efece4; --red:#ed1c24;
+  --lime:#b4ff2e; --black:#0a0a0a; --gray:#928b80;
+  --fd:"Anton",sans-serif; --fm:"JetBrains Mono",monospace; --fi:"Instrument Serif",serif;
+}
+*{ box-sizing:border-box; margin:0; padding:0; }
+html{ -webkit-font-smoothing:antialiased; }
+body{
+  background:var(--cream);
+  color:var(--ink);
+  font-family:var(--fm);
+  font-size:13px;
+  line-height:1.5;
+  padding-bottom:52px;
+}
+::selection{ background:var(--ink); color:var(--lime); }
+a{ color:inherit; text-decoration:none; }
+a:hover{ color:var(--red); }
+
+/* ── LAYOUT ── */
+.sheet{
+  max-width:1080px;
+  margin:0 auto;
+  padding:clamp(16px,4vw,48px) clamp(12px,4vw,40px);
+}
+
+/* ── HAIRLINES ── */
+hr.rule{ border:none; border-top:1px solid var(--ink); margin:0; }
+
+/* ── SECTION WRAPPER ── */
+.section{
+  border:2px solid var(--ink);
+  box-shadow:4px 4px 0 var(--ink);
+  margin-top:24px;
+  background:var(--cream);
+}
+.section-header{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:6px 14px;
+  border-bottom:2px solid var(--ink);
+  background:var(--cream2);
+}
+.section-num{
+  font-family:var(--fm);
+  font-weight:700;
+  font-size:11px;
+  color:var(--red);
+  letter-spacing:.1em;
+  flex:none;
+}
+.section-title{
+  font-family:var(--fm);
+  font-weight:700;
+  font-size:11px;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+}
+.section-body{ padding:16px 14px; }
+
+/* ── HEADER BLOCK ── */
+.ds-header{
+  border:3px solid var(--ink);
+  box-shadow:6px 6px 0 var(--ink);
+  background:var(--cream);
+}
+.ds-header-top{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:0;
+  border-bottom:2px solid var(--ink);
+}
+.ds-partno-block{
+  padding:16px 18px 14px;
+  border-right:2px solid var(--ink);
+}
+.ds-partno{
+  font-family:var(--fd);
+  font-size:clamp(2rem,6vw,3.6rem);
+  letter-spacing:.02em;
+  color:var(--red);
+  line-height:1;
+}
+.ds-title{
+  font-family:var(--fm);
+  font-weight:700;
+  font-size:clamp(.85rem,2vw,1.25rem);
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  margin-top:6px;
+  line-height:1.25;
+}
+.ds-desc-serif{
+  font-family:var(--fi);
+  font-size:clamp(.95rem,1.8vw,1.2rem);
+  color:var(--gray);
+  margin-top:4px;
+  font-style:italic;
+}
+.ds-meta-block{
+  padding:14px 18px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  justify-content:center;
+  min-width:180px;
+}
+.ds-meta-row{
+  display:flex;
+  justify-content:space-between;
+  gap:16px;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  border-bottom:1px solid rgba(20,20,20,.15);
+  padding-bottom:4px;
+}
+.ds-meta-row:last-child{ border-bottom:none; padding-bottom:0; }
+.ds-meta-label{ color:var(--gray); }
+.ds-meta-val{ color:var(--ink); text-align:right; }
+.ds-meta-val.red{ color:var(--red); }
+.ds-header-status{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 18px;
+  border-top:2px solid var(--ink);
+  background:var(--ink);
+}
+.lime-dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:var(--lime);
+  box-shadow:0 0 0 2px var(--lime),0 0 8px var(--lime);
+  flex:none;
+  animation:pulse 2s ease-in-out infinite;
+}
+@keyframes pulse{
+  0%,100%{ box-shadow:0 0 0 2px var(--lime),0 0 8px var(--lime); }
+  50%{ box-shadow:0 0 0 2px var(--lime),0 0 18px var(--lime); }
+}
+.status-text{
+  font-family:var(--fm);
+  font-weight:700;
+  font-size:12px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--lime);
+}
+.status-note{
+  margin-left:auto;
+  font-size:10px;
+  letter-spacing:.08em;
+  color:rgba(247,245,241,.5);
+  font-weight:400;
+}
+.warn-badge{
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.06em;
+  color:rgba(247,245,241,.7);
+  border:1px solid rgba(247,245,241,.25);
+  padding:3px 8px;
+}
+
+/* ── FEATURES ── */
+.features-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:0;
+}
+.feature-item{
+  display:flex;
+  align-items:flex-start;
+  gap:8px;
+  padding:8px 12px;
+  border-bottom:1px solid rgba(20,20,20,.15);
+  border-right:1px solid rgba(20,20,20,.15);
+  font-size:12px;
+  line-height:1.45;
+}
+.feature-item:nth-child(even){ border-right:none; }
+.feature-item:nth-last-child(-n+2){ border-bottom:none; }
+.feature-bullet{
+  color:var(--red);
+  font-weight:700;
+  flex:none;
+  font-size:14px;
+  line-height:1.2;
+}
+
+/* ── DESCRIPTION ── */
+.ds-description{
+  font-family:var(--fi);
+  font-size:clamp(1rem,1.8vw,1.25rem);
+  line-height:1.7;
+  color:var(--ink);
+  border-left:4px solid var(--ink);
+  padding-left:14px;
+}
+.ds-description .hot{ color:var(--red); font-style:italic; }
+
+/* ── DIP PACKAGE ── */
+.dip-outer{
+  display:flex;
+  justify-content:center;
+  padding:8px 0 4px;
+}
+.dip-wrapper{
+  display:flex;
+  align-items:center;
+  gap:0;
+  position:relative;
+}
+.dip-pins-left,
+.dip-pins-right{
+  display:flex;
+  flex-direction:column;
+  gap:0;
+}
+.dip-pin{
+  display:flex;
+  align-items:center;
+  height:32px;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.06em;
+  white-space:nowrap;
+  gap:0;
+}
+.dip-pins-left .dip-pin{ flex-direction:row; }
+.dip-pins-right .dip-pin{ flex-direction:row-reverse; }
+.dip-pin-stub{
+  width:28px;
+  height:3px;
+  background:var(--ink);
+  flex:none;
+}
+.dip-pin-num{
+  font-weight:700;
+  color:var(--red);
+  font-size:10px;
+  padding:0 5px;
+  flex:none;
+  min-width:22px;
+  text-align:center;
+}
+.dip-pin-label{
+  color:var(--ink);
+  font-size:10px;
+  font-weight:500;
+  padding:0 4px;
+}
+.dip-body{
+  border:3px solid var(--ink);
+  box-shadow:5px 5px 0 var(--ink);
+  background:var(--cream2);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  min-width:160px;
+  width:160px;
+  padding:12px 8px;
+  gap:6px;
+  position:relative;
+}
+.dip-notch{
+  width:30px;
+  height:12px;
+  border:3px solid var(--ink);
+  border-bottom:none;
+  background:var(--cream);
+  position:absolute;
+  top:-3px;
+  left:50%;
+  transform:translateX(-50%);
+}
+.dip-body-partno{
+  font-family:var(--fd);
+  font-size:.9rem;
+  letter-spacing:.04em;
+  color:var(--red);
+  margin-top:10px;
+  text-align:center;
+}
+.dip-body-label{
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--gray);
+  text-align:center;
+}
+.dip-body-view{
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:.1em;
+  color:var(--gray);
+  border-top:1px solid rgba(20,20,20,.2);
+  padding-top:4px;
+  margin-top:2px;
+  width:100%;
+  text-align:center;
+}
+.dip-note{
+  font-size:10px;
+  color:var(--gray);
+  margin-top:10px;
+  text-align:center;
+  letter-spacing:.05em;
+}
+
+/* ── CHARACTERISTIC CURVES ── */
+.curve-wrap{ overflow-x:auto; }
+.curve-title{
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--gray);
+  margin-bottom:10px;
+}
+.curve-caption{
+  font-size:10px;
+  color:var(--gray);
+  margin-top:8px;
+  font-style:italic;
+  letter-spacing:.04em;
+}
+
+/* ── CLOSING STRIP ── */
+.closing-strip{
+  display:flex;
+  align-items:flex-start;
+  gap:24px;
+  margin-top:20px;
+  padding-top:16px;
+  border-top:1px solid rgba(20,20,20,.2);
+  flex-wrap:wrap;
+}
+.projects-pointer{
+  flex:1;
+  min-width:200px;
+  font-family:var(--fm);
+  font-size:12px;
+  color:var(--ink);
+  line-height:1.6;
+}
+.projects-pointer strong{
+  font-weight:700;
+  font-size:11px;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--gray);
+  display:block;
+  margin-bottom:4px;
+}
+.projects-arrow{
+  color:var(--red);
+  font-weight:700;
+}
+.cat-fig{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:8px;
+}
+.cat-img-box{
+  width:100px;
+  height:100px;
+  border:3px solid var(--ink);
+  box-shadow:4px 4px 0 var(--ink);
+  overflow:hidden;
+  background:var(--cream2);
+  flex:none;
+}
+.cat-img-box img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  image-rendering:pixelated;
+  display:block;
+}
+.cat-caption{
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--gray);
+  max-width:180px;
+  line-height:1.5;
+}
+.cat-caption span{ color:var(--red); }
+.cat-log{
+  font-size:10px;
+  color:var(--gray);
+  font-style:italic;
+  margin-top:2px;
+  max-width:180px;
+  line-height:1.5;
+}
+
+/* ── FIXED FOOTER TAG ── */
+#tag{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  z-index:1000;
+  background:var(--ink);
+  color:rgba(247,245,241,.55);
+  font-family:var(--fm);
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  padding:8px 16px;
+  border-top:2px solid var(--ink);
+  text-align:center;
+}
+
+/* ── RESPONSIVE ── */
+@media(max-width:680px){
+  .ds-header-top{ grid-template-columns:1fr; }
+  .ds-meta-block{
+    border-top:2px solid var(--ink);
+    border-right:none;
+    min-width:0;
+  }
+  .features-grid{ grid-template-columns:1fr; }
+  .feature-item:nth-child(even){ border-right:none; }
+  .feature-item:nth-last-child(-n+2){ border-bottom:1px solid rgba(20,20,20,.15); }
+  .feature-item:last-child{ border-bottom:none; }
+  .dip-pin-label{ display:none; }
+  .dip-body{ min-width:120px; width:120px; }
+  .closing-strip{ flex-direction:column; }
+}
+</style>
+</head>
+<body>
+
+<div class="sheet">
+
+  <!-- ══════════════════════════════════════════════════════════
+       §1 — HEADER BLOCK
+  ═══════════════════════════════════════════════════════════ -->
+  <div class="ds-header">
+    <div class="ds-header-top">
+      <div class="ds-partno-block">
+        <div class="ds-partno">PES1UG24CS127</div>
+        <div class="ds-title">S. CHEETHIRALA — Single-Chip Software / ML Engineer</div>
+        <div class="ds-desc-serif">i open black boxes — neural nets, version control, whatever's opaque.</div>
+      </div>
+      <div class="ds-meta-block">
+        <div class="ds-meta-row">
+          <span class="ds-meta-label">REV.</span>
+          <span class="ds-meta-val">2026.x</span>
+        </div>
+        <div class="ds-meta-row">
+          <span class="ds-meta-label">PKG.</span>
+          <span class="ds-meta-val">HUMAN DIP-14</span>
+        </div>
+        <div class="ds-meta-row">
+          <span class="ds-meta-label">CGPA</span>
+          <span class="ds-meta-val red">7.95 / 10</span>
+        </div>
+        <div class="ds-meta-row">
+          <span class="ds-meta-label">IST</span>
+          <span class="ds-meta-val">UTC +5:30</span>
+        </div>
+      </div>
+    </div>
+    <div class="ds-header-status">
+      <div class="lime-dot"></div>
+      <span class="status-text">▸ OPEN — SWE / ML Internships · Summer 2026</span>
+      <span class="warn-badge">⚠ PRELIMINARY</span>
+      <span class="status-note">Specifications subject to a refactor</span>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       §2 — DESCRIPTION
+  ═══════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">§ 2</span>
+      <span class="section-title">Description</span>
+    </div>
+    <div class="section-body">
+      <p class="ds-description">
+        i open black boxes — neural nets, version control, whatever's opaque. the interesting work is always <span class="hot">inside the box everyone else treats as sealed</span>. cs undergrad @ pes university, bengaluru; incoming research intern @ pesu intelligence labs, working on interpretability — specifically, why models hallucinate.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       §3 — FEATURES
+  ═══════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">§ 3</span>
+      <span class="section-title">Features</span>
+    </div>
+    <div class="section-body" style="padding:0;">
+      <div class="features-grid">
+        <div class="feature-item">
+          <span class="feature-bullet">▸</span>
+          <span>if i can't rebuild it, i don't understand it.</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-bullet">▸</span>
+          <span>local-first by default — your data, your GPU, no server.</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-bullet">▸</span>
+          <span>whether it works is easy; why it fails is the work.</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-bullet">▸</span>
+          <span>boring is the only thing i refuse to ship.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       §4 — PIN CONFIGURATION
+  ═══════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">§ 4</span>
+      <span class="section-title">Pin Configuration — DIP-14 Package (Top View)</span>
+    </div>
+    <div class="section-body">
+      <div class="dip-outer">
+        <div class="dip-wrapper">
+          <!-- Left pins: 1–7 (top to bottom) -->
+          <div class="dip-pins-left">
+            <div class="dip-pin">
+              <div class="dip-pin-stub"></div>
+              <div class="dip-pin-num">1</div>
+              <div class="dip-pin-label">SWE</div>
+            </div>
+            <div class="dip-pin">
+              <div class="dip-pin-stub"></div>
+              <div class="dip-pin-num">2</div>
+              <div class="dip-pin-label">ML / INTERP</div>
+            </div>
+            <div class="dip-pin">
+              <div class="dip-pin-stub"></div>
+              <div class="dip-pin-num">3</div>
+              <div class="dip-pin-label">LOCAL_FIRST</div>
+            </div>
+            <div class="dip-pin">
+              <div class="dip-pin-stub"></div>
+              <div class="dip-pin-num">4</div>
+              <div class="dip-pin-label">WGSL_GPU</div>
+            </div>
+            <div class="dip-pin">
+              <div class="dip-pin-stub"></div>
+              <div class="dip-pin-num">5</div>
+              <div class="dip-pin-label">OPENS_BOXES</div>
+            </div>
+            <div class="dip-pin">
+              <div class="dip-pin-stub"></div>
+              <div class="dip-pin-num">6</div>
+              <div class="dip-pin-label">GIT</div>
+            </div>
+            <div class="dip-pin">
+              <div class="dip-pin-stub"></div>
+              <div class="dip-pin-num">7</div>
+              <div class="dip-pin-label">COFFEE_IN (VCC)</div>
+            </div>
+          </div>
+
+          <!-- Chip body -->
+          <div class="dip-body">
+            <div class="dip-notch"></div>
+            <div class="dip-body-partno">PES1UG24CS127</div>
+            <div class="dip-body-label">S. CHEETHIRALA<br/>SWE / ML ENG.</div>
+            <div class="dip-body-label" style="color:var(--red);font-size:8px;">PES UNIV. · BLR</div>
+            <div class="dip-body-view">TOP VIEW</div>
+          </div>
+
+          <!-- Right pins: 14–8 (top to bottom) -->
+          <div class="dip-pins-right">
+            <div class="dip-pin">
+              <div class="dip-pin-label">GND</div>
+              <div class="dip-pin-num">14</div>
+              <div class="dip-pin-stub"></div>
+            </div>
+            <div class="dip-pin">
+              <div class="dip-pin-label">SHIPS_OUT</div>
+              <div class="dip-pin-num">13</div>
+              <div class="dip-pin-stub"></div>
+            </div>
+            <div class="dip-pin">
+              <div class="dip-pin-label">GLASS_OUT</div>
+              <div class="dip-pin-num">12</div>
+              <div class="dip-pin-stub"></div>
+            </div>
+            <div class="dip-pin">
+              <div class="dip-pin-label">DEBUG</div>
+              <div class="dip-pin-num">11</div>
+              <div class="dip-pin-stub"></div>
+            </div>
+            <div class="dip-pin">
+              <div class="dip-pin-label">RESET (sleep)</div>
+              <div class="dip-pin-num">10</div>
+              <div class="dip-pin-stub"></div>
+            </div>
+            <div class="dip-pin">
+              <div class="dip-pin-label">CLK (IST)</div>
+              <div class="dip-pin-num">9</div>
+              <div class="dip-pin-stub"></div>
+            </div>
+            <div class="dip-pin">
+              <div class="dip-pin-label">NC</div>
+              <div class="dip-pin-num">8</div>
+              <div class="dip-pin-stub"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="dip-note">Pin 7 (COFFEE_IN) must be powered before assertions on pins 1–6 are valid.</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       §5 — CHARACTERISTIC CURVE + CLOSING STRIP
+  ═══════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">§ 5</span>
+      <span class="section-title">Characteristic Curves</span>
+    </div>
+    <div class="section-body">
+      <div class="curve-wrap">
+        <p class="curve-title">FIG. 1 — In-browser MNIST accuracy vs. training epoch</p>
+        <svg viewBox="0 0 700 320" width="100%" style="max-width:700px;display:block;font-family:'JetBrains Mono',monospace;overflow:visible;" aria-label="In-browser MNIST accuracy vs training epoch">
+          <!-- background -->
+          <rect x="0" y="0" width="700" height="320" fill="#f7f5f1"/>
+
+          <!-- plot area: left 72, right 20, top 20, bottom 52 → x 72..680, y 20..268 -->
+
+          <!-- gridlines vertical (epochs 0,2,4,6,8,10) -->
+          <line x1="72"  y1="20" x2="72"  y2="268" stroke="#141414" stroke-width="0.4" stroke-dasharray="3,4"/>
+          <line x1="194" y1="20" x2="194" y2="268" stroke="#141414" stroke-width="0.4" stroke-dasharray="3,4"/>
+          <line x1="315" y1="20" x2="315" y2="268" stroke="#141414" stroke-width="0.4" stroke-dasharray="3,4"/>
+          <line x1="437" y1="20" x2="437" y2="268" stroke="#141414" stroke-width="0.4" stroke-dasharray="3,4"/>
+          <line x1="558" y1="20" x2="558" y2="268" stroke="#141414" stroke-width="0.4" stroke-dasharray="3,4"/>
+          <line x1="680" y1="20" x2="680" y2="268" stroke="#141414" stroke-width="0.4" stroke-dasharray="3,4"/>
+
+          <!-- gridlines horizontal (accuracy 0,20,40,60,80,100%) -->
+          <line x1="72" y1="268" x2="680" y2="268" stroke="#141414" stroke-width="0.4" stroke-dasharray="3,4"/>
+          <line x1="72" y1="218" x2="680" y2="218" stroke="#141414" stroke-width="0.4" stroke-dasharray="3,4"/>
+          <line x1="72" y1="169" x2="680" y2="169" stroke="#141414" stroke-width="0.4" stroke-dasharray="3,4"/>
+          <line x1="72" y1="119" x2="680" y2="119" stroke="#141414" stroke-width="0.4" stroke-dasharray="3,4"/>
+          <line x1="72" y1="70"  x2="680" y2="70"  stroke="#141414" stroke-width="0.4" stroke-dasharray="3,4"/>
+          <line x1="72" y1="20"  x2="680" y2="20"  stroke="#141414" stroke-width="0.4" stroke-dasharray="3,4"/>
+
+          <!-- axes -->
+          <line x1="72" y1="20"  x2="72"  y2="268" stroke="#141414" stroke-width="2"/>
+          <line x1="72" y1="268" x2="680" y2="268" stroke="#141414" stroke-width="2"/>
+
+          <!-- x-axis labels (epochs) -->
+          <text x="72"  y="284" text-anchor="middle" font-size="10" fill="#928b80">0</text>
+          <text x="194" y="284" text-anchor="middle" font-size="10" fill="#928b80">2</text>
+          <text x="315" y="284" text-anchor="middle" font-size="10" fill="#928b80">4</text>
+          <text x="437" y="284" text-anchor="middle" font-size="10" fill="#928b80">6</text>
+          <text x="558" y="284" text-anchor="middle" font-size="10" fill="#928b80">8</text>
+          <text x="680" y="284" text-anchor="middle" font-size="10" fill="#928b80">10</text>
+          <text x="376" y="308" text-anchor="middle" font-size="10" fill="#141414" font-weight="700" letter-spacing="0.08em">EPOCH</text>
+
+          <!-- y-axis labels (accuracy %) -->
+          <text x="65" y="272" text-anchor="end" font-size="10" fill="#928b80">0%</text>
+          <text x="65" y="222" text-anchor="end" font-size="10" fill="#928b80">20%</text>
+          <text x="65" y="173" text-anchor="end" font-size="10" fill="#928b80">40%</text>
+          <text x="65" y="123" text-anchor="end" font-size="10" fill="#928b80">60%</text>
+          <text x="65" y="74"  text-anchor="end" font-size="10" fill="#928b80">80%</text>
+          <text x="65" y="24"  text-anchor="end" font-size="10" fill="#928b80">100%</text>
+          <text transform="rotate(-90 18 144)" x="18" y="144" text-anchor="middle" font-size="10" fill="#141414" font-weight="700" letter-spacing="0.08em">ACCURACY</text>
+
+          <!-- LIME CURVE — saturating, ~97% at epoch 10 -->
+          <!-- SVG x = 72 + (epoch/10)*608; SVG y = 268 - (acc/100)*248 -->
+          <!-- epoch: 0→0%, 1→55%, 2→74%, 3→83%, 4→88%, 5→91%, 6→93%, 7→94.5%, 8→95.5%, 9→96.2%, 10→97% -->
+          <!-- points: (72,268)(133,131)(194,84)(254,58)(315,44)(376,36)(437,30)(497,26)(558,22)(619,20)(680,27) -->
+          <!-- recalc: ep=0→acc=0: y=268; ep=1→55%: y=268-136=132; ep=2→74%: y=268-184=84; ep=3→83%: y=268-206=62; ep=4→88%: y=268-218=50; ep=5→91%: y=268-226=42; ep=6→93%: y=268-231=37; ep=7→94.5%: y=268-234=34; ep=8→95.5%: y=268-237=31; ep=9→96.2%: y=268-239=29; ep=10→97%: y=268-241=27 -->
+          <polyline
+            points="72,268 133,132 194,84 254,62 315,50 376,42 437,37 497,34 558,31 619,29 680,27"
+            fill="none"
+            stroke="#b4ff2e"
+            stroke-width="3"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+
+          <!-- lime dots at start, midpoint, end -->
+          <circle cx="72"  cy="268" r="4" fill="#b4ff2e" stroke="#141414" stroke-width="1.5"/>
+          <circle cx="315" cy="50"  r="4" fill="#b4ff2e" stroke="#141414" stroke-width="1.5"/>
+          <circle cx="680" cy="27"  r="4" fill="#b4ff2e" stroke="#141414" stroke-width="1.5"/>
+
+          <!-- ~97% annotation -->
+          <rect x="510" y="14" width="90" height="20" fill="#141414"/>
+          <text x="555" y="28" text-anchor="middle" font-size="10" fill="#b4ff2e" font-weight="700" letter-spacing="0.06em">~97% ACC.</text>
+
+          <!-- plot border -->
+          <rect x="72" y="20" width="608" height="248" fill="none" stroke="#141414" stroke-width="1.5"/>
+        </svg>
+        <p class="curve-caption">trained in the browser · backprop by hand · no framework (Gradient)</p>
+      </div>
+
+      <!-- closing strip: projects pointer + cat -->
+      <div class="closing-strip">
+        <div class="projects-pointer">
+          <strong>Projects</strong>
+          GlassBox · Gradient · Orbit — each one gets a proper page <span class="projects-arrow">→</span>
+        </div>
+        <div class="cat-fig">
+          <div class="cat-img-box">
+            <img src="cat.jpg" alt="Stderr — bundled co-processor" />
+          </div>
+          <div class="cat-caption">
+            <span>FIG. — bundled co-processor</span><br/>
+            Stderr ("Err") · wandered off campus at 3 a.m. · stayed.
+          </div>
+          <div class="cat-log">&gt; it compiles. doesn't mean it's good.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="height:8px;"></div>
+
+</div><!-- /sheet -->
+
+<div id="tag">04 · datasheet · PES1UG24CS127 · about</div>
+
+</body>
+</html>

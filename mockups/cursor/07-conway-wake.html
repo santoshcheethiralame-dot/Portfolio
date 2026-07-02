@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en" data-mock="conway-wake">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CONWAY WAKE — the cursor seeds Game-of-Life (easter egg)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --red:#ed1c24; --red-hot:#ff5247; --ink:#0d0d0d; --paper:#f7f5f1; --lime:#c8e620;
+    --fd:"Anton",sans-serif; --fm:"JetBrains Mono",monospace;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  html{ -webkit-font-smoothing:antialiased; }
+  body{ background:var(--red); color:var(--paper); font-family:var(--fm); overflow:hidden; cursor:none; }
+  ::selection{ background:var(--ink); color:var(--lime); }
+  #life{ position:fixed; inset:0; display:block; }
+  #dot{ position:fixed; z-index:8; width:9px; height:9px; margin:-4.5px 0 0 -4.5px; background:var(--lime);
+    border:1.5px solid var(--ink); pointer-events:none; will-change:transform; display:none; }
+
+  .chrome{ position:fixed; z-index:20; pointer-events:none; }
+  .tl{ top:clamp(16px,2.4vw,30px); left:clamp(16px,2.4vw,30px); }
+  .kicker{ font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:rgba(255,255,255,.8); }
+  .kicker::before{ content:"// "; color:#fff; }
+  .egg{ display:inline-block; margin-left:8px; background:var(--lime); color:var(--ink); font-weight:700;
+    padding:2px 7px; letter-spacing:.1em; }
+  h1{ font-family:var(--fd); font-weight:400; text-transform:uppercase; line-height:.84;
+    font-size:clamp(2.2rem,6vw,4.6rem); margin-top:8px; -webkit-text-stroke:1px var(--paper); color:transparent; }
+  .deck{ margin-top:12px; max-width:44ch; font-size:12.5px; line-height:1.6; color:rgba(255,255,255,.9); }
+  .deck b{ color:#fff; }
+
+  .controls{ position:fixed; z-index:30; bottom:clamp(16px,2.4vw,30px); left:clamp(16px,2.4vw,30px);
+    display:flex; gap:12px; align-items:center; }
+  .toggle{ display:inline-flex; align-items:center; gap:9px; font:inherit; font-size:11px; font-weight:700;
+    letter-spacing:.12em; text-transform:uppercase; background:transparent; color:var(--paper);
+    border:2px solid var(--paper); padding:8px 13px; cursor:pointer; }
+  .toggle .led{ width:10px; height:10px; background:var(--ink); border:1.5px solid var(--paper); }
+  .toggle[aria-pressed="true"]{ border-color:var(--lime); color:var(--lime); }
+  .toggle[aria-pressed="true"] .led{ background:var(--lime); border-color:var(--lime); box-shadow:0 0 7px var(--lime); }
+  .stat{ font-size:10.5px; letter-spacing:.08em; color:rgba(255,255,255,.72); }
+  .stat b{ color:var(--lime); }
+
+  #tag{ position:fixed; left:50%; bottom:7px; transform:translateX(-50%); z-index:40; font-size:9.5px;
+    letter-spacing:.14em; text-transform:uppercase; color:rgba(255,255,255,.55); pointer-events:none; }
+  @media (max-width:720px){ .deck{ display:none; } }
+</style>
+</head>
+<body>
+  <canvas id="life"></canvas>
+  <div id="dot"></div>
+
+  <header class="chrome tl">
+    <p class="kicker">cursor study · 07 <span class="egg">easter egg</span></p>
+    <h1>Conway<br />Wake</h1>
+    <p class="deck">The cursor seeds <b>Game-of-Life</b> cells that live and die in your trail for a
+      second — grid-native and nerdy. Kept a toggle so it never fights the reading.</p>
+  </header>
+
+  <div class="controls">
+    <button class="toggle" id="toggle" aria-pressed="true"><span class="led"></span><span id="tlabel">Life: on</span></button>
+    <span class="stat">alive <b id="alive">0</b> · gen <b id="gen">0</b></span>
+  </div>
+
+  <div id="tag">07 · conway wake · B3/S23 in your cursor trail · toggle</div>
+
+<script>
+(function(){
+  'use strict';
+  var REDUCE=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var $=function(id){ return document.getElementById(id); };
+  var cv=$('life'), g=cv.getContext('2d'), dot=$('dot');
+  var dpr=Math.min(2, window.devicePixelRatio||1);
+  var CELL=24, cols=0, rows=0, cur, nxt, age, MAXAGE=18, STEP=120, on=!REDUCE;
+
+  function size(){ cv.width=Math.round(innerWidth*dpr); cv.height=Math.round(innerHeight*dpr);
+    cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px'; g.setTransform(dpr,0,0,dpr,0,0); }
+  function build(){
+    CELL=Math.max(18, Math.min(30, Math.round(innerWidth/52)));
+    cols=Math.ceil(innerWidth/CELL); rows=Math.ceil(innerHeight/CELL);
+    size();
+    cur=new Uint8Array(cols*rows); nxt=new Uint8Array(cols*rows); age=new Uint16Array(cols*rows);
+    render();
+  }
+  var idx=function(c,r){ return r*cols+c; };
+
+  function seed(c,r){
+    for(var dr=-1;dr<=1;dr++) for(var dc=-1;dc<=1;dc++){
+      var cc=c+dc, rr=r+dr; if(cc<0||rr<0||cc>=cols||rr>=rows) continue;
+      if(Math.random()<0.62){ var i=idx(cc,rr); if(!cur[i]){ cur[i]=1; age[i]=1; } }
+    }
+  }
+
+  function step(){
+    for(var r=0;r<rows;r++) for(var c=0;c<cols;c++){
+      var n=0;
+      for(var dr=-1;dr<=1;dr++) for(var dc=-1;dc<=1;dc++){ if(!dr&&!dc) continue;
+        var cc=c+dc, rr=r+dr; if(cc<0||rr<0||cc>=cols||rr>=rows) continue; n+=cur[idx(cc,rr)]; }
+      var i=idx(c,r), live=cur[i];
+      var alive = live ? (n===2||n===3) : (n===3);
+      if(alive && live && age[i]>=MAXAGE) alive=false;   // the wake fades — nothing lives forever
+      nxt[i]=alive?1:0;
+      age[i]= alive ? (live?age[i]+1:1) : 0;
+    }
+    var t=cur; cur=nxt; nxt=t; gen++;
+  }
+
+  function render(){
+    var w=innerWidth,h=innerHeight; g.clearRect(0,0,w,h);
+    // faint grid
+    g.strokeStyle='rgba(255,255,255,.08)'; g.lineWidth=1; g.beginPath();
+    for(var x=0;x<=cols;x++){ var px=Math.round(x*CELL)+.5; g.moveTo(px,0); g.lineTo(px,h); }
+    for(var y=0;y<=rows;y++){ var py=Math.round(y*CELL)+.5; g.moveTo(0,py); g.lineTo(w,py); }
+    g.stroke();
+    // live cells, colored by age (hard squares, no blur)
+    var count=0;
+    for(var r=0;r<rows;r++) for(var c=0;c<cols;c++){ var i=idx(c,r); if(!cur[i]) continue; count++;
+      var a=age[i], col;
+      if(a<=2) col='#c8e620';                       // newborn — lime
+      else if(a<=6) col='#f7f5f1';                  // established — paper
+      else { var k=Math.max(0,1-(a-6)/(MAXAGE-6)); col='rgba(13,13,13,'+(0.35+0.5*k).toFixed(2)+')'; } // dying — ink
+      g.fillStyle=col; g.fillRect(c*CELL+1, r*CELL+1, CELL-2, CELL-2);
+    }
+    $('alive').textContent=count;
+  }
+
+  var gen=0, acc=0, last=0, running=false;
+  function loop(t){ if(!running) return;
+    if(!last) last=t; acc+=t-last; last=t;
+    if(on && acc>=STEP){ acc=0; step(); render(); $('gen').textContent=gen; }
+    requestAnimationFrame(loop);
+  }
+  function start(){ if(!running){ running=true; last=0; requestAnimationFrame(loop); } }
+
+  var lastC=-1,lastR=-1;
+  addEventListener('pointermove', function(e){
+    dot.style.display='block'; dot.style.transform='translate('+e.clientX+'px,'+e.clientY+'px)';
+    if(!on) return;
+    var c=Math.floor(e.clientX/CELL), r=Math.floor(e.clientY/CELL);
+    if(c===lastC && r===lastR) return; lastC=c; lastR=r;
+    seed(c,r); render(); start();
+  }, {passive:true});
+  addEventListener('pointerleave', function(){ dot.style.display='none'; });
+
+  var toggle=$('toggle'), tlabel=$('tlabel');
+  toggle.addEventListener('click', function(){
+    on=!on; toggle.setAttribute('aria-pressed', on?'true':'false'); tlabel.textContent='Life: '+(on?'on':'off');
+    if(on){ start(); } else { cur.fill(0); age.fill(0); render(); }
+  });
+
+  addEventListener('resize', build);
+  if(document.fonts && document.fonts.ready){ document.fonts.ready.then(build); }
+  build();
+  if(REDUCE){ on=false; toggle.setAttribute('aria-pressed','false'); tlabel.textContent='Life: off'; }
+  else { start(); }
+})();
+</script>
+</body>
+</html>

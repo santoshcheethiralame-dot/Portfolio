@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en" data-mock="readme-manpage">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>santosh(1) — man santosh</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --ink:#141414; --cream:#f7f5f1; --cream2:#efece4; --red:#ed1c24;
+  --lime:#b4ff2e; --black:#0a0a0a; --gray:#928b80;
+  --fm:"JetBrains Mono",monospace;
+}
+*{ box-sizing:border-box; margin:0; padding:0; }
+html{ -webkit-font-smoothing:antialiased; }
+body{
+  background:var(--ink);
+  color:var(--cream2);
+  font-family:var(--fm);
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:clamp(14px,3vw,40px) clamp(10px,2vw,24px) 60px;
+}
+::selection{ background:var(--lime); color:var(--ink); }
+
+/* ===== TERMINAL WINDOW ===== */
+#term{
+  width:100%;
+  max-width:860px;
+  border:3px solid var(--cream2);
+  box-shadow:8px 8px 0 var(--cream2);
+  display:flex;
+  flex-direction:column;
+  background:var(--black);
+}
+
+#chrome{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:9px 14px;
+  background:var(--ink);
+  border-bottom:2px solid var(--cream2);
+  flex-shrink:0;
+}
+.traffic{
+  width:13px; height:13px;
+  border:2px solid var(--cream2);
+  flex-shrink:0;
+}
+.traffic.close{ background:var(--red); border-color:var(--red); }
+.traffic.min{ background:var(--cream2); }
+.traffic.max{ background:var(--cream2); }
+#chrome-title{
+  margin-left:8px;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.1em;
+  color:var(--cream2);
+  opacity:.75;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+#body{
+  padding:clamp(16px,2.5vw,28px) clamp(18px,3vw,38px);
+  overflow-x:auto;
+  line-height:1.7;
+}
+
+/* ===== MAN PAGE ===== */
+.man-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:.06em;
+  color:var(--cream2);
+  margin-bottom:20px;
+  flex-wrap:wrap;
+  gap:4px 12px;
+}
+.man-header-center{ text-align:center; flex:1; }
+
+.sec{
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:.14em;
+  color:var(--red);
+  text-transform:uppercase;
+  margin-top:22px;
+  margin-bottom:6px;
+}
+
+.ind{
+  padding-left:clamp(16px,3.5vw,38px);
+  font-size:13px;
+  color:var(--cream2);
+}
+.ind p{ margin-bottom:6px; }
+.ind p:last-child{ margin-bottom:0; }
+
+b.opt{ color:var(--cream); font-weight:700; }
+
+dl.opts{ display:grid; grid-template-columns:max-content 1fr; gap:3px 20px; }
+dl.opts dt{ color:var(--cream); font-weight:700; white-space:nowrap; padding-top:1px; }
+dl.opts dd{ color:var(--cream2); }
+
+.ex-block{ margin-bottom:10px; }
+.ex-block:last-child{ margin-bottom:0; }
+.ex-prompt{ display:flex; align-items:flex-start; gap:6px; }
+.ex-dollar{ color:var(--lime); font-weight:700; flex-shrink:0; user-select:none; }
+.ex-cmd{ color:var(--cream); font-weight:500; }
+.ex-comment{ padding-left:20px; font-size:12px; color:var(--gray); }
+
+.bugs-row{ display:flex; align-items:flex-start; gap:18px; flex-wrap:wrap; }
+.bugs-text{ flex:1; min-width:200px; }
+.cat-aside{ display:flex; flex-direction:column; align-items:center; gap:6px; flex-shrink:0; }
+.cat-frame{
+  border:2px solid var(--cream2);
+  box-shadow:4px 4px 0 var(--cream2);
+  width:68px; height:68px;
+  overflow:hidden;
+  position:relative;
+}
+.cat-frame img{
+  width:100%; height:100%;
+  object-fit:cover;
+  object-position:center 38%;
+  display:block;
+  filter:grayscale(20%) contrast(1.05);
+}
+.cat-frame::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.3) 0 1px,transparent 1px 3px);
+  pointer-events:none;
+}
+.cat-label{ font-size:10px; font-weight:700; letter-spacing:.08em; color:var(--gray); text-align:center; }
+.cat-log{ font-size:11px; color:var(--gray); margin-top:4px; }
+
+.man-footer{
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:.06em;
+  color:var(--cream2);
+  margin-top:20px;
+  padding-top:10px;
+  border-top:1px solid rgba(247,245,241,.14);
+  flex-wrap:wrap;
+  gap:4px 12px;
+  opacity:.7;
+}
+.man-footer-center{ text-align:center; flex:1; }
+
+/* ===== LIVE PROMPT ===== */
+#prompt-line{
+  padding:10px clamp(18px,3vw,38px) 14px;
+  border-top:2px solid rgba(247,245,241,.14);
+  font-size:13px;
+  font-weight:500;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex-shrink:0;
+}
+.prompt-dollar{ color:var(--lime); font-weight:700; }
+.prompt-cmd{ color:var(--cream); }
+#cursor{
+  display:inline-block;
+  width:9px; height:1.1em;
+  background:var(--lime);
+  vertical-align:text-bottom;
+  animation:blink 1.1s steps(1) infinite;
+}
+@keyframes blink{ 50%{ opacity:0; } }
+
+/* ===== FIXED TAG ===== */
+#tag{
+  position:fixed;
+  left:50%; bottom:7px;
+  transform:translateX(-50%);
+  z-index:999;
+  font-size:9.5px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:rgba(247,245,241,.28);
+  pointer-events:none;
+  font-family:var(--fm);
+}
+
+@media(max-width:600px){
+  dl.opts{ grid-template-columns:1fr; }
+  dl.opts dt{ margin-top:6px; }
+  dl.opts dd{ padding-left:14px; }
+  .man-header, .man-footer{ justify-content:flex-start; }
+  .man-header-center, .man-footer-center{ display:none; }
+}
+@media(prefers-reduced-motion:reduce){
+  #cursor{ animation:none; opacity:1; }
+}
+</style>
+</head>
+<body>
+
+<div id="term">
+  <div id="chrome">
+    <span class="traffic close"></span>
+    <span class="traffic min"></span>
+    <span class="traffic max"></span>
+    <span id="chrome-title">santosh@portfolio: ~/about &mdash; man santosh</span>
+  </div>
+
+  <div id="body">
+
+    <div class="man-header">
+      <span>SANTOSH(1)</span>
+      <span class="man-header-center">General Commands Manual</span>
+      <span>SANTOSH(1)</span>
+    </div>
+
+    <div class="sec">NAME</div>
+    <div class="ind">
+      <p><b class="opt">santosh</b> &mdash; opens black boxes: neural nets, version control, whatever's opaque</p>
+    </div>
+
+    <div class="sec">SYNOPSIS</div>
+    <div class="ind">
+      <p><b class="opt">santosh</b> [<b class="opt">--open-boxes</b>] [<b class="opt">--local-first</b>] [<b class="opt">--interpret</b> &lt;model&gt;] [<b class="opt">--ship</b>] [<b class="opt">--no-boring</b>]</p>
+    </div>
+
+    <div class="sec">DESCRIPTION</div>
+    <div class="ind">
+      <p>
+        <b class="opt">santosh</b> opens black boxes &mdash; neural nets, version control, whatever's opaque.
+        The operating thesis: the interesting work is always inside the box everyone else treats as sealed.
+        CS undergrad at PES University, Bengaluru; incoming research intern at PESU Intelligence Labs
+        (interpretability / why models hallucinate). Open to SWE&nbsp;/&nbsp;ML internships &middot; Summer&nbsp;2026.
+      </p>
+    </div>
+
+    <div class="sec">OPTIONS</div>
+    <div class="ind">
+      <dl class="opts">
+        <dt>--rebuild</dt>
+        <dd>if I can't rebuild it, I don't understand it.</dd>
+
+        <dt>--local-first</dt>
+        <dd>your data, your GPU, no server.</dd>
+
+        <dt>--why-not-whether</dt>
+        <dd>whether it works is easy; why it fails is the work.</dd>
+
+        <dt>--no-boring</dt>
+        <dd>boring is the only thing I refuse to ship.</dd>
+      </dl>
+    </div>
+
+    <div class="sec">EXAMPLES</div>
+    <div class="ind">
+      <div class="ex-block">
+        <div class="ex-prompt">
+          <span class="ex-dollar">$</span>
+          <span class="ex-cmd">santosh --ml --in-browser</span>
+        </div>
+        <div class="ex-comment"># neural net, backprop by hand, no framework &mdash; ~97% MNIST (Gradient)</div>
+      </div>
+      <div class="ex-block">
+        <div class="ex-prompt">
+          <span class="ex-dollar">$</span>
+          <span class="ex-cmd">santosh --projects</span>
+        </div>
+        <div class="ex-comment"># GlassBox &middot; Gradient &middot; Orbit &mdash; each one gets a proper page &rarr;</div>
+      </div>
+    </div>
+
+    <div class="sec">BUGS</div>
+    <div class="ind">
+      <div class="bugs-row">
+        <div class="bugs-text">
+          <p>will rebuild things that already work. reportedly enjoys it.</p>
+          <p class="cat-log">&gt; reviews commits. remains unimpressed.</p>
+          <p style="margin-top:4px;font-size:12px;color:var(--gray);">cat is load-bearing.</p>
+        </div>
+        <div class="cat-aside">
+          <div class="cat-frame">
+            <img src="cat.jpg" alt="Stderr the cat — unpaid, unqualified, deeply opinionated code reviewer" />
+          </div>
+          <div class="cat-label">Stderr (Err)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">AUTHOR</div>
+    <div class="ind">
+      <p>Santosh Cheethirala (he/him) &middot; CS undergrad, PES University, Bengaluru.</p>
+    </div>
+
+    <div class="man-footer">
+      <span>PES University</span>
+      <span class="man-footer-center">2026</span>
+      <span>SANTOSH(1)</span>
+    </div>
+
+  </div>
+
+  <div id="prompt-line">
+    <span class="prompt-dollar">santosh@portfolio:~/about$</span>
+    <span class="prompt-cmd" id="prompt-cmd"></span><span id="cursor"></span>
+  </div>
+</div>
+
+<div id="tag">07 &middot; man santosh &middot; about</div>
+
+<script>
+(function(){
+  'use strict';
+  var REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* typing flourish */
+  var FULL = ' santosh --hire';
+  var promptCmd = document.getElementById('prompt-cmd');
+  if(REDUCE){
+    promptCmd.textContent = FULL;
+  } else {
+    var i = 0;
+    function typeNext(){
+      if(i <= FULL.length){
+        promptCmd.textContent = FULL.slice(0, i++);
+        setTimeout(typeNext, 70 + Math.random()*40 - 20);
+      }
+    }
+    setTimeout(typeNext, 900);
+  }
+
+  /* decode-on-scroll for section headers */
+  var GLYPHS = 'ABCDEFGHJKLMNPQRSTUVWXYZ#@!?0123456789'.split('');
+  function decode(el){
+    if(!el || REDUCE) return;
+    var text = el.textContent;
+    var start = null;
+    function frame(now){
+      if(!start) start = now;
+      var k = Math.min((now - start) / 380, 1);
+      var rev = Math.floor(k * text.length);
+      var out = '';
+      for(var j = 0; j < text.length; j++){
+        var c = text[j];
+        out += (j < rev || c === ' ') ? c : GLYPHS[(Math.random() * GLYPHS.length)|0];
+      }
+      el.textContent = out;
+      if(k < 1) requestAnimationFrame(frame);
+      else el.textContent = text;
+    }
+    requestAnimationFrame(frame);
+  }
+
+  var obs = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting && !e.target._decoded){
+        e.target._decoded = true;
+        decode(e.target);
+      }
+    });
+  }, { threshold: 0.2 });
+  document.querySelectorAll('.sec').forEach(function(s){ obs.observe(s); });
+})();
+</script>
+</body>
+</html>

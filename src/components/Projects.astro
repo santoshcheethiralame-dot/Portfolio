@@ -1,0 +1,881 @@
+---
+// Projects — "Living Instruments" section, ported verbatim from
+// mockups/projects/01-living-instruments.html. Everything is namespaced with a
+// `li-` prefix (classes, CSS vars, @keyframes, ids) so the mockup's generic
+// names and its own palette can't collide with the red-themed site.
+//
+// Styles live in src/styles/global.css (NOT a component <style is:global>):
+// Astro's dev server doesn't reliably inject component-level global styles for
+// non-hydrated .astro components, which left the section unstyled in dev.
+// Cards are built by the inline script at runtime, so the script is:inline.
+import Folio from './Folio.astro';
+---
+
+<section id="projects" class="li-projects">
+  <div class="li-page">
+    <Folio page="P.2" desk="THE PROJECTS DESK" tone="ink" />
+    <p class="li-kicker">selected work <span class="li-blink">_</span></p>
+    <div class="li-title-wrap" id="li-titleWrap">
+      <h2 class="li-title">SELECTED <em>WORK</em></h2>
+    </div>
+    <p class="li-lede">
+      Each card is a live <b>2-colour instrument</b> — hover to run the demo, click for the case study.
+    </p>
+
+    <div class="li-controls">
+      <span class="li-ctrl-label">FILTER:</span>
+      <div class="li-toggle-row" id="li-filters" role="group" aria-label="Filter projects">
+        <button class="li-toggle" data-filter="all" aria-pressed="true">[ ALL ]</button>
+        <button class="li-toggle" data-filter="live" aria-pressed="false">[ LIVE ]</button>
+        <button class="li-toggle" data-filter="built" aria-pressed="false">[ BUILT ]</button>
+      </div>
+      <div class="li-monitor" title="Periodic health checks against live deployments">
+        <span class="li-hb" aria-hidden="true"></span>
+        <span class="li-pingline" id="li-pingline">booting monitor&hellip;</span>
+      </div>
+    </div>
+
+    <div class="li-grid" id="li-grid"></div>
+  </div>
+</section>
+
+<script is:inline>
+  (function () {
+    'use strict';
+
+    var RED = '#ed1c24', INK = '#ffffff';
+    var REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    /* ================================================================ DATA
+       Facts mirror src/data/site.ts (the single source of truth) — keep the
+       two in sync until this section reads from it directly. */
+    var PROJECTS = [
+      {
+        key: 'orbit', mono: 'O', idx: '01', name: 'ORBIT', label: 'orbit',
+        status: 'live', host: 'orbit-virid-gamma.vercel.app',
+        github: 'https://github.com/santoshcheethiralame-dot/ORBIT',
+        tagline: 'A local-first focus engine that plans your day around your energy, deadlines, and exam readiness.',
+        blurb: 'Drops your tasks onto your real energy curve — deep work lands on the peaks, busywork fills the troughs. Fully offline PWA, shipped at v3.2.',
+        stack: ['React 19', 'TypeScript', 'Dexie.js / IndexedDB', 'PWA'],
+        stats: [{ pre: '<', target: 5, suf: 'ms', lab: 'Latency' }, { target: 100, suf: '%', lab: 'Local-first' }],
+        overview: 'ORBIT asks when you will have the energy to do a task well, not just when it is due. A three-tier engine scores subject readiness with Ebbinghaus forgetting curves, scales urgency by exam proximity, and back-schedules deadlines with infeasibility warnings — wrapped in a fully offline, installable PWA with SM-2 spaced repetition and an AI exam simulator.',
+        highlights: [
+          '100% local-first — IndexedDB/Dexie, no accounts, no telemetry, fully offline.',
+          'Sub-5ms local scheduling latency with zero server dependency.',
+          'IndexedDB v11 schema (5 tables) with snapshot recovery and multi-tab sync.',
+          'OpenRouter AI coach with bring-your-own key — never bundled, never logged.',
+          'Shipped v3.2, live on Vercel with 5+ active users.'
+        ],
+        meta: { Role: 'Solo — design & engineering', Year: '2026', Type: 'Local-first PWA' }
+      },
+      {
+        key: 'glassbox', mono: 'G', idx: '02', name: 'GLASSBOX', label: 'glassbox',
+        status: 'live', host: 'numero00-glassbox.hf.space',
+        github: 'https://github.com/santoshcheethiralame-dot/GlassBox',
+        tagline: 'Read what a transformer represents, edit a concept mid-forward-pass, and trace a hallucination to its cause — on GPT-2 and Gemma.',
+        blurb: 'Past attention: sparse autoencoders decode the residual stream into 24K+ features you can search, steer, and ablate live — flipping a confabulation back to the truth.',
+        stack: ['FastAPI', 'SAE Lens', 'Neuronpedia', 'TransformerLens', 'React'],
+        stats: [{ target: 24, suf: 'K+', lab: 'SAE features' }, { target: 5, suf: '', lab: 'Acts' }],
+        overview: 'GLASSBOX runs five acts — OBSERVE, DECODE, INTERVENE, CAUSAL, EXPERIMENT — over GPT-2 and a GPU-gated Gemma-2-2B. Sparse autoencoders (SAE Lens) decode the residual stream into 24K+ Neuronpedia-labeled features; you ablate or steer one mid-forward-pass and watch the next token move, attribute an output to its context two ways (fast attribution patching vs. verified activation patching), and in the hallucination lab flip a confabulation back to grounded with a single feature.',
+        highlights: [
+          'SAE feature decoding — 24K+ interpretable features over the residual stream, searchable and tracked across layers.',
+          'Feature interventions: ablate or steer a concept mid-forward-pass; the next-token distribution moves live.',
+          'Context attribution two ways — fast attribution patching vs. verified activation patching — that cross-check.',
+          'Hallucination lab: a single-feature ablation flips a confabulated answer back to grounded.',
+          'Multi-model: GPT-2 and a 2.6B Gemma-2-2B-it (Gemma Scope SAEs), fit onto a commodity T4.'
+        ],
+        meta: { Role: 'Solo — research tool', Year: '2025–26', Type: 'Interpretability' }
+      },
+      {
+        key: 'gradient', mono: 'G', idx: '03', name: 'GRADIENT', label: 'gradient',
+        status: 'live', host: 'santoshcheethiralame-dot.github.io/GRADIENT',
+        github: 'https://github.com/santoshcheethiralame-dot/GRADIENT',
+        tagline: 'A from-scratch nano-GPT — forward, backprop, AND Adam in WGSL — that trains entirely on your GPU. Paste text, watch it learn.',
+        blurb: 'Not just an MLP anymore: a full char transformer where the attention backward is hand-derived in ~5 WGSL kernels, gradient-checked against PyTorch to ~1e-7.',
+        stack: ['WebGPU / WGSL', 'TypeScript', 'Web Workers', 'BPE'],
+        stats: [{ target: 51, suf: '/51', lab: 'CPU-oracle checks' }, { pre: '~', target: 1000, suf: ' tok/s', lab: 'GPU throughput' }],
+        overview: 'Forward, hand-derived backprop, and Adam all run as WGSL compute shaders — for a full nano-GPT char transformer, not just an MLP. The attention backward is ~5 kernels (incl. the softmax VJP) plus layer-norm backward, all gradient-checked; params and Adam moments stay GPU-resident across steps. It scales with multi-head attention and stacked blocks on a learned BPE vocab — paste any text and it learns it live, with a CPU-vs-GPU race and a backward-pass gradient-flow view.',
+        highlights: [
+          'A from-scratch nano-GPT — forward, backprop, AND Adam in WGSL — trains entirely on the GPU.',
+          'Attention backward in ~5 hand-derived kernels plus layer-norm backward, all gradient-checked.',
+          '3-way correctness: an f64 CPU oracle (51/51), finite-difference checks, and PyTorch parity to ~1e-7.',
+          'Train-on-your-text plus a CPU-vs-GPU race (~5–20×) on a live loss-vs-wall-clock chart.'
+        ],
+        meta: { Role: 'Solo — design & build', Year: '2026', Type: 'In-browser ML' }
+      },
+      {
+        key: 'pesvcs', mono: 'P', idx: '04', name: 'PES-VCS', label: 'pes-vcs',
+        status: 'built', host: null,
+        github: 'https://github.com/santoshcheethiralame-dot/PES1UG24CS127-pes-vcs',
+        tagline: 'Git, rebuilt from scratch in C — content-addressable storage, trees, staging, and commit history.',
+        blurb: 'Content-addressed objects, trees, a staging index, walkable history — the commit graph in the header draws the data structure pes-vcs is built around.',
+        stack: ['C', 'OpenSSL (SHA-256)', 'Makefile', 'Ubuntu'],
+        stats: [{ pre: 'SHA-', target: 256, suf: '', lab: 'Object IDs' }, { target: 100, suf: '%', lab: 'From scratch' }],
+        overview: 'PES-VCS is Git rebuilt to understand it — a .pes/ store mirroring .git/: SHA-256 content-addressable objects sharded by their first two hex characters, tree objects for directory snapshots, a staging index, and commit objects with parent pointers for history. Exposes init, add, status, commit, and log.',
+        highlights: [
+          'Content-addressable object store with SHA-256 integrity verification.',
+          'Sharded objects directory to avoid filesystem degradation at scale.',
+          'Full commit-history walking via parent pointers and refs/HEAD.'
+        ],
+        meta: { Role: 'Solo — systems lab', Year: '2026', Type: 'CLI / C' }
+      },
+      {
+        key: 'tessera', mono: 'T', idx: '05', name: 'TESSERA', label: 'tessera',
+        status: 'built', host: null,
+        github: 'https://github.com/santoshcheethiralame-dot/TESSERA',
+        tagline: 'A distributed, sharded, replicated KV store from scratch in pure Rust — LSM + Raft + a deterministic simulator that fuzzes cluster failures by the thousand.',
+        blurb: 'The thumbnail is the cluster: a leader replicating to its followers — until it dies, an election runs, and the new leader takes over. Every failure replays exactly from its seed.',
+        stack: ['Rust (std only)', 'LSM-tree', 'Raft', 'Deterministic sim'],
+        stats: [{ pre: '~', target: 83, suf: 'k/s', lab: 'Pipelined writes' }, { target: 1000, suf: '/0', lab: 'Schedules/violations' }],
+        overview: 'Consensus and storage are pure state machines — they consume events and return intents, never touching the clock or network — so the same unchanged code runs over real TCP or inside a seeded simulated world where partitions, crashes, and message chaos are fuzzed by the thousand. A from-scratch LSM engine (WAL, MVCC, SSTables, compaction) under Raft with snapshots, leases, and joint consensus; sharded behind a coordinator; checked by a Wing–Gong linearizability oracle.',
+        highlights: [
+          'DST caught a real split-brain: a duplicated vote reply elected two leaders in one term — replayable exactly from seed 99.',
+          '1,000 randomized failure schedules, zero linearizability violations.',
+          '~83k pipelined writes/s in the simulator; the fsync-bound durable path measured honestly.',
+          'Crash-restart recovery without double-voting; pure std, no external crates anywhere.'
+        ],
+        meta: { Role: 'Solo — systems', Year: '2026', Type: 'Distributed KV / Rust' }
+      },
+      {
+        key: 'terracrest', mono: 'T', idx: '06', name: 'TERRACREST', label: 'terracrest',
+        status: 'live', host: 'terracrest.vercel.app',
+        github: 'https://github.com/santoshcheethiralame-dot/TERRACREST',
+        tagline: 'An invitation-only platform for high-value Bengaluru land — server-sealed parcels, NDA-gated reveals, and a live three-zone GDV studio.',
+        blurb: 'The Feasibility Studio in miniature — sweep the massing and the Bear/Base/Bull net development value recomputes live, while the survey numbers stay sealed behind the NDA gate.',
+        stack: ['React', 'TypeScript', 'FastAPI', 'Postgres'],
+        stats: [{ target: 3, suf: '-zone', lab: 'GDV engine' }, { target: 4, suf: '', lab: 'Role dashboards' }],
+        overview: 'Two signatures: a masking moat — coordinates, owners, and survey numbers withheld by the API until a witnessed NDA is logged, enforced server-side — and a Feasibility Studio, a parametric GDV engine where towers, FSI, efficiency, and price drive a Bear/Base/Bull net development value live, with an architect’s stamped figure returning beside the estimate. Role dashboards, an Operations Centre, a watermarked-PDF vault, a deal room, and an append-only audit trail complete the desk.',
+        highlights: [
+          'Sealed-by-the-server confidentiality: masked discovery → NDA unlock → reveal, enforced in the API, never the UI.',
+          'Live parametric GDV: three-zone net development value recomputing as the inputs move.',
+          'Architect validation — the stamped human figure lands beside the model estimate.',
+          'One repository seam flips the app from in-memory demo to the full backend with a single env var.'
+        ],
+        meta: { Role: 'Solo — client build', Year: '2026', Type: 'Full-stack product' }
+      }
+    ];
+
+    /* ============================================================ CANVAS ENGINE */
+    function base(cv) {
+      var o = { cv: cv, ctx: null, w: 0, h: 0, hover: false, visible: true, isCase: false, clk: 0 };
+      o.resize = function () {
+        var r = cv.getBoundingClientRect(); if (r.width < 1 || r.height < 1) return;
+        var dpr = Math.min(2, window.devicePixelRatio || 1);
+        cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
+        o.ctx = cv.getContext('2d'); o.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        o.w = r.width; o.h = r.height;
+      };
+      o.setHover = function (b) { o.hover = b; };
+      o.advance = function (dt) { o.clk += dt * (o.hover ? 2.3 : 1) / 1000; };
+      return o;
+    }
+
+    // ---- ORBIT: energy curve + blocks slotting into a day ----
+    function makeOrbit(cv) {
+      var o = base(cv);
+      var blocks = [{ s: .05, d: .12, e: .50 }, { s: .19, d: .17, e: .86 }, { s: .40, d: .10, e: .42 },
+        { s: .53, d: .08, e: .28 }, { s: .64, d: .15, e: .70 }, { s: .83, d: .13, e: .52 }];
+      function energy(x) {
+        var v = 0.52 + 0.34 * Math.sin(Math.PI * (x - 0.12));
+        v -= 0.22 * Math.exp(-Math.pow((x - 0.54) / 0.07, 2));
+        v += 0.05 * Math.sin(x * 22.0);
+        return Math.max(0.06, Math.min(1, v));
+      }
+      o.tick = function (now, dt) {
+        o.advance(dt);
+        var ctx = o.ctx, w = o.w, h = o.h; if (!ctx) return; ctx.clearRect(0, 0, w, h);
+        var padX = 16, padT = 16, padB = 22;
+        var x0 = padX, x1 = w - padX, baseY = h - padB, topY = padT, usable = baseY - topY;
+        ctx.strokeStyle = 'rgba(255,255,255,.22)'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(x0, baseY + .5); ctx.lineTo(x1, baseY + .5); ctx.stroke();
+        ctx.fillStyle = 'rgba(255,255,255,.30)';
+        for (var i = 0; i <= 8; i++) { var tx = x0 + (x1 - x0) * i / 8; ctx.fillRect(tx, baseY + 2, 1, 4); }
+        var drift = Math.sin(o.clk * 0.6) * 0.012, f, xx, yy;
+        ctx.beginPath();
+        for (i = 0; i <= 64; i++) { f = i / 64; xx = x0 + (x1 - x0) * f; yy = baseY - energy(f + drift) * usable; i ? ctx.lineTo(xx, yy) : ctx.moveTo(xx, yy); }
+        ctx.lineTo(x1, baseY); ctx.lineTo(x0, baseY); ctx.closePath();
+        ctx.fillStyle = 'rgba(237,28,36,.12)'; ctx.fill();
+        ctx.beginPath();
+        for (i = 0; i <= 64; i++) { f = i / 64; xx = x0 + (x1 - x0) * f; yy = baseY - energy(f + drift) * usable; i ? ctx.lineTo(xx, yy) : ctx.moveTo(xx, yy); }
+        ctx.strokeStyle = RED; ctx.lineWidth = 2; ctx.stroke();
+        var cycle = 6.5, dropDur = 0.6, stagger = 0.5, tau = o.clk % cycle;
+        blocks.forEach(function (b, k) {
+          var local = tau - k * stagger; if (local < -0.001) return;
+          var p = Math.max(0, Math.min(1, local / dropDur));
+          var eased = 1 - Math.pow(1 - p, 3);
+          var bx = x0 + (x1 - x0) * b.s, bw = (x1 - x0) * b.d, bh = Math.max(8, b.e * usable * 0.8);
+          var slotY = baseY - bh, startY = topY - bh - 6, y = startY + (slotY - startY) * eased;
+          ctx.fillStyle = 'rgba(237,28,36,.16)'; ctx.fillRect(bx, y, bw, bh);
+          ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 1.5; ctx.strokeRect(bx + .5, y + .5, bw - 1, bh - 1);
+          ctx.fillStyle = RED; ctx.fillRect(bx, y, bw, 3);
+        });
+        var px = x0 + (x1 - x0) * (tau / cycle);
+        ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(px, topY - 4); ctx.lineTo(px, baseY); ctx.stroke();
+        ctx.fillStyle = INK; ctx.beginPath(); ctx.moveTo(px - 3, topY - 4); ctx.lineTo(px + 3, topY - 4); ctx.lineTo(px, topY + 1); ctx.closePath(); ctx.fill();
+      };
+      return o;
+    }
+
+    // ---- GLASSBOX: 6x6 causal attention matrix, tokens flowing left->right ----
+    function makeGlassbox(cv) {
+      var o = base(cv); var N = 6, toks = ['the', 'cat', 'sat', 'on', 'a', 'mat'];
+      function wt(r, k) { var s = Math.sin(r * 7.13 + k * 3.7 + 1.5) * 0.5 + 0.5; return 0.15 + 0.85 * s; }
+      o.tick = function (now, dt) {
+        o.advance(dt);
+        var ctx = o.ctx, w = o.w, h = o.h; if (!ctx) return; ctx.clearRect(0, 0, w, h);
+        var pad = 14, topH = 20, gridTop = pad + topH;
+        var avail = Math.min(w - pad * 2, h - gridTop - pad), cell = avail / N;
+        var gx = (w - cell * N) / 2, gy = gridTop;
+        var qf = o.clk / 0.75, q = Math.floor(qf) % N, within = qf % 1;
+        for (var k = 0; k < N; k++) {
+          var tx = gx + cell * k, tw = cell, active = (k === q);
+          if (active) { ctx.fillStyle = INK; ctx.fillRect(tx + 2, pad - 2, tw - 4, topH - 4); }
+          ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.lineWidth = 1; ctx.strokeRect(tx + 2.5, pad - 1.5, tw - 5, topH - 5);
+          ctx.fillStyle = active ? '#0a0a0a' : 'rgba(255,255,255,.7)';
+          ctx.font = '600 9px "JetBrains Mono",monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.fillText(toks[k], tx + tw / 2, pad + topH / 2 - 1);
+        }
+        for (var r = 0; r < N; r++) {
+          for (k = 0; k < N; k++) {
+            var cx = gx + cell * k, cy = gy + cell * r, bright = 0;
+            if (k <= r) {
+              if (r < q) bright = wt(r, k);
+              else if (r === q) bright = (k <= within * (r + 1)) ? wt(r, k) : 0;
+            }
+            if (bright > 0) { ctx.fillStyle = 'rgba(237,28,36,' + (0.12 + 0.8 * bright).toFixed(3) + ')'; ctx.fillRect(cx + 1, cy + 1, cell - 2, cell - 2); }
+            ctx.strokeStyle = 'rgba(255,255,255,' + (k <= r ? 0.14 : 0.05) + ')'; ctx.lineWidth = 1; ctx.strokeRect(cx + .5, cy + .5, cell - 1, cell - 1);
+          }
+        }
+        ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 1.5;
+        ctx.strokeRect(gx + .5, gy + cell * q + .5, cell * N - 1, cell - 1);
+      };
+      return o;
+    }
+
+    // ---- GRADIENT: a real 2-layer MLP (2 -> 16 tanh -> 1 sigmoid) learning
+    //      two-moons by actual backprop, live. The decision boundary forms as
+    //      the net trains; loss/acc are the real numbers. No faked frames.
+    function makeGradient(cv) {
+      var o = base(cv);
+      var H = 16, lr = 0.35, N = 120, maxEpoch = 360;
+      var DX0 = -1.5, DX1 = 1.5, DY0 = -1.3, DY1 = 1.3;
+      var data, W1, b1, W2, b2, epoch, settle, run = 0, lossv = 1, accv = 0;
+      function rnd() { return (Math.random() * 2 - 1) * 0.8; }
+      function genMoons() {
+        data = [];
+        for (var i = 0; i < N; i++) {
+          var c = i % 2, t = Math.PI * Math.random(), nx = (Math.random() - 0.5) * 0.18, ny = (Math.random() - 0.5) * 0.18, x, y;
+          if (c === 0) { x = Math.cos(t); y = Math.sin(t); } else { x = 1 - Math.cos(t); y = -Math.sin(t) - 0.2; }
+          data.push({ x: (x - 0.5) * 0.9 + nx, y: (y + 0.1) * 0.9 + ny, c: c });
+        }
+      }
+      function reset() {
+        genMoons();
+        W1 = []; b1 = []; W2 = [];
+        for (var j = 0; j < H; j++) { W1.push([rnd(), rnd()]); b1.push(0); W2.push(rnd()); }
+        b2 = 0; epoch = 0; settle = 0; lossv = 1; accv = 0; run++;
+      }
+      reset();
+      function fwd(x, y) {
+        var a1 = new Array(H), z;
+        for (var j = 0; j < H; j++) { z = W1[j][0] * x + W1[j][1] * y + b1[j]; a1[j] = Math.tanh(z); }
+        var z2 = b2; for (j = 0; j < H; j++) z2 += W2[j] * a1[j];
+        return { a1: a1, p: 1 / (1 + Math.exp(-z2)) };
+      }
+      function trainEpoch() {
+        var gW1 = [], gb1 = new Array(H).fill(0), gW2 = new Array(H).fill(0), gb2 = 0, L = 0, ok = 0, j;
+        for (j = 0; j < H; j++) gW1.push([0, 0]);
+        for (var i = 0; i < N; i++) {
+          var d = data[i], f = fwd(d.x, d.y), p = f.p, y = d.c;
+          L += -(y * Math.log(p + 1e-7) + (1 - y) * Math.log(1 - p + 1e-7));
+          if ((p > 0.5 ? 1 : 0) === y) ok++;
+          var dz2 = p - y; gb2 += dz2;
+          for (j = 0; j < H; j++) {
+            gW2[j] += dz2 * f.a1[j];
+            var dz1 = dz2 * W2[j] * (1 - f.a1[j] * f.a1[j]);
+            gW1[j][0] += dz1 * d.x; gW1[j][1] += dz1 * d.y; gb1[j] += dz1;
+          }
+        }
+        var s = lr / N;
+        for (j = 0; j < H; j++) { W1[j][0] -= s * gW1[j][0]; W1[j][1] -= s * gW1[j][1]; b1[j] -= s * gb1[j]; W2[j] -= s * gW2[j]; }
+        b2 -= s * gb2; lossv = L / N; accv = ok / N; epoch++;
+      }
+      o.tick = function (now, dt) {
+        o.advance(dt);
+        var ctx = o.ctx, w = o.w, h = o.h; if (!ctx) return; ctx.clearRect(0, 0, w, h);
+        var spf = o.hover ? 4 : 1;
+        for (var s = 0; s < spf; s++) { if (epoch < maxEpoch) trainEpoch(); }
+        if (epoch >= maxEpoch) { settle += dt * (o.hover ? 2.3 : 1); if (settle > 1400) reset(); }
+        var padL = 14, padR = 14, padT = 14, padB = 22, iw = w - padL - padR, ih = h - padT - padB;
+        function CX(x) { return padL + (x - DX0) / (DX1 - DX0) * iw; }
+        function CY(y) { return padT + ih - (y - DY0) / (DY1 - DY0) * ih; }
+        // sample the probability field on a grid (real forward passes), then trace
+        // the p=0.5 decision boundary as a crisp contour (marching squares) — clean
+        // line-art to match the other instruments, no muddy fill
+        var GN = 26, ix, iy, gxv = [], gyv = [], pv = [];
+        for (ix = 0; ix <= GN; ix++) { gxv[ix] = DX0 + ix / GN * (DX1 - DX0); }
+        for (iy = 0; iy <= GN; iy++) { gyv[iy] = DY0 + (1 - iy / GN) * (DY1 - DY0); }
+        for (iy = 0; iy <= GN; iy++) { pv[iy] = []; for (ix = 0; ix <= GN; ix++) pv[iy][ix] = fwd(gxv[ix], gyv[iy]).p; }
+        var gpx = function (i2) { return padL + i2 / GN * iw; };
+        var gpy = function (i2) { return padT + i2 / GN * ih; };
+        // the decision boundary, as one crisp contour line (pure line-art)
+        ctx.strokeStyle = RED; ctx.lineWidth = 2; ctx.beginPath();
+        for (iy = 0; iy < GN; iy++) for (ix = 0; ix < GN; ix++) {
+          var corn = [
+            { x: gpx(ix), y: gpy(iy), v: pv[iy][ix] },
+            { x: gpx(ix + 1), y: gpy(iy), v: pv[iy][ix + 1] },
+            { x: gpx(ix + 1), y: gpy(iy + 1), v: pv[iy + 1][ix + 1] },
+            { x: gpx(ix), y: gpy(iy + 1), v: pv[iy + 1][ix] }
+          ], cross = [], e, a, b, t;
+          for (e = 0; e < 4; e++) {
+            a = corn[e]; b = corn[(e + 1) % 4];
+            if ((a.v > 0.5) !== (b.v > 0.5)) { t = (0.5 - a.v) / (b.v - a.v); cross.push({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t }); }
+          }
+          if (cross.length >= 2) { ctx.moveTo(cross[0].x, cross[0].y); ctx.lineTo(cross[1].x, cross[1].y); if (cross.length === 4) { ctx.moveTo(cross[2].x, cross[2].y); ctx.lineTo(cross[3].x, cross[3].y); } }
+        }
+        ctx.stroke();
+        // the data — class 0 hollow white, class 1 solid red (clean 2-colour)
+        var i, d, px, py;
+        for (i = 0; i < N; i++) {
+          d = data[i]; px = CX(d.x); py = CY(d.y);
+          if (d.c) { ctx.fillStyle = RED; ctx.beginPath(); ctx.arc(px, py, 2.6, 0, 7); ctx.fill(); }
+          else { ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.arc(px, py, 2.4, 0, 7); ctx.stroke(); }
+        }
+        // readout — the genuine numbers
+        ctx.font = '600 9px "JetBrains Mono",monospace'; ctx.textBaseline = 'alphabetic';
+        ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.textAlign = 'left';
+        ctx.fillText('epoch ' + epoch + '   loss ' + lossv.toFixed(3) + '   acc ' + Math.round(accv * 100) + '%', padL, h - 7);
+        ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.textAlign = 'right';
+        ctx.fillText('train #' + run, w - padR, h - 7);
+      };
+      return o;
+    }
+
+    // ---- PES-VCS: a commit graph drawing itself (fork + merge + HEAD) ----
+    function makePesVcs(cv) {
+      var o = base(cv);
+      var commits = [
+        { id: 0, lane: 0, par: [] }, { id: 1, lane: 0, par: [0] },
+        { id: 2, lane: 1, par: [1] }, { id: 3, lane: 1, par: [2] },
+        { id: 4, lane: 0, par: [1] }, { id: 5, lane: 0, par: [4, 3] }, { id: 6, lane: 0, par: [5] }
+      ];
+      o.tick = function (now, dt) {
+        o.advance(dt);
+        var ctx = o.ctx, w = o.w, h = o.h; if (!ctx) return; ctx.clearRect(0, 0, w, h);
+        var pad = 20, n = commits.length, x0 = pad + 8, x1 = w - pad - 8;
+        var laneLow = h - pad - 14, laneHigh = pad + 16;
+        function colX(id) { return x0 + (x1 - x0) * (id / (n - 1)); }
+        function laneY(l) { return l === 0 ? laneLow : laneHigh; }
+        var revealEach = 0.6, hold = 1.7, total = n * revealEach + hold, tau = o.clk % total;
+        var shown = tau / revealEach;
+        commits.forEach(function (c) {
+          var ap = Math.min(1, Math.max(0, shown - c.id)); if (ap <= 0) return;
+          c.par.forEach(function (pi) {
+            var p = commits[pi], x2 = colX(c.id), y2 = laneY(c.lane), x1p = colX(p.id), y1p = laneY(p.lane);
+            var ex = x1p + (x2 - x1p) * ap, ey = y1p + (y2 - y1p) * ap;
+            ctx.strokeStyle = (c.lane === 1 || p.lane === 1) ? 'rgba(237,28,36,.85)' : 'rgba(255,255,255,.6)';
+            ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x1p, y1p);
+            if (p.lane !== c.lane) { var mxk = x1p + (x2 - x1p) * 0.5; ctx.lineTo(mxk, y1p); ctx.lineTo(mxk, y2); ctx.lineTo(ex, ey); }
+            else ctx.lineTo(ex, ey);
+            ctx.stroke();
+          });
+        });
+        var headIdx = -1;
+        commits.forEach(function (c) {
+          var ap = Math.min(1, Math.max(0, shown - c.id)); if (ap <= 0) return; headIdx = c.id;
+          var x = colX(c.id), y = laneY(c.lane), drop = (1 - ap) * -10, rr = 5.5 * Math.min(1, ap * 1.4);
+          ctx.fillStyle = RED; ctx.strokeStyle = INK; ctx.lineWidth = 1.6;
+          ctx.beginPath(); ctx.arc(x, y + drop, rr, 0, 7); ctx.fill(); ctx.stroke();
+        });
+        if (headIdx >= 0) {
+          var c = commits[headIdx], x = colX(c.id), y = laneY(c.lane);
+          ctx.font = '700 8px "JetBrains Mono",monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          var lbl = 'HEAD', bw = ctx.measureText(lbl).width + 8, by = y - 17;
+          ctx.fillStyle = INK; ctx.fillRect(x - bw / 2, by - 7, bw, 13);
+          ctx.fillStyle = '#0a0a0a'; ctx.fillText(lbl, x, by);
+          ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, by + 6); ctx.lineTo(x, y - 6); ctx.stroke();
+        }
+        ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.font = '600 8px "JetBrains Mono",monospace';
+        ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+        ctx.fillText('main', x0 - 2, laneLow + 16);
+        ctx.fillText('feat', x0 - 2, laneHigh - 9);
+      };
+      return o;
+    }
+
+    // ---- TESSERA: a 5-node Raft cluster — the leader replicates until it is
+    //      killed, an election flickers, the new leader takes over, n0 rejoins ----
+    function makeTessera(cv) {
+      var o = base(cv), N = 5, CYCLE = 7.2;
+      o.tick = function (now, dt) {
+        o.advance(dt);
+        var ctx = o.ctx, w = o.w, h = o.h; if (!ctx) return; ctx.clearRect(0, 0, w, h);
+        var cx = w / 2, cy = h / 2 + 6, R = Math.min(w, h) * 0.33;
+        var tau = o.clk % CYCLE;
+        var phase = tau < 3.2 ? 0 : tau < 4.1 ? 1 : 2; // replicate / election / new term
+        var lead = phase === 0 ? 0 : 2;
+        var dead = (tau >= 3.2 && tau < 5.6) ? 0 : -1;  // n0 down until it rejoins
+        var pos = [], i, a;
+        for (i = 0; i < N; i++) {
+          a = -Math.PI / 2 + i * 2 * Math.PI / N;
+          pos.push({ x: cx + Math.cos(a) * R, y: cy + Math.sin(a) * R });
+        }
+        if (phase !== 1) { // replication pulses, leader -> followers
+          for (i = 0; i < N; i++) {
+            if (i === lead || i === dead) continue;
+            var p = (tau * 1.5 + i * 0.19) % 1;
+            var lx = pos[lead].x, ly = pos[lead].y, fx = pos[i].x, fy = pos[i].y;
+            ctx.strokeStyle = 'rgba(255,255,255,.16)'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(fx, fy); ctx.stroke();
+            ctx.fillStyle = RED;
+            ctx.beginPath(); ctx.arc(lx + (fx - lx) * p, ly + (fy - ly) * p, 2.5, 0, 7); ctx.fill();
+            if (p > 0.86) { ctx.strokeStyle = 'rgba(237,28,36,.7)'; ctx.beginPath(); ctx.arc(fx, fy, 11 + (p - 0.86) * 40, 0, 7); ctx.stroke(); }
+          }
+        } else { // election — candidates flicker dashed rings
+          for (i = 0; i < N; i++) {
+            if (i === dead) continue;
+            if (Math.sin(o.clk * 26 + i * 2.1) > 0) {
+              ctx.strokeStyle = 'rgba(237,28,36,.55)'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+              ctx.beginPath(); ctx.arc(pos[i].x, pos[i].y, 13, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+            }
+          }
+        }
+        for (i = 0; i < N; i++) { // the nodes
+          var nx = pos[i].x, ny = pos[i].y, s = 8;
+          var isLead = i === lead && phase !== 1, isDead = i === dead;
+          if (isDead) {
+            ctx.strokeStyle = 'rgba(255,255,255,.3)'; ctx.lineWidth = 1.5;
+            ctx.strokeRect(nx - s + .5, ny - s + .5, s * 2 - 1, s * 2 - 1);
+            ctx.beginPath(); ctx.moveTo(nx - 4, ny - 4); ctx.lineTo(nx + 4, ny + 4);
+            ctx.moveTo(nx + 4, ny - 4); ctx.lineTo(nx - 4, ny + 4); ctx.stroke();
+          } else if (isLead) {
+            ctx.fillStyle = RED; ctx.fillRect(nx - s, ny - s, s * 2, s * 2);
+            ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.strokeRect(nx - s + .5, ny - s + .5, s * 2 - 1, s * 2 - 1);
+          } else {
+            ctx.fillStyle = 'rgba(237,28,36,.14)'; ctx.fillRect(nx - s, ny - s, s * 2, s * 2);
+            ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 1.5; ctx.strokeRect(nx - s + .5, ny - s + .5, s * 2 - 1, s * 2 - 1);
+          }
+          ctx.fillStyle = isDead ? 'rgba(255,255,255,.35)' : 'rgba(255,255,255,.8)';
+          ctx.font = '600 8px "JetBrains Mono",monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.fillText('n' + i, nx, ny + s + 9);
+        }
+        var msg = phase === 0 ? 'term 7 · leader n0' : phase === 1 ? '! ELECTION' : (tau < 5.6 ? 'term 8 · leader n2' : 'term 8 · n0 rejoined');
+        ctx.fillStyle = phase === 1 ? RED : 'rgba(255,255,255,.55)';
+        ctx.font = '600 9px "JetBrains Mono",monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+        ctx.fillText(msg, 12, 16);
+      };
+      return o;
+    }
+
+    // ---- TERRACREST: the Feasibility Studio — the massing sweeps and the
+    //      three-zone GDV recomputes live; the survey number stays sealed ----
+    function makeTerracrest(cv) {
+      var o = base(cv);
+      o.tick = function (now, dt) {
+        o.advance(dt);
+        var ctx = o.ctx, w = o.w, h = o.h; if (!ctx) return; ctx.clearRect(0, 0, w, h);
+        var padX = 14, baseY = h - 26, topY = 26;
+        var s = 0.5 + 0.5 * Math.sin(o.clk * 0.8); // the FSI sweep
+        ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(padX, baseY + .5); ctx.lineTo(w - padX, baseY + .5); ctx.stroke();
+        var tw = (w - padX * 2) * 0.34, tx = padX + 6; // wireframe tower massing
+        var floors = 5 + Math.round(s * 9), fh = Math.min(9, (baseY - topY - 6) / floors);
+        for (var i = 0; i < floors; i++) {
+          ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 1;
+          ctx.strokeRect(tx + .5, baseY - (i + 1) * fh + .5, tw - 1, fh - 2);
+        }
+        ctx.fillStyle = RED; ctx.fillRect(tx, baseY - floors * fh - 2, tw, 2.5); // roofline
+        var zones = [['BEAR', 0.72], ['BASE', 1], ['BULL', 1.28]];
+        var bx0 = padX + (w - padX * 2) * 0.46, bw = ((w - padX) - bx0) / 3;
+        var gdv = 0.25 + s * 0.62;
+        ctx.font = '600 8px "JetBrains Mono",monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+        zones.forEach(function (z, k) {
+          var bh = Math.min(1, gdv * z[1]) * (baseY - topY - 14);
+          var bx = bx0 + k * bw + 4, bwid = bw - 8, by = baseY - bh;
+          ctx.fillStyle = 'rgba(237,28,36,' + (k === 1 ? 0.5 : 0.18) + ')'; ctx.fillRect(bx, by, bwid, bh);
+          ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 1.5; ctx.strokeRect(bx + .5, by + .5, bwid - 1, bh - 1);
+          ctx.fillStyle = 'rgba(255,255,255,.6)';
+          ctx.fillText(z[0], bx + bwid / 2, baseY + 12);
+        });
+        var cr = (18 + gdv * 74).toFixed(1); // the live number over the bars
+        ctx.fillStyle = INK; ctx.font = '700 10px "JetBrains Mono",monospace';
+        ctx.fillText(cr + ' CR NET', bx0 + bw * 1.5, topY + 4);
+        var open = (o.clk % 6) > 4.4; // the sealed chip flashes its NDA reveal
+        ctx.font = '600 8px "JetBrains Mono",monospace'; ctx.textAlign = 'left';
+        if (open) { ctx.fillStyle = RED; ctx.fillText('NDA ✓ SY.NO 48/2 · 4.1 AC', padX, 14); }
+        else {
+          ctx.fillStyle = 'rgba(237,28,36,.8)'; ctx.fillRect(padX, 6, 86, 10);
+          ctx.fillStyle = '#0a0a0a'; ctx.fillText('SEALED', padX + 4, 14);
+        }
+      };
+      return o;
+    }
+
+    var RENDER = { orbit: makeOrbit, glassbox: makeGlassbox, gradient: makeGradient, pesvcs: makePesVcs, tessera: makeTessera, terracrest: makeTerracrest };
+
+    /* section visibility gate — when the projects section is off-screen and no
+       case study is open, both rAF loops stop scheduling entirely */
+    var sectionVisible = true, loopOn = false, uiOn = false;
+    function sectionLive() { return sectionVisible || overlayOpen; }
+
+    var renderers = [], overlayOpen = false, lastT = performance.now();
+    function loop(now) {
+      if (!sectionLive()) { loopOn = false; return; }
+      var dt = Math.min(50, now - lastT); lastT = now;
+      if (!window.__pressFreeze) { // STOP THE PRESS freezes the instruments
+        for (var i = 0; i < renderers.length; i++) {
+          var r = renderers[i];
+          if (overlayOpen && !r.isCase) continue;
+          if (!r.visible) continue;
+          r.tick(now, dt);
+        }
+      }
+      requestAnimationFrame(loop);
+    }
+    function startLoop() {
+      if (!REDUCED && !loopOn && sectionLive()) { loopOn = true; lastT = performance.now(); requestAnimationFrame(loop); }
+    }
+    function staticFrame(r, key) {
+      if (key === 'gradient') { for (var s = 0; s < 90; s++) r.tick(0, 30); }
+      else { r.clk = key === 'glassbox' ? 4.2 : key === 'pesvcs' ? 5.6 : 3.0; r.tick(0, 16); }
+    }
+
+    /* ============================================================ BUILD CARDS */
+    var grid = document.getElementById('li-grid');
+    if (!grid) return;
+    var cardByKey = {};
+
+    function statHTML(s) {
+      var pre = s.pre ? '<span class="li-pre">' + s.pre + '</span>' : '';
+      var suf = s.suf ? '<span class="li-suf">' + s.suf + '</span>' : '';
+      return '<div class="li-stat">' +
+        '<div class="li-snum">' + pre + '<span class="li-val" data-target="' + s.target + '" data-decimals="' + (s.decimals || 0) + '">0</span>' + suf + '</div>' +
+        '<div class="li-slab">' + s.lab + '</div></div>';
+    }
+
+    PROJECTS.forEach(function (p) {
+      var card = document.createElement('article');
+      card.className = 'li-card'; card.dataset.key = p.key; card.dataset.status = p.status;
+      var badge = p.status === 'live'
+        ? '<div class="li-badge li-live" data-host="' + p.host + '"><span class="li-dot"></span>LIVE</div>'
+        : '<div class="li-badge li-built"><span class="li-dot"></span>BUILT</div>';
+      card.innerHTML =
+        '<div class="li-card-head">' +
+          '<canvas class="li-demo"></canvas>' +
+          '<div class="li-scan"></div>' +
+          '<div class="li-mono"><i>' + p.mono + '</i></div>' +
+          badge +
+          '<div class="li-idx">' + p.idx + '</div>' +
+        '</div>' +
+        '<div class="li-card-body">' +
+          '<div class="li-name-row"><span class="li-pname" data-decode="' + p.name + '">' + p.name + '</span>' +
+            '<span class="li-plabel" data-decode="' + p.label + '">' + p.label + '</span></div>' +
+          '<p class="li-blurb">' + p.blurb + '</p>' +
+          '<div class="li-stack">' + p.stack.map(function (t) { return '<span>' + t + '</span>'; }).join('') + '</div>' +
+          '<div class="li-stats">' + p.stats.map(statHTML).join('') + '</div>' +
+          '<button class="li-view" type="button">VIEW CASE STUDY <span class="li-arr">&rarr;</span></button>' +
+        '</div>';
+      grid.appendChild(card);
+      cardByKey[p.key] = card;
+
+      var cv = card.querySelector('canvas.li-demo');
+      var r = RENDER[p.key](cv); r.resize();
+      cv._r = r; renderers.push(r);
+
+      var head = card.querySelector('.li-card-head');
+      card.addEventListener('mouseenter', function () { r.setHover(true); head.classList.add('li-sweep'); });
+      card.addEventListener('mouseleave', function () { r.setHover(false); });
+      head.addEventListener('animationend', function () { head.classList.remove('li-sweep'); });
+
+      function open() { openCase(p); }
+      head.addEventListener('click', open);
+      card.querySelector('.li-view').addEventListener('click', open);
+
+      if (REDUCED) staticFrame(r, p.key);
+    });
+
+    startLoop();
+
+    /* ============================================================ REVEAL */
+    function countUp(el) {
+      var target = parseFloat(el.dataset.target), dec = parseInt(el.dataset.decimals, 10) || 0, dur = 1000, t0 = performance.now();
+      function fmt(v) { return dec ? v.toFixed(dec) : Math.round(v).toLocaleString(); }
+      if (REDUCED) { el.textContent = fmt(target); return; }
+      (function step(now) {
+        var p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+        el.textContent = fmt(target * e);
+        if (p < 1) requestAnimationFrame(step); else el.textContent = fmt(target);
+      })(t0);
+    }
+
+    var GLYPHS = 'ABCDEFGHKLMNPRSTUVXYZ0123456789/<>_#';
+    function decode(el) {
+      var fin = el.dataset.decode || el.textContent, dur = 620, t0 = performance.now();
+      if (REDUCED) { el.textContent = fin; return; }
+      (function step(now) {
+        var p = Math.min(1, (now - t0) / dur), reveal = Math.floor(p * fin.length), out = '';
+        for (var i = 0; i < fin.length; i++) {
+          if (i < reveal || fin[i] === ' ') out += fin[i];
+          else out += GLYPHS[(Math.random() * GLYPHS.length) | 0];
+        }
+        el.textContent = out;
+        if (p < 1) requestAnimationFrame(step); else el.textContent = fin;
+      })(t0);
+    }
+
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        var card = en.target, r = card.querySelector('canvas.li-demo')._r;
+        r.visible = en.isIntersecting;
+        if (en.isIntersecting && !card._revealed) {
+          card._revealed = true;
+          card.querySelectorAll('.li-val').forEach(countUp);
+          card.querySelectorAll('[data-decode]').forEach(decode);
+        }
+      });
+    }, { threshold: 0.18 });
+    Object.keys(cardByKey).forEach(function (k) { io.observe(cardByKey[k]); });
+
+    /* ============================================================ FILTER (FLIP) */
+    var filters = Array.prototype.slice.call(document.querySelectorAll('#li-filters .li-toggle'));
+    var curFilter = 'all';
+    filters.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var f = btn.dataset.filter; if (f === curFilter) return;
+        filters.forEach(function (b) { b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'); });
+        applyFilter(f);
+      });
+    });
+    /* Two phases: leavers fade/scale out IN PLACE first (display:none on the
+       same frame used to kill the .li-is-out fade entirely), then the grid
+       collapses — survivors FLIP, enterers fade in from staged-hidden. */
+    var filterSeq = 0;
+    function applyFilter(f) {
+      curFilter = f;
+      var seq = ++filterSeq;
+      var cards = PROJECTS.map(function (p) { return cardByKey[p.key]; });
+      var match = function (c) { return f === 'all' || c.dataset.status === f; };
+      if (REDUCED) {
+        cards.forEach(function (c) {
+          c.style.display = match(c) ? '' : 'none';
+          c.classList.toggle('li-is-out', !match(c));
+        });
+        return;
+      }
+      var leaving = 0;
+      cards.forEach(function (c) {
+        if (!match(c) && c.style.display !== 'none') { c.classList.add('li-is-out'); leaving++; }
+      });
+      setTimeout(function () {
+        if (seq !== filterSeq) return; /* superseded by a faster click */
+        var first = {}; cards.forEach(function (c) { first[c.dataset.key] = c.getBoundingClientRect(); });
+        var entering = [];
+        cards.forEach(function (c) {
+          var m = match(c);
+          if (m && c.style.display === 'none') { c.classList.add('li-is-out'); entering.push(c); }
+          c.style.display = m ? '' : 'none';
+        });
+        cards.forEach(function (c) {
+          if (c.style.display === 'none') return;
+          var fr = first[c.dataset.key];
+          if (!fr || fr.width === 0) return; /* enterer — no FLIP source rect */
+          var lr = c.getBoundingClientRect();
+          var dx = fr.left - lr.left, dy = fr.top - lr.top;
+          if (!dx && !dy) return;
+          c.style.transition = 'none';
+          c.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
+        });
+        var flipped = false;
+        function finishFlip() {
+          if (flipped || seq !== filterSeq) return;
+          flipped = true;
+          cards.forEach(function (c) {
+            if (c.style.display === 'none') return;
+            c.style.transition = 'transform .5s cubic-bezier(.2,.9,.2,1)';
+            c.style.transform = '';
+          });
+          entering.forEach(function (c) { c.classList.remove('li-is-out'); });
+          setTimeout(function () {
+            if (seq !== filterSeq) return;
+            cards.forEach(function (c) { c.style.transition = ''; }); /* hover timing back to the stylesheet */
+          }, 540);
+        }
+        requestAnimationFrame(function () { requestAnimationFrame(finishFlip); });
+        setTimeout(finishFlip, 250); /* rAF can stall in background tabs */
+      }, leaving ? 200 : 0);
+    }
+
+    /* ============================================================ SCROLL UI */
+    var titleWrap = document.getElementById('li-titleWrap');
+    var lastScroll = window.scrollY, vel = 0, squash = 0;
+    window.addEventListener('scroll', function () {
+      var y = window.scrollY; vel = y - lastScroll; lastScroll = y;
+    }, { passive: true });
+
+    function uiFrame() {
+      if (!sectionLive()) { uiOn = false; return; }
+      document.documentElement.style.setProperty('--li-hatch', (lastScroll * 0.45 % 200) + 'px');
+      var vc = window.innerHeight * 0.5;
+      PROJECTS.forEach(function (p) {
+        var card = cardByKey[p.key]; if (card.style.display === 'none') return;
+        var rc = card.getBoundingClientRect(), cc = rc.top + rc.height * 0.5;
+        var d = Math.min(1, Math.abs(cc - vc) / (window.innerHeight * 0.7));
+        card.querySelector('.li-idx').style.setProperty('--g', (1 - d).toFixed(3));
+      });
+      squash += (Math.max(-60, Math.min(60, vel)) - squash) * 0.25; vel *= 0.8;
+      var k = squash * 0.0016;
+      if (titleWrap) titleWrap.style.transform = 'scaleY(' + (1 - k).toFixed(4) + ') scaleX(' + (1 + k * 0.7).toFixed(4) + ')';
+      requestAnimationFrame(uiFrame);
+    }
+    function startUi() {
+      if (!REDUCED && !uiOn && sectionLive()) { uiOn = true; requestAnimationFrame(uiFrame); }
+    }
+    startUi();
+    if (REDUCED) {
+      document.documentElement.style.setProperty('--li-hatch', '0px');
+      PROJECTS.forEach(function (p) { cardByKey[p.key].querySelector('.li-idx').style.setProperty('--g', '0.6'); });
+    }
+
+    /* both loops wake when the section scrolls back into view */
+    if (typeof IntersectionObserver !== 'undefined') {
+      var sectionEl = document.querySelector('.li-projects');
+      if (sectionEl) {
+        new IntersectionObserver(function (es) {
+          es.forEach(function (en) { sectionVisible = en.isIntersecting; });
+          startLoop(); startUi();
+        }, { rootMargin: '80px 0px' }).observe(sectionEl);
+      }
+    }
+
+    /* ============================================================ LIVE MONITOR
+       REAL reachability checks against the live deployments. A no-cors GET is
+       opaque (status unreadable) but resolving at all means the host answered,
+       and the round-trip time is genuine. */
+    var pingline = document.getElementById('li-pingline');
+    var liveProjects = PROJECTS.filter(function (p) { return p.status === 'live'; });
+    var pIdx = 0;
+    function pingNext() {
+      if (!liveProjects.length || !pingline || typeof fetch !== 'function') return;
+      if (document.hidden) { setTimeout(pingNext, 8000); return; }
+      var p = liveProjects[pIdx % liveProjects.length]; pIdx++;
+      pingline.innerHTML = '&#9656; ping <b>' + p.host + '</b> &hellip;';
+      var t0 = performance.now();
+      var ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      var tmo = setTimeout(function () { if (ctl) ctl.abort(); }, 6000);
+      fetch('https://' + p.host, { method: 'GET', mode: 'no-cors', cache: 'no-store', signal: ctl ? ctl.signal : undefined })
+        .then(function () {
+          var ms = Math.max(1, Math.round(performance.now() - t0));
+          pingline.innerHTML = '&#9656; <b>' + p.host + '</b> &rarr; <span class="li-ok">reachable</span> ' + ms + 'ms';
+          var badge = cardByKey[p.key].querySelector('.li-badge.li-live');
+          if (badge) { badge.classList.add('li-pinged'); setTimeout(function () { badge.classList.remove('li-pinged'); }, 520); }
+        })
+        .catch(function () {
+          pingline.innerHTML = '&#9656; <b>' + p.host + '</b> &rarr; no response';
+        })
+        .then(function () { clearTimeout(tmo); setTimeout(pingNext, 9000); });
+    }
+    setTimeout(pingNext, 900);
+
+    /* ============================================================ CASE STUDY */
+    var activePanel = null, caseRenderer = null;
+
+    function buildPanel(p) {
+      var panel = document.createElement('section');
+      panel.className = 'li-cs-panel'; panel.dataset.key = p.key;
+      var srcLink = '<a class="li-cs-link li-ghost" href="' + p.github + '" target="_blank" rel="noopener">VIEW SOURCE</a>';
+      var links = (p.host
+        ? '<a class="li-cs-link li-primary" href="https://' + p.host + '" target="_blank" rel="noopener">VISIT LIVE &rarr;</a>' + srcLink
+        : srcLink);
+      var metaRows = Object.keys(p.meta).map(function (kk) { return '<dt>' + kk + '</dt><dd>' + p.meta[kk] + '</dd>'; }).join('');
+      panel.innerHTML =
+        '<div class="li-cs-head">' +
+          '<canvas class="li-demo"></canvas>' +
+          '<div class="li-cs-mono"><i>' + p.mono + '</i></div>' +
+          '<button class="li-cs-close" type="button">CLOSE &times; ESC</button>' +
+        '</div>' +
+        '<div class="li-cs-scroll" data-lenis-prevent><div class="li-cs-body">' +
+          '<div class="li-cs-eyebrow">' + p.label + '</div>' +
+          '<h2 class="li-cs-title">' + p.name + '</h2>' +
+          '<p class="li-cs-tag">' + p.tagline + '</p>' +
+          '<div class="li-cs-grid">' +
+            '<div>' +
+              '<div class="li-cs-section-h">Overview</div>' +
+              '<p style="font-size:14px;line-height:1.6;color:#222;margin:0 0 26px;">' + p.overview + '</p>' +
+              '<div class="li-cs-section-h">Highlights</div>' +
+              '<ul class="li-cs-list">' + p.highlights.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul>' +
+            '</div>' +
+            '<aside>' +
+              '<div class="li-cs-section-h">Stack</div>' +
+              '<div class="li-stack" style="margin-bottom:22px">' + p.stack.map(function (t) { return '<span>' + t + '</span>'; }).join('') + '</div>' +
+              '<div class="li-cs-meta"><dl style="margin:0">' + metaRows + '</dl></div>' +
+              '<div class="li-cs-links">' + links + '</div>' +
+            '</aside>' +
+          '</div>' +
+        '</div></div>';
+      return panel;
+    }
+
+    function openCase(p) {
+      if (activePanel) return;
+      var card = cardByKey[p.key], rect = card.getBoundingClientRect();
+      var panel = buildPanel(p); document.body.appendChild(panel);
+      panel.style.left = rect.left + 'px'; panel.style.top = rect.top + 'px';
+      panel.style.width = rect.width + 'px'; panel.style.height = rect.height + 'px';
+      var cv = panel.querySelector('canvas.li-demo');
+      var r = RENDER[p.key](cv); r.isCase = true; r.resize(); cv._r = r; caseRenderer = r; renderers.push(r);
+      activePanel = panel; overlayOpen = true;
+      card.classList.add('li-cs-source'); // hide the real card while the panel stands in
+      startLoop(); // the case renderer needs ticks even if the section gate slept
+      document.body.classList.add('li-cs-open');
+      // freeze Lenis while the panel is up — otherwise it owns the wheel and
+      // the panel's own scroll area is unreachable by mouse
+      if (window.__lenis && window.__lenis.stop) window.__lenis.stop();
+
+      panel.getBoundingClientRect();
+      requestAnimationFrame(function () { panel.classList.add('li-cs-expand'); });
+
+      panel.addEventListener('transitionend', function (e) {
+        if (e.propertyName === 'width') { r.resize(); if (REDUCED) staticFrame(r, p.key); }
+      });
+      if (REDUCED) { panel.style.transition = 'none'; panel.classList.add('li-cs-expand'); r.resize(); staticFrame(r, p.key); }
+
+      panel.querySelector('.li-cs-close').addEventListener('click', closeCase);
+    }
+
+    function closeCase() {
+      if (!activePanel) return;
+      var panel = activePanel, key = panel.dataset.key, card = cardByKey[key];
+      var rect = card.getBoundingClientRect();
+      panel.style.left = rect.left + 'px'; panel.style.top = rect.top + 'px';
+      panel.style.width = rect.width + 'px'; panel.style.height = rect.height + 'px';
+      panel.classList.remove('li-cs-expand');
+      panel.classList.add('li-cs-closing'); // collapse + fade so removal is seamless
+      var done = function () {
+        renderers = renderers.filter(function (x) { return x !== caseRenderer; });
+        caseRenderer = null; panel.remove(); activePanel = null;
+        if (card) card.classList.remove('li-cs-source'); // reveal the real card
+        overlayOpen = false; document.body.classList.remove('li-cs-open');
+        if (window.__lenis && window.__lenis.start) window.__lenis.start();
+      };
+      if (REDUCED) { done(); return; }
+      var fired = false;
+      panel.addEventListener('transitionend', function (e) { if (e.propertyName === 'width' && !fired) { fired = true; done(); } });
+      setTimeout(function () { if (!fired) { fired = true; done(); } }, 620);
+    }
+
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeCase(); });
+
+    /* ============================================================ RESIZE */
+    var rz = null;
+    window.addEventListener('resize', function () {
+      if (rz) clearTimeout(rz);
+      rz = setTimeout(function () {
+        renderers.forEach(function (r) {
+          r.resize();
+          if (REDUCED) { var host = r.cv.closest('[data-key]'); staticFrame(r, host ? host.dataset.key : 'orbit'); }
+        });
+      }, 140);
+    });
+  })();
+</script>

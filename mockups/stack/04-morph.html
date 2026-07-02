@@ -1,0 +1,823 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>STACK / 04 — MORPH</title>
+
+<!-- Fonts: Anton (display) + JetBrains Mono (everything else) -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+
+<style>
+  :root{
+    --red:#ed1c24;
+    --red-deep:#b3001b;
+    --red-dark:#7a0014;
+    --ink:#ffffff;
+    --black:#0a0a0a;
+    --line:rgba(255,255,255,0.26);
+    --font-display:"Anton",sans-serif;
+    --font-mono:"JetBrains Mono",monospace;
+
+    /* FLIP timings */
+    --flip-dur:420ms;
+    --flip-ease:cubic-bezier(.2,.9,.2,1.25); /* slight overshoot = spring-ish */
+  }
+
+  *{ box-sizing:border-box; }
+
+  html,body{ margin:0; padding:0; }
+
+  body{
+    background:var(--red);
+    color:var(--ink);
+    font-family:var(--font-mono);
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+
+  /* ---------------------------------------------------------------- TOP BAR */
+  .topbar{
+    position:fixed;
+    inset:0 0 auto 0;
+    z-index:100;
+    height:64px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 clamp(16px,4vw,40px);
+    background:var(--red);
+    border-bottom:2px solid var(--ink);
+  }
+
+  .index-btn{
+    font-family:var(--font-mono);
+    font-weight:700;
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink);
+    text-decoration:none;
+    background:transparent;
+    border:2px solid var(--ink);
+    padding:9px 16px;
+    box-shadow:4px 4px 0 var(--black);
+    transition:transform 120ms cubic-bezier(.2,.9,.2,1),
+               box-shadow 120ms cubic-bezier(.2,.9,.2,1),
+               background 120ms, color 120ms;
+    white-space:nowrap;
+  }
+  .index-btn:hover,
+  .index-btn:focus-visible{
+    background:var(--ink);
+    color:var(--red);
+    transform:translate(-2px,-2px);
+    box-shadow:6px 6px 0 var(--black);
+    outline:none;
+  }
+  .index-btn:active{
+    transform:translate(2px,2px);
+    box-shadow:1px 1px 0 var(--black);
+  }
+
+  .caption{
+    text-align:right;
+    line-height:1.35;
+  }
+  .caption .cap-id{
+    font-weight:700;
+    font-size:12px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+  }
+  .caption .cap-hint{
+    font-weight:400;
+    font-size:10.5px;
+    letter-spacing:.08em;
+    color:rgba(255,255,255,0.78);
+    text-transform:lowercase;
+  }
+
+  /* ---------------------------------------------------------------- LAYOUT */
+  .page{
+    padding:calc(64px + clamp(22px,4vw,44px)) clamp(20px,6vw,90px) clamp(40px,8vw,90px);
+    max-width:1500px;
+    margin:0 auto;
+  }
+
+  .kicker{
+    font-family:var(--font-mono);
+    font-weight:500;
+    font-size:13px;
+    letter-spacing:.16em;
+    color:rgba(255,255,255,0.85);
+    margin:0 0 10px;
+  }
+
+  .title{
+    font-family:var(--font-display);
+    font-weight:400;
+    text-transform:uppercase;
+    color:var(--ink);
+    line-height:.82;
+    letter-spacing:.005em;
+    font-size:clamp(2.4rem,10vw,8rem);
+    margin:0 0 clamp(22px,3vw,34px);
+  }
+
+  /* ---------------------------------------------------------------- CONTROLS */
+  .controls{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:18px 26px;
+    margin-bottom:clamp(22px,3vw,38px);
+    padding-bottom:18px;
+    border-bottom:2px solid var(--ink);
+  }
+  .ctrl-group{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .ctrl-label{
+    font-weight:700;
+    font-size:12px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:rgba(255,255,255,0.85);
+  }
+  .toggle-row{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .toggle{
+    font-family:var(--font-mono);
+    font-weight:700;
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink);
+    background:transparent;
+    border:2px solid var(--ink);
+    padding:9px 15px;
+    cursor:pointer;
+    box-shadow:4px 4px 0 var(--black);
+    transition:transform 110ms cubic-bezier(.2,.9,.2,1),
+               box-shadow 110ms cubic-bezier(.2,.9,.2,1),
+               background 110ms, color 110ms;
+  }
+  .toggle:hover{
+    transform:translate(-2px,-2px);
+    box-shadow:6px 6px 0 var(--black);
+  }
+  .toggle:active{
+    transform:translate(2px,2px);
+    box-shadow:1px 1px 0 var(--black);
+  }
+  .toggle[aria-pressed="true"]{
+    background:var(--ink);
+    color:var(--red);
+    transform:translate(2px,2px);
+    box-shadow:1px 1px 0 var(--black);
+  }
+  .toggle:focus-visible{ outline:2px dashed var(--ink); outline-offset:3px; }
+
+  .mode-readout{
+    margin-left:auto;
+    font-weight:500;
+    font-size:11px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:rgba(255,255,255,0.72);
+  }
+  .mode-readout b{ color:var(--ink); font-weight:700; }
+
+  /* ---------------------------------------------------------------- STAGE */
+  /*
+     The stage is the relative-positioned container for ALL chips.
+     There is exactly ONE persistent DOM node per chip (keyed by name).
+     Each layout mode is achieved by setting inline position/size on
+     the SAME nodes, then running a FLIP between the old and new rects.
+  */
+  .stage{
+    position:relative;
+    width:100%;
+    /* height is set in JS to fit the active layout */
+    transition:height var(--flip-dur) var(--flip-ease);
+    min-height:300px;
+  }
+
+  /* category rails (GRID mode) drawn as absolutely-positioned labels */
+  .rail{
+    position:absolute;
+    left:0;
+    font-weight:700;
+    font-size:12px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--ink);
+    pointer-events:none;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    transition:opacity 160ms ease, transform var(--flip-dur) var(--flip-ease);
+  }
+  .rail .rail-rule{
+    height:2px;
+    background:var(--line);
+    flex:0 0 28px;
+  }
+  .rail.is-hidden{ opacity:0; }
+
+  /* ---------------------------------------------------------------- CHIP */
+  /* SOLID TILE so the shadow-snap on landing reads as a physical object */
+  .chip{
+    position:absolute;
+    top:0; left:0;
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+    height:34px;
+    padding:0 14px;
+    background:var(--ink);
+    color:var(--black);
+    border:2px solid var(--black);
+    font-family:var(--font-mono);
+    font-weight:700;
+    font-size:11px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    white-space:nowrap;
+    cursor:default;
+    user-select:none;
+    box-shadow:0 0 0 var(--black);  /* shadow starts collapsed; snaps on land */
+    will-change:transform;
+    /* transform handled imperatively in JS for FLIP; shadow snaps separately */
+    transition:box-shadow 120ms steps(1,end) var(--flip-dur),
+               background 110ms cubic-bezier(.2,.9,.2,1),
+               color 110ms cubic-bezier(.2,.9,.2,1);
+  }
+  /* landed = shadow visible (hard, no blur). Depth scales via --sd. */
+  .chip.landed{
+    box-shadow:var(--sd,4px) var(--sd,4px) 0 var(--black);
+  }
+
+  /* the proficiency weight strip on the left edge of each tile */
+  .chip .wt{
+    display:inline-flex;
+    gap:2px;
+    margin-right:9px;
+  }
+  .chip .wt i{
+    width:3px;
+    height:11px;
+    background:var(--black);
+    opacity:.22;
+    transition:opacity 110ms;
+  }
+  .chip .wt i.on{ opacity:1; }
+
+  .chip .nm{ line-height:1; }
+
+  /* category tag shown only in LIST mode (revealed via class on stage) */
+  .chip .cat{
+    margin-left:auto;
+    padding-left:18px;
+    font-weight:500;
+    font-size:10px;
+    letter-spacing:.1em;
+    color:rgba(10,10,10,0.5);
+    display:none;
+  }
+  .stage.mode-list .chip .cat{ display:inline; }
+
+  /* hover: invert to RED tile + white text (snappy) */
+  .chip:hover{
+    background:var(--red);
+    color:var(--ink);
+    z-index:5;
+  }
+  .chip:hover .wt i{ background:var(--ink); }
+  .chip:hover .cat{ color:rgba(255,255,255,0.75); }
+
+  /* CLOUD mode tiles read "heavier": center justify, font scales (set inline) */
+  .stage.mode-cloud .chip{ justify-content:center; }
+  .stage.mode-cloud .chip .wt{ display:none; }   /* size carries the weight in cloud */
+
+  /* footer note */
+  .foot{
+    margin-top:clamp(28px,4vw,48px);
+    padding-top:16px;
+    border-top:2px solid var(--line);
+    font-size:11px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:rgba(255,255,255,0.6);
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+
+  /* ---------------------------------------------------------------- REDUCED MOTION */
+  @media (prefers-reduced-motion: reduce){
+    .stage{ transition:none; }
+    .rail{ transition:opacity 1ms; }
+    .chip{ transition:background 1ms, color 1ms; }
+    .chip.landed{ box-shadow:var(--sd,4px) var(--sd,4px) 0 var(--black); }
+  }
+
+  /* narrow screens: shrink rails / chips a touch */
+  @media (max-width:640px){
+    .chip{ height:31px; font-size:10px; padding:0 11px; }
+    .caption .cap-hint{ display:none; }
+  }
+</style>
+</head>
+
+<body>
+  <!-- ======================================================= TOP BAR -->
+  <header class="topbar">
+    <a class="index-btn" href="index.html">&larr; INDEX</a>
+    <div class="caption">
+      <div class="cap-id">STYLE 04 / MORPH</div>
+      <div class="cap-hint">flip the view — chips flip-animate to new homes</div>
+    </div>
+  </header>
+
+  <!-- ======================================================= PAGE -->
+  <main class="page">
+    <p class="kicker">// stack</p>
+    <h1 class="title">What I<br>Work With</h1>
+
+    <!-- controls -->
+    <div class="controls">
+      <div class="ctrl-group">
+        <span class="ctrl-label">VIEW:</span>
+        <div class="toggle-row" id="toggles" role="group" aria-label="Layout mode">
+          <button class="toggle" data-mode="grid"  aria-pressed="true">[ GRID ]</button>
+          <button class="toggle" data-mode="list"  aria-pressed="false">[ LIST ]</button>
+          <button class="toggle" data-mode="cloud" aria-pressed="false">[ CLOUD ]</button>
+          <button class="toggle" data-mode="az"    aria-pressed="false">[ A-Z ]</button>
+        </div>
+      </div>
+      <div class="mode-readout">MODE: <b id="modeName">GRID</b> · <span id="itemCount">35</span> ITEMS</div>
+    </div>
+
+    <!-- stage: single persistent set of chip nodes, repositioned per mode -->
+    <div class="stage mode-grid" id="stage" aria-live="polite"></div>
+
+    <div class="foot">
+      <span>same data · four personalities</span>
+      <span>FLIP = first · last · invert · play</span>
+    </div>
+  </main>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------------------------------------------------------- DATA (verbatim)
+  var DATA = [
+    { group:"Languages", items:[
+      ["C",4],["Python",5],["TypeScript",5],["JavaScript",4],
+      ["SQL",3],["HTML",4],["CSS",4],["WGSL",3] ]},
+    { group:"ML / AI", items:[
+      ["PyTorch",4],["TensorFlow",3],["scikit-learn",4],["NumPy",4],
+      ["Pandas",4],["TransformerLens",4],["LLM Evaluation",4],["RAG",4],
+      ["Failure Taxonomy",3],["Deep Learning",4] ]},
+    { group:"Web / Frontend", items:[
+      ["React",5],["Tailwind CSS",4],["Vite",4],["WebGPU",4],
+      ["PWA",4],["IndexedDB / Dexie.js",4],["Canvas",3],["Web Workers",3] ]},
+    { group:"Backend / Data", items:[
+      ["FastAPI",4],["Pydantic",3],["Node.js",4],["Express",3],
+      ["MongoDB",3],["REST APIs",4] ]},
+    { group:"Tools / Systems", items:[
+      ["Git",4],["Linux",4],["OpenRouter API",3] ]}
+  ];
+
+  // flatten into one stable list; each chip keeps category + weight + index
+  var CHIPS = [];
+  DATA.forEach(function(grp){
+    grp.items.forEach(function(it){
+      CHIPS.push({ name:it[0], weight:it[1], cat:grp.group });
+    });
+  });
+  var N = CHIPS.length; // total chips across all categories
+
+  var REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // ---------------------------------------------------------- DOM refs
+  var stage = document.getElementById("stage");
+  var modeName = document.getElementById("modeName");
+  var itemCountEl = document.getElementById("itemCount");
+  if(itemCountEl) itemCountEl.textContent = String(N);
+  var toggles = Array.prototype.slice.call(
+    document.querySelectorAll("#toggles .toggle"));
+
+  // ---------------------------------------------------------- build chip nodes ONCE
+  // Key by name; reposition the same nodes between modes (FLIP requirement).
+  var chipEls = []; // parallel to CHIPS
+  CHIPS.forEach(function(c, i){
+    var el = document.createElement("div");
+    el.className = "chip";
+    el.setAttribute("data-name", c.name);
+
+    // weight pips (shown except in cloud)
+    var wt = document.createElement("span");
+    wt.className = "wt";
+    for(var k=0;k<5;k++){
+      var pip = document.createElement("i");
+      if(k < c.weight) pip.className = "on";
+      wt.appendChild(pip);
+    }
+    var nm = document.createElement("span");
+    nm.className = "nm";
+    nm.textContent = c.name;
+
+    var cat = document.createElement("span");
+    cat.className = "cat";
+    cat.textContent = c.cat;
+
+    el.appendChild(wt);
+    el.appendChild(nm);
+    el.appendChild(cat);
+
+    el._chip = c;
+    el._idx = i;
+    chipEls.push(el);
+    stage.appendChild(el);
+  });
+
+  // category rail labels (GRID mode only) — absolutely positioned
+  var rails = [];
+  DATA.forEach(function(grp){
+    var r = document.createElement("div");
+    r.className = "rail";
+    var rule = document.createElement("span");
+    rule.className = "rail-rule";
+    var lab = document.createElement("span");
+    lab.textContent = grp.group;
+    r.appendChild(lab);
+    r.appendChild(rule);
+    r._group = grp.group;
+    rails.push(r);
+    stage.appendChild(r);
+  });
+
+  // ---------------------------------------------------------- measuring helper
+  // Off-screen measurement of each chip's natural width for a given visual mode,
+  // because absolute positioning collapses layout. We toggle a measuring class,
+  // read offsetWidth, then restore.
+  function measureWidths(extraClass){
+    // temporarily make chips static & inline-flex to read natural size
+    var prev = [];
+    chipEls.forEach(function(el){
+      prev.push(el.getAttribute("style") || "");
+      el.style.position = "static";
+      el.style.transform = "none";
+      el.style.fontSize = "";
+      el.style.width = "auto";
+      el.style.display = "inline-flex";
+    });
+    if(extraClass) stage.classList.add(extraClass);
+    // force reflow read
+    var widths = chipEls.map(function(el){ return Math.ceil(el.offsetWidth); });
+    var heights = chipEls.map(function(el){ return Math.ceil(el.offsetHeight); });
+    if(extraClass) stage.classList.remove(extraClass);
+    chipEls.forEach(function(el, i){
+      el.setAttribute("style", prev[i]);
+    });
+    return { w:widths, h:heights };
+  }
+
+  // ---------------------------------------------------------- deterministic hash
+  // Stable pseudo-random in [0,1) from an integer seed. Used for CLOUD so that
+  // positions are computed ONCE-per-layout-pass but identical every time.
+  function hash01(seed){
+    var x = Math.sin(seed * 127.1 + 311.7) * 43758.5453;
+    return x - Math.floor(x);
+  }
+
+  // ---------------------------------------------------------- layout computers
+  // Each returns { pos:[{x,y,w,h,fs,sd}], railPos:[{x,y,visible}], stageH }
+  // x/y are top-left of each chip in stage coords.
+
+  var CHIP_H = 34;
+  var GAP = 10;
+
+  function layoutGrid(W){
+    var m = measureWidths();
+    var widths = m.w;
+    var railW = Math.min(170, Math.max(120, W*0.16));
+    var contentX = railW + 24;
+    var contentW = Math.max(160, W - contentX);
+
+    var pos = new Array(N);
+    var railPos = [];
+    var y = 0;
+    var idx = 0;
+    DATA.forEach(function(grp, gi){
+      var rowStartY = y;
+      var x = contentX, lineH = CHIP_H;
+      var first = true;
+      grp.items.forEach(function(){
+        var w = widths[idx];
+        if(!first && x + w > contentX + contentW){
+          x = contentX;
+          y += CHIP_H + GAP;
+        }
+        pos[idx] = { x:x, y:y, w:w, h:CHIP_H, fs:11, sd:4 };
+        x += w + GAP;
+        first = false;
+        idx++;
+      });
+      // rail label vertically centered to the first row of this group
+      railPos.push({ x:0, y:rowStartY + (CHIP_H-16)/2, visible:true });
+      y += CHIP_H + (gi < DATA.length-1 ? GAP + 22 : 0); // gap between groups
+    });
+    return { pos:pos, railPos:railPos, stageH:y + CHIP_H + 8 };
+  }
+
+  function layoutList(W){
+    var m = measureWidths();
+    var pos = new Array(N);
+    var rowH = 40;
+    var y = 0;
+    // grouped by category order = natural CHIPS order
+    for(var i=0;i<N;i++){
+      pos[i] = { x:0, y:y, w:W, h:CHIP_H, fs:11, sd:4 };
+      y += rowH;
+    }
+    var railPos = DATA.map(function(){ return { x:0,y:0,visible:false }; });
+    return { pos:pos, railPos:railPos, stageH:y + 8 };
+  }
+
+  function layoutCloud(W){
+    // Cloud: size + shadow scale with weight; deterministic positions from index.
+    // Strategy: place chips in pseudo-random angular spiral toward center,
+    // sized by weight, then nudge to avoid hard overlap deterministically.
+    var pos = new Array(N);
+    // font size by weight 1..5  ->  13..30px
+    function fsFor(w){ return 12 + (w-1) * 4.5; }    // 12,16.5,21,25.5,30
+    function sdFor(w){ return 2 + (w-1) * 1.6; }     // shadow depth scales too
+
+    // estimate chip box from font size (mono ~ 0.62em per char + padding)
+    function estW(name, fs){
+      return Math.ceil(name.length * fs * 0.66 + 30);
+    }
+    function estH(fs){ return Math.ceil(fs + 18); }
+
+    var cx = W/2;
+    // order by weight desc so heavy chips claim center first (deterministic)
+    var order = CHIPS.map(function(c,i){ return i; }).sort(function(a,b){
+      if(CHIPS[b].weight !== CHIPS[a].weight) return CHIPS[b].weight - CHIPS[a].weight;
+      return a - b; // stable tie-break by index
+    });
+
+    var placed = [];
+    var maxY = 0, minY = 1e9;
+    order.forEach(function(i, rank){
+      var c = CHIPS[i];
+      var fs = fsFor(c.weight);
+      var w = Math.min(estW(c.name, fs), W - 8);
+      var h = estH(fs);
+
+      // golden-angle spiral seeded by rank for an even, deterministic spread
+      var ga = 2.399963; // golden angle (rad)
+      var ang = rank * ga + hash01(i)*0.9;        // deterministic jitter
+      var rad = 26 * Math.sqrt(rank + 0.6) * (0.9 + hash01(i+99)*0.35);
+      var tx = cx + Math.cos(ang) * rad - w/2;
+      var ty = Math.cos(ang*0.0) * 0 + Math.sin(ang) * rad * 0.62 - h/2; // squash vertically
+
+      // collision push-away (deterministic: fixed iteration order)
+      for(var pass=0; pass<60; pass++){
+        var moved = false;
+        for(var p=0;p<placed.length;p++){
+          var o = placed[p];
+          var ox = (tx + w/2) - (o.x + o.w/2);
+          var oy = (ty + h/2) - (o.y + o.h/2);
+          var ox2 = (w + o.w)/2 + 6;
+          var oy2 = (h + o.h)/2 + 6;
+          if(Math.abs(ox) < ox2 && Math.abs(oy) < oy2){
+            var pushX = ox2 - Math.abs(ox);
+            var pushY = oy2 - Math.abs(oy);
+            if(pushX < pushY){
+              tx += (ox >= 0 ? 1 : -1) * (pushX/2 + 0.5);
+            } else {
+              ty += (oy >= 0 ? 1 : -1) * (pushY/2 + 0.5);
+            }
+            moved = true;
+          }
+        }
+        if(!moved) break;
+      }
+      // keep inside horizontal bounds
+      if(tx < 0) tx = 0;
+      if(tx + w > W) tx = W - w;
+
+      placed.push({ x:tx, y:ty, w:w, h:h });
+      pos[i] = { x:tx, y:ty, w:w, h:h, fs:fs, sd:sdFor(c.weight) };
+      if(ty < minY) minY = ty;
+      if(ty + h > maxY) maxY = ty + h;
+    });
+
+    // shift all so the topmost chip sits at y=8 (no negative coords)
+    var shift = 8 - minY;
+    for(var j=0;j<N;j++){ pos[j].y += shift; }
+    var stageH = (maxY - minY) + 24;
+
+    var railPos = DATA.map(function(){ return { x:0,y:0,visible:false }; });
+    return { pos:pos, railPos:railPos, stageH:stageH };
+  }
+
+  function layoutAZ(W){
+    var m = measureWidths();
+    var widths = m.w;
+    // sort alphabetically (ignore category), case-insensitive
+    var order = CHIPS.map(function(c,i){ return i; }).sort(function(a,b){
+      var na = CHIPS[a].name.toLowerCase(), nb = CHIPS[b].name.toLowerCase();
+      return na < nb ? -1 : na > nb ? 1 : 0;
+    });
+    var pos = new Array(N);
+    var x = 0, y = 0;
+    order.forEach(function(i){
+      var w = widths[i];
+      if(x + w > W && x > 0){ x = 0; y += CHIP_H + GAP; }
+      pos[i] = { x:x, y:y, w:w, h:CHIP_H, fs:11, sd:4 };
+      x += w + GAP;
+    });
+    var railPos = DATA.map(function(){ return { x:0,y:0,visible:false }; });
+    return { pos:pos, railPos:railPos, stageH:y + CHIP_H + 8 };
+  }
+
+  // ---------------------------------------------------------- apply + FLIP
+  var currentMode = "grid";
+  var animToken = 0; // cancels stale staggered timers
+
+  function computeLayout(mode, W){
+    switch(mode){
+      case "list":  return layoutList(W);
+      case "cloud": return layoutCloud(W);
+      case "az":    return layoutAZ(W);
+      default:      return layoutGrid(W);
+    }
+  }
+
+  // set the static (no-transform) target style for each chip from a pos record
+  function applyTarget(el, p){
+    el.style.transform = "none";
+    el.style.left = p.x + "px";
+    el.style.top  = p.y + "px";
+    el.style.width = p.w + "px";
+    el.style.fontSize = p.fs + "px";
+    el.style.setProperty("--sd", p.sd + "px");
+  }
+
+  function setMode(mode, isInitial){
+    var W = stage.clientWidth || stage.offsetWidth || 1000;
+    var layout = computeLayout(mode, W);
+
+    // -------- FIRST: record current rects (skip on initial paint) --------
+    var firstRects = null;
+    if(!isInitial){
+      firstRects = chipEls.map(function(el){ return el.getBoundingClientRect(); });
+    }
+
+    // -------- LAST: write the new layout to the SAME nodes --------
+    // update stage mode class (controls cloud centering / list cat display)
+    stage.className = "stage mode-" + mode;
+    chipEls.forEach(function(el, i){
+      el.classList.remove("landed");           // collapse shadow during move
+      applyTarget(el, layout.pos[i]);
+    });
+    // rails (grid only)
+    rails.forEach(function(r, gi){
+      var rp = layout.railPos[gi];
+      r.style.top = rp.y + "px";
+      r.style.left = "0px";
+      if(rp.visible){ r.classList.remove("is-hidden"); }
+      else { r.classList.add("is-hidden"); }
+    });
+    stage.style.height = layout.stageH + "px";
+
+    currentMode = mode;
+    modeName.textContent = ({grid:"GRID",list:"LIST",cloud:"CLOUD",az:"A-Z"})[mode];
+
+    // initial paint OR reduced-motion: land immediately, no invert/play
+    if(isInitial || REDUCED){
+      chipEls.forEach(function(el){ el.classList.add("landed"); });
+      return;
+    }
+
+    // -------- INVERT: translate each chip back to where it was --------
+    var lastRects = chipEls.map(function(el){ return el.getBoundingClientRect(); });
+    var token = ++animToken;
+
+    chipEls.forEach(function(el, i){
+      var f = firstRects[i], l = lastRects[i];
+      var dx = f.left - l.left;
+      var dy = f.top  - l.top;
+      var sx = l.width  ? f.width  / l.width  : 1;
+      var sy = l.height ? f.height / l.height : 1;
+      // disable transition while we snap to the inverted (old) position
+      el.style.transition = "none";
+      el.style.transform =
+        "translate(" + dx + "px," + dy + "px) scale(" + sx + "," + sy + ")";
+    });
+
+    // force reflow so the inverted transforms are committed before we play
+    void stage.offsetWidth;
+
+    // -------- PLAY: transition transform back to identity (snappy spring) --
+    // stagger by index for life; shadow snaps on landing per chip.
+    chipEls.forEach(function(el, i){
+      var delay = (i % 12) * 9; // ms — small staggered cascade
+      el.style.transition =
+        "transform var(--flip-dur) var(--flip-ease) " + delay + "ms," +
+        "background 110ms cubic-bezier(.2,.9,.2,1)," +
+        "color 110ms cubic-bezier(.2,.9,.2,1)";
+      // next frame -> animate to home
+      requestAnimationFrame(function(){
+        requestAnimationFrame(function(){
+          if(token !== animToken) return;
+          el.style.transform = "translate(0,0) scale(1,1)";
+        });
+      });
+
+      // SHADOW-SNAP: add hard shadow right as the chip lands (move done).
+      var landAt = (parseFloat(getComputedStyle(document.documentElement)
+                     .getPropertyValue("--flip-dur")) || 420) + delay;
+      setTimeout(function(){
+        if(token !== animToken) return;
+        el.classList.add("landed");
+      }, landAt);
+    });
+  }
+
+  // ---------------------------------------------------------- toggle wiring
+  toggles.forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var mode = btn.getAttribute("data-mode");
+      if(mode === currentMode) return;
+      toggles.forEach(function(b){
+        b.setAttribute("aria-pressed", b === btn ? "true" : "false");
+      });
+      setMode(mode, false);
+    });
+  });
+
+  // keyboard quick-switch: G / L / C / A
+  document.addEventListener("keydown", function(e){
+    if(e.metaKey || e.ctrlKey || e.altKey) return;
+    var map = { g:"grid", l:"list", c:"cloud", a:"az" };
+    var mode = map[e.key.toLowerCase()];
+    if(!mode || mode === currentMode) return;
+    var btn = toggles.filter(function(b){ return b.getAttribute("data-mode") === mode; })[0];
+    if(btn) btn.click();
+  });
+
+  // ---------------------------------------------------------- responsive re-layout
+  // On resize, recompute the CURRENT mode positions (instant — no FLIP needed
+  // since geometry, not mode, changed). Debounced.
+  var rzTimer = null;
+  window.addEventListener("resize", function(){
+    if(rzTimer) clearTimeout(rzTimer);
+    rzTimer = setTimeout(function(){
+      var W = stage.clientWidth || 1000;
+      var layout = computeLayout(currentMode, W);
+      chipEls.forEach(function(el, i){
+        el.style.transition = "none";
+        applyTarget(el, layout.pos[i]);
+        el.classList.add("landed");
+      });
+      rails.forEach(function(r, gi){
+        var rp = layout.railPos[gi];
+        r.style.top = rp.y + "px";
+        if(rp.visible){ r.classList.remove("is-hidden"); }
+        else { r.classList.add("is-hidden"); }
+      });
+      stage.style.height = layout.stageH + "px";
+    }, 120);
+  });
+
+  // ---------------------------------------------------------- boot
+  // Fonts can change chip widths; wait for them so initial GRID measures right.
+  function boot(){ setMode("grid", true); }
+  if(document.fonts && document.fonts.ready){
+    document.fonts.ready.then(boot);
+    // fallback in case fonts.ready never resolves
+    setTimeout(function(){ if(currentMode === "grid" && !chipEls[0].classList.contains("landed")) boot(); }, 800);
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>

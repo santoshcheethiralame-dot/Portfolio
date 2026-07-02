@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="en" data-mock="interview-transcript">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TRANSCRIPT — SESSION 001 · S. CHEETHIRALA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --ink:#141414; --cream:#f7f5f1; --cream2:#efece4; --red:#ed1c24; --red-hot:#ff5247;
+  --lime:#b4ff2e; --black:#0a0a0a; --gray:#928b80;
+  --fd:"Anton",sans-serif; --fm:"JetBrains Mono",monospace; --fi:"Instrument Serif",serif;
+}
+*{ box-sizing:border-box; margin:0; padding:0; }
+html{ -webkit-font-smoothing:antialiased; scroll-behavior:smooth; }
+body{ background:var(--cream); color:var(--ink); font-family:var(--fm); }
+::selection{ background:var(--ink); color:var(--lime); }
+a{ color:inherit; text-decoration:none; }
+
+/* ============================================================ READING PROGRESS BAR */
+#progress-bar{
+  position:fixed; top:0; left:0; height:3px; width:0%;
+  background:var(--lime); border-right:2px solid var(--ink);
+  z-index:1200; transition:width .05s linear;
+}
+
+/* ============================================================ HEADER BLOCK */
+.t-header{
+  border-bottom:4px solid var(--ink);
+  padding:clamp(24px,4vw,56px) clamp(20px,5vw,80px) clamp(18px,3vw,36px);
+  background:var(--ink); color:var(--cream);
+  position:relative; overflow:hidden;
+}
+.t-header::after{
+  content:'';
+  position:absolute; inset:0;
+  background:repeating-linear-gradient(0deg,rgba(247,245,241,.03) 0 1px,transparent 1px 3px);
+  pointer-events:none;
+}
+.t-kicker{
+  font-family:var(--fm); font-size:10px; font-weight:700; letter-spacing:.22em;
+  text-transform:uppercase; color:var(--gray); margin-bottom:14px;
+  display:flex; align-items:center; gap:12px;
+}
+.rec-dot{
+  display:inline-flex; align-items:center; gap:5px;
+  background:var(--red); color:var(--cream); border:2px solid var(--lime);
+  padding:3px 9px 3px 6px; font-size:9px; font-weight:700; letter-spacing:.14em;
+}
+.rec-dot::before{
+  content:''; display:inline-block; width:8px; height:8px; border-radius:50%;
+  background:var(--lime); animation:rec-blink 1.4s steps(1) infinite;
+}
+@keyframes rec-blink{ 50%{ opacity:0; } }
+
+.t-title{
+  font-family:var(--fd); font-weight:500;
+  font-size:clamp(2.6rem,8vw,7rem); line-height:.85;
+  letter-spacing:.02em; text-transform:uppercase;
+  color:var(--cream); margin-bottom:22px;
+}
+.t-title span{ color:var(--red-hot); }
+
+.t-meta-grid{
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:0;
+  border-top:2px solid rgba(247,245,241,.18); margin-top:18px;
+}
+.t-meta-item{
+  padding:10px 0 10px; border-right:2px solid rgba(247,245,241,.18);
+  padding-right:20px; margin-right:20px;
+}
+.t-meta-item:last-child{ border-right:none; }
+.t-meta-label{ font-size:9px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:var(--gray); margin-bottom:4px; }
+.t-meta-val{ font-size:12px; font-weight:500; letter-spacing:.06em; color:var(--cream); }
+
+.t-begin{
+  margin-top:18px; font-size:11px; font-weight:500; letter-spacing:.08em;
+  color:rgba(247,245,241,.5); font-style:normal;
+}
+
+/* ============================================================ BODY LAYOUT: MAIN + CAT RAIL */
+.t-body{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 220px;
+  gap:0;
+  align-items:start;
+  max-width:1200px;
+  margin:0 auto;
+  padding:0 clamp(20px,5vw,80px);
+}
+
+/* ============================================================ TRANSCRIPT COLUMN */
+.transcript{
+  padding:clamp(32px,5vw,72px) 48px clamp(32px,5vw,72px) 0;
+  border-right:2px solid var(--ink);
+}
+
+/* Hairline rule between exchanges */
+.exchange + .exchange{
+  margin-top:clamp(28px,4vh,52px);
+  padding-top:clamp(28px,4vh,52px);
+  border-top:1px solid rgba(20,20,20,.2);
+}
+
+.ts-stamp{
+  font-size:10px; font-weight:700; letter-spacing:.18em; color:var(--gray);
+  margin-bottom:10px; display:flex; align-items:center; gap:10px;
+}
+.ts-stamp::after{
+  content:''; flex:1; height:1px; background:rgba(20,20,20,.15);
+}
+
+.q-label{
+  color:var(--red); font-family:var(--fm); font-size:11px; font-weight:700;
+  letter-spacing:.16em; text-transform:uppercase; margin-right:8px;
+}
+.question{
+  font-family:var(--fm); font-size:clamp(.78rem,1.2vw,1rem); font-weight:700;
+  letter-spacing:.025em; line-height:1.55; color:var(--ink);
+  margin-bottom:16px;
+  background:var(--cream2); border:2px solid var(--ink); box-shadow:4px 4px 0 var(--ink);
+  padding:12px 14px;
+  display:block;
+}
+.q-prefix{ display:block; margin-bottom:4px; }
+
+.ans-label{
+  font-family:var(--fm); font-size:10px; font-weight:700; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--gray); margin-bottom:8px;
+  display:flex; align-items:center; gap:8px;
+}
+.ans-label::after{
+  content:''; width:28px; height:2px; background:var(--ink);
+}
+.answer{
+  font-family:var(--fi); font-size:clamp(1.2rem,2vw,1.65rem); line-height:1.48;
+  color:var(--ink); letter-spacing:-.005em;
+}
+.answer .hot{ color:var(--red); font-style:italic; }
+.answer .data{
+  font-family:var(--fm); font-size:.78em; font-weight:700;
+  background:var(--ink); color:var(--lime); padding:2px 6px; letter-spacing:.04em;
+}
+
+/* stage directions */
+.aside-text{
+  display:inline; font-family:var(--fm); font-size:.78em; font-weight:500;
+  color:var(--gray); letter-spacing:.04em;
+}
+
+/* Redacted block */
+.redacted{
+  display:inline-block; background:var(--ink); color:var(--ink);
+  padding:0 6px; user-select:none; position:relative; letter-spacing:.04em;
+  font-family:var(--fm); font-size:.78em; font-weight:700;
+  cursor:default;
+}
+.redacted:hover{ color:var(--lime); }
+.redacted::after{
+  content:'[REDACTED]'; position:absolute; inset:0; display:flex;
+  align-items:center; justify-content:center; font-size:.9em;
+  letter-spacing:.14em; color:var(--gray);
+}
+.redacted:hover::after{ color:var(--lime); }
+
+/* mobile cat inline asides */
+.cat-inline{
+  display:none;
+  margin-top:16px;
+  font-family:var(--fm); font-size:10px; font-weight:500; letter-spacing:.06em;
+  color:var(--gray); background:var(--cream2);
+  border:2px solid var(--ink); padding:8px 10px;
+  box-shadow:3px 3px 0 var(--ink);
+}
+.cat-inline::before{ content:'[cat] '; color:var(--red); font-weight:700; }
+
+/* ============================================================ CAT RAIL (right) */
+.cat-rail{
+  padding:clamp(32px,5vw,72px) 0 clamp(32px,5vw,72px) 28px;
+  position:sticky; top:24px;
+  display:flex; flex-direction:column; gap:0;
+}
+
+.cat-photo-wrap{
+  border:4px solid var(--ink); box-shadow:6px 6px 0 var(--ink);
+  background:#24090d; overflow:hidden; margin-bottom:24px;
+  position:relative;
+}
+.cat-photo-wrap img{
+  width:100%; display:block;
+  image-rendering:pixelated; object-fit:cover; aspect-ratio:1/1;
+  object-position:center 38%;
+  filter:grayscale(15%) contrast(1.05);
+}
+.cat-scan{
+  position:absolute; inset:0; pointer-events:none; opacity:.1; mix-blend-mode:multiply;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.6) 0 1px,transparent 1px 3px);
+}
+.cat-caption{
+  font-size:9px; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--gray); margin-top:8px; margin-bottom:20px;
+}
+.cat-caption span{ color:var(--red); }
+
+/* Cat interjection cards */
+.cat-card{
+  border:2px solid var(--ink); background:var(--cream2);
+  box-shadow:4px 4px 0 var(--ink);
+  padding:10px 12px; margin-bottom:16px;
+  font-family:var(--fm); font-size:10px; font-weight:500;
+  letter-spacing:.04em; line-height:1.6; color:var(--ink);
+}
+.cat-card-label{
+  font-size:9px; font-weight:700; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--gray); margin-bottom:6px; display:flex; align-items:center; gap:6px;
+}
+.cat-card-label::before{ content:'●'; color:var(--red); font-size:.8em; }
+.cat-card-q{
+  font-size:9px; font-weight:700; letter-spacing:.1em; color:var(--gray);
+  margin-bottom:4px; text-transform:uppercase;
+}
+.cat-card-text{ color:var(--ink); }
+
+/* ============================================================ FOOTER BLOCK */
+.t-footer{
+  border-top:4px solid var(--ink); margin-top:clamp(32px,5vw,64px);
+  padding:clamp(24px,4vw,52px) clamp(20px,5vw,80px);
+  background:var(--cream2);
+}
+.t-end-line{
+  font-family:var(--fm); font-size:11px; font-weight:700; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--gray); margin-bottom:28px;
+}
+
+.cert-block{
+  display:flex; flex-wrap:wrap; gap:clamp(16px,3vw,40px); align-items:flex-start;
+}
+.cert-stamp{
+  border:4px solid var(--ink); box-shadow:6px 6px 0 var(--ink);
+  padding:16px 22px; background:var(--cream);
+  min-width:220px;
+}
+.cert-stamp-top{
+  font-size:9px; font-weight:700; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--red); margin-bottom:8px;
+  border-bottom:2px solid var(--ink); padding-bottom:6px;
+}
+.cert-stamp-name{
+  font-family:var(--fd); font-weight:500; font-size:2rem; line-height:1;
+  letter-spacing:.04em; text-transform:uppercase; color:var(--ink);
+  margin-bottom:8px;
+}
+.cert-stamp-sub{
+  font-size:9.5px; font-weight:500; letter-spacing:.1em; color:var(--gray);
+  line-height:1.6;
+}
+.cert-stamp-sub a{
+  color:var(--ink); text-decoration:underline; text-underline-offset:3px;
+}
+.cert-stamp-sub a:hover{ color:var(--red); }
+
+.cert-note{
+  font-size:11px; font-weight:500; letter-spacing:.05em; color:var(--gray);
+  line-height:1.8; max-width:42ch;
+  border-left:3px solid var(--ink); padding-left:14px;
+}
+.cert-note b{ color:var(--ink); }
+
+/* ============================================================ FIXED FOOTER TAG */
+#tag{
+  position:fixed; left:50%; bottom:7px; transform:translateX(-50%);
+  z-index:1400; font-size:9.5px; letter-spacing:.14em;
+  text-transform:uppercase; color:rgba(20,20,20,.4); pointer-events:none;
+  font-family:var(--fm);
+}
+
+/* ============================================================ DIVIDER */
+.t-divider{
+  width:100%; height:1px; background:rgba(20,20,20,.12); margin:0;
+}
+
+/* ============================================================ RESPONSIVE */
+@media(max-width:860px){
+  .t-body{ grid-template-columns:1fr; padding:0 clamp(16px,4vw,32px); }
+  .transcript{ border-right:none; padding-right:0; }
+  .cat-rail{ display:none; }
+  .cat-inline{ display:block; }
+  .t-meta-grid{ grid-template-columns:1fr 1fr; }
+}
+@media(max-width:520px){
+  .t-title{ font-size:2.4rem; }
+  .t-meta-grid{ grid-template-columns:1fr; }
+}
+@media(prefers-reduced-motion:reduce){
+  .rec-dot::before{ animation:none; }
+  #progress-bar{ transition:none; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<!-- ░░░░░░░░░░ HEADER ░░░░░░░░░░ -->
+<header class="t-header">
+  <div class="t-kicker">
+    <span class="rec-dot">REC</span>
+    CLASSIFIED · EDITORIAL USE ONLY · DO NOT REDISTRIBUTE
+  </div>
+  <h1 class="t-title">TRANSCRIPT —<br><span>SESSION 001</span></h1>
+  <div class="t-meta-grid">
+    <div class="t-meta-item">
+      <div class="t-meta-label">Subject</div>
+      <div class="t-meta-val">S. CHEETHIRALA · PES1UG24CS127</div>
+    </div>
+    <div class="t-meta-item">
+      <div class="t-meta-label">Re</div>
+      <div class="t-meta-val">WHY HE BUILDS THE WAY HE DOES</div>
+    </div>
+    <div class="t-meta-item">
+      <div class="t-meta-label">Location</div>
+      <div class="t-meta-val">BENGALURU, INDIA</div>
+    </div>
+    <div class="t-meta-item">
+      <div class="t-meta-label">Runtime</div>
+      <div class="t-meta-val">00:23:41</div>
+    </div>
+    <div class="t-meta-item">
+      <div class="t-meta-label">Status</div>
+      <div class="t-meta-val">VERBATIM · LIGHTLY EDITED</div>
+    </div>
+    <div class="t-meta-item">
+      <div class="t-meta-label">Cleared by</div>
+      <div class="t-meta-val">THE CAT (QA LEAD)</div>
+    </div>
+  </div>
+  <p class="t-begin">[ recording begins ]</p>
+</header>
+
+<!-- ░░░░░░░░░░ BODY ░░░░░░░░░░ -->
+<div class="t-body">
+
+  <!-- TRANSCRIPT COLUMN -->
+  <main class="transcript" role="main">
+
+    <!-- Q1: Why rebuild Git? -->
+    <article class="exchange" id="q1">
+      <div class="ts-stamp">00:00</div>
+      <div class="question">
+        <span class="q-prefix"><span class="q-label">Q.</span></span>
+        You spent a week rebuilding Git from scratch in C. Git already exists.
+        It is, by most accounts, fine. What exactly were you trying to prove — and to whom?
+      </div>
+      <div class="ans-label">S.C.</div>
+      <div class="answer">
+        <p>Honestly, I don't fully trust a tool I couldn't rebuild. That's the whole thing.
+        <span class="aside-text">[laughs]</span> Git felt like this black monolith I just invoked.
+        I knew the surface — commits, branches, diffs — but not the interior. So I built
+        <span class="hot">pes-vcs</span>: a <span class="data">.pes/</span> store, SHA-256
+        content-addressable objects, tree snapshots, a proper staging index, commit history
+        walked by parent pointers. The whole thing in C, no shortcuts.</p>
+        <br>
+        <p>And it worked. Once it worked I understood Git in a way that a thousand
+        hours of <span class="data">man git-internals</span> never gave me. The exercise isn't about
+        the output — you're not shipping a Git replacement — it's about
+        what the build teaches you. <span class="aside-text">[pause]</span> The week was worth it.</p>
+      </div>
+      <!-- mobile cat aside -->
+      <div class="cat-inline" data-card="q1">
+        he rebuilt git. on a tuesday.
+      </div>
+    </article>
+
+    <!-- Q2: Why interpretability? -->
+    <article class="exchange" id="q2">
+      <div class="ts-stamp">02:14</div>
+      <div class="question">
+        <span class="q-prefix"><span class="q-label">Q.</span></span>
+        Walk me through the interpretability angle. Most people are happy
+        that the model gives the right answer. You want to know which neuron sneezed.
+      </div>
+      <div class="ans-label">S.C.</div>
+      <div class="answer">
+        <p>Exactly — "it works" is the beginning of the interesting question, not the end.
+        With <span class="hot">GlassBox</span> I was running activation patching on GPT-2,
+        and I managed to localize the "France → Paris" fact to a specific place:
+        <span class="data">LAYER 0</span>, flipping the capital logit from
+        <span class="data">+1.89 → −2.81</span> when I patched it out. All
+        <span class="data">144</span> attention heads, live in the browser.</p>
+        <br>
+        <p>That number — <span class="hot">+1.89 to −2.81</span> — is the moment the
+        abstraction collapsed and I could see the actual wiring. That's what I care about.
+        <span class="aside-text">[long pause]</span> A black box that gives you right answers
+        is fine for a demo. But if you're building anything serious on top of it, you need
+        to know where it breaks and <em>why</em>. I care about the why as much as the whether.</p>
+      </div>
+      <div class="cat-inline" data-card="q2">
+        he says 'glass' a lot. i counted.
+      </div>
+    </article>
+
+    <!-- Q3: Debugging spiral -->
+    <article class="exchange" id="q3">
+      <div class="ts-stamp">06:31</div>
+      <div class="question">
+        <span class="q-prefix"><span class="q-label">Q.</span></span>
+        What breaks you out of a debugging spiral? The kind where
+        you've been staring at the same 40 lines for three hours and
+        the error feels personal.
+      </div>
+      <div class="ans-label">S.C.</div>
+      <div class="answer">
+        <p>I shoot 10m air rifle — national level — and the thing that sport teaches
+        you more than anything is <span class="hot">how to reset</span>. You can't force
+        the next shot. You slow the breathing, you step back from the position,
+        you recalibrate from scratch. Debugging is the same. When I'm in a spiral I
+        do not push harder. I stop, I make a filter coffee, and I write down what
+        I actually know versus what I'm assuming. Nine times out of ten the
+        bug lives in an assumption.</p>
+        <br>
+        <p><span class="aside-text">[points at cat]</span> The cat also helps, in the sense that
+        the cat judges me, and being judged by a creature that has no stakes in the
+        outcome is clarifying. <span class="aside-text">[laughs]</span> Also:
+        print statements. Specifically placed, not spray-and-pray.
+        Methodical over fast, every time.</p>
+      </div>
+      <div class="cat-inline" data-card="q3">
+        i do not 'help.' i observe.
+      </div>
+    </article>
+
+    <!-- Q4: Local-first conviction -->
+    <article class="exchange" id="q4">
+      <div class="ts-stamp">10:47</div>
+      <div class="question">
+        <span class="q-prefix"><span class="q-label">Q.</span></span>
+        Local-first software feels almost contrarian right now. Everything is moving
+        to the cloud. Why the conviction?
+      </div>
+      <div class="ans-label">S.C.</div>
+      <div class="answer">
+        <p>Because your data, your GPU, no server — that's the honest version of computing.
+        With <span class="hot">Gradient</span> I trained a 2-layer MLP entirely in the browser,
+        hitting ~<span class="data">97%</span> MNIST accuracy using raw WGSL compute shaders
+        on your own GPU. No backend, zero dependencies. <span class="data">44/44</span> kernel
+        checks pass against an f64 CPU oracle. The model literally never leaves your machine.</p>
+        <br>
+        <p><span class="hot">Orbit</span> — my focus engine — does the same thing for
+        productivity: sub-<span class="data">5ms</span> scheduling, IndexedDB with snapshot
+        recovery, works offline, ships as a PWA. The internet is optional. And I think
+        that's the direction things should go more often, especially for ML tooling. We've
+        got GPUs sitting idle in every laptop while we pipe data to distant servers.
+        <span class="aside-text">[long pause]</span> That seems like a solved problem
+        we're choosing not to solve.</p>
+      </div>
+      <div class="cat-inline" data-card="q4">
+        the coffee is the third intern.
+      </div>
+    </article>
+
+    <!-- Q5: Where are you headed? -->
+    <article class="exchange" id="q5">
+      <div class="ts-stamp">15:02</div>
+      <div class="question">
+        <span class="q-prefix"><span class="q-label">Q.</span></span>
+        Where are you actually headed? You're two years into a four-year degree.
+        What does the next chapter look like?
+      </div>
+      <div class="ans-label">S.C.</div>
+      <div class="answer">
+        <p>This June I'm joining <span class="hot">PI Labs</span> as a research intern —
+        RAG reliability and hallucination attribution. The specific problem is figuring out
+        <em>which retrieved chunk introduced the error</em>: not whether the model hallucinated,
+        but exactly where the lie entered the pipeline. That feels like the right question
+        to me, and it's a direct extension of everything I've been building toward.</p>
+        <br>
+        <p>Longer arc: I want to build systems that people can actually open up.
+        <span class="aside-text">[laughs]</span> The thesis is "building local-first software
+        and turning black-box ML into glass." I've been living inside that thesis since
+        my first semester. <span class="hot">PI Labs</span> is where it gets applied at
+        something closer to real scale. After that —
+        <span class="redacted">working at frontier labs on interpretability infrastructure</span>
+        — but we'll see. Open to <span class="data">SWE / ML internships, Summer 2026</span>.</p>
+      </div>
+      <div class="cat-inline" data-card="q5">
+        [citation: the cat. he's probably fine.]
+      </div>
+    </article>
+
+    <!-- Q6: Roblox -->
+    <article class="exchange" id="q6">
+      <div class="ts-stamp">23:18</div>
+      <div class="question">
+        <span class="q-prefix"><span class="q-label">Q.</span></span>
+        Last one. Roblox.
+      </div>
+      <div class="ans-label">S.C.</div>
+      <div class="answer">
+        <p>I think scripting in Lua at age eleven is the reason I'm writing C today.
+        <span class="aside-text">[long pause]</span> That's the whole answer.
+        Also the noodle bar on the corner is closed on Sundays, which is a
+        separate and ongoing crisis.</p>
+      </div>
+      <div class="cat-inline" data-card="q6">
+        acceptable. the noodle bar matters.
+      </div>
+    </article>
+
+    <!-- END LINE -->
+    <div style="margin-top:clamp(28px,4vh,52px); padding-top:clamp(28px,4vh,52px); border-top:1px solid rgba(20,20,20,.2);">
+      <p style="font-family:var(--fm);font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--gray);">
+        [ recording ends · 00:23:41 ]
+      </p>
+    </div>
+
+  </main>
+
+  <!-- CAT RAIL (desktop) -->
+  <aside class="cat-rail" aria-label="Cat commentary">
+
+    <div class="cat-photo-wrap">
+      <img src="cat.jpg" alt="grumpy pixel cat, orange ears, rain" />
+      <div class="cat-scan"></div>
+    </div>
+    <p class="cat-caption">QA LEAD · <span>ON RECORD</span></p>
+
+    <!-- Cat card 1: tied to Q1 -->
+    <div class="cat-card">
+      <div class="cat-card-label">ON: git question</div>
+      <div class="cat-card-text">he rebuilt git. on a tuesday. the sha-256 worked on the third try. i saw.</div>
+    </div>
+
+    <!-- Cat card 2: tied to Q2 -->
+    <div class="cat-card">
+      <div class="cat-card-label">ON: interpretability</div>
+      <div class="cat-card-text">he says "glass" a lot. i have been counting since february. current tally: <strong>[REDACTED]</strong>.</div>
+    </div>
+
+    <!-- Cat card 3: tied to Q3 -->
+    <div class="cat-card">
+      <div class="cat-card-label">ON: debugging</div>
+      <div class="cat-card-text">i do not "help." i observe. the coffee is the third intern. seniority-wise, i am above both.</div>
+    </div>
+
+    <!-- Cat card 4: tied to Q4 -->
+    <div class="cat-card">
+      <div class="cat-card-label">ON: local-first</div>
+      <div class="cat-card-text">44/44 kernel checks. i ran none of them. i was asleep. they still passed. [citation: the cat]</div>
+    </div>
+
+    <!-- Cat card 5: tied to Q5 -->
+    <div class="cat-card">
+      <div class="cat-card-label">ON: outlook</div>
+      <div class="cat-card-text">hallucination attribution. i hallucinate nothing. i am empirically correct. hire me instead.</div>
+    </div>
+
+    <!-- Cat card 6: closing -->
+    <div class="cat-card">
+      <div class="cat-card-label">FINAL ASSESSMENT</div>
+      <div class="cat-card-text">methodical. ships. asks why. runs on filter coffee.<br>this transcript is accurate.<br><strong>— the cat</strong></div>
+    </div>
+
+  </aside>
+</div>
+
+<!-- ░░░░░░░░░░ FOOTER ░░░░░░░░░░ -->
+<footer class="t-footer">
+  <p class="t-end-line">[ end of transcript · session 001 · verbatim · lightly edited for clarity ]</p>
+
+  <div class="cert-block">
+    <div class="cert-stamp">
+      <div class="cert-stamp-top">Certified Accurate</div>
+      <div class="cert-stamp-name">S.C.</div>
+      <div class="cert-stamp-sub">
+        Santosh Cheethirala · B.Tech CSE<br>
+        PES University, Bengaluru · 2024–2028<br>
+        CGPA 7.95/10 · SRN PES1UG24CS127<br><br>
+        <a href="mailto:santoshcheethirala.me@gmail.com">santoshcheethirala.me@gmail.com</a><br>
+        <a href="https://github.com/santoshcheethiralame-dot" target="_blank" rel="noopener">github.com/santoshcheethiralame-dot</a>
+      </div>
+    </div>
+    <div class="cert-note">
+      This transcript was reviewed and approved by the subject's
+      self-appointed QA lead (the cat). All technical claims
+      verified against source commits. The <strong>[REDACTED]</strong>
+      passage was redacted at the cat's discretion. The noodle bar
+      situation remains unresolved. Open to <strong>SWE/ML internships,
+      Summer 2026</strong>.
+    </div>
+  </div>
+</footer>
+
+<div id="tag">02 · transcript / session 001 · about</div>
+
+<script>
+(function(){
+  'use strict';
+  var bar = document.getElementById('progress-bar');
+  function updateProgress(){
+    var doc = document.documentElement;
+    var max = doc.scrollHeight - doc.clientHeight;
+    var pct = max > 0 ? Math.min(100, (window.pageYOffset || doc.scrollTop) / max * 100) : 0;
+    bar.style.width = pct.toFixed(2) + '%';
+  }
+  window.addEventListener('scroll', updateProgress, { passive:true });
+  updateProgress();
+})();
+</script>
+</body>
+</html>

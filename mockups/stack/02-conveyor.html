@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>STYLE 02 / CONVEYOR BELTS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --red:#ed1c24;
+    --red-deep:#b3001b;
+    --red-dark:#7a0014;
+    --ink:#ffffff;
+    --black:#0a0a0a;
+    --line:rgba(255,255,255,0.26);
+    --font-display:"Anton",sans-serif;
+    --font-mono:"JetBrains Mono",monospace;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  html{
+    /* used as a scroll surface so the wheel always has somewhere to go */
+    overflow-y:scroll;
+  }
+  body{
+    background:var(--red);
+    color:var(--ink);
+    font-family:var(--font-mono);
+    -webkit-font-smoothing:antialiased;
+    min-height:200vh; /* extra height so scrolling drives the belts */
+    overflow-x:hidden;
+  }
+
+  /* ---------------- TOP BAR ---------------- */
+  .topbar{
+    position:fixed;
+    top:0;left:0;right:0;
+    z-index:50;
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:16px;
+    padding:clamp(14px,2.4vw,22px) clamp(20px,6vw,90px);
+    background:var(--red);
+    border-bottom:2px solid var(--ink);
+  }
+  .index-btn{
+    display:inline-block;
+    font-family:var(--font-mono);
+    font-weight:700;
+    font-size:12px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    text-decoration:none;
+    color:var(--ink);
+    background:transparent;
+    border:2px solid var(--ink);
+    padding:9px 16px;
+    box-shadow:5px 5px 0 var(--black);
+    transition:transform 120ms cubic-bezier(.2,.9,.2,1),
+               background-color 120ms cubic-bezier(.2,.9,.2,1),
+               color 120ms cubic-bezier(.2,.9,.2,1),
+               box-shadow 120ms cubic-bezier(.2,.9,.2,1);
+  }
+  .index-btn:hover,.index-btn:focus-visible{
+    background:var(--ink);
+    color:var(--red);
+    transform:translate(2px,2px);
+    box-shadow:3px 3px 0 var(--black);
+    outline:none;
+  }
+  .index-btn:active{
+    transform:translate(5px,5px);
+    box-shadow:0 0 0 var(--black);
+  }
+
+  .caption{
+    text-align:right;
+    line-height:1.45;
+  }
+  .caption .c-style{
+    font-weight:700;
+    font-size:12px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+  }
+  .caption .c-hint{
+    font-weight:400;
+    font-size:11px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    opacity:.78;
+  }
+
+  /* ---------------- SECTION HEADER ---------------- */
+  .wrap{
+    padding:0 clamp(20px,6vw,90px);
+    padding-top:clamp(120px,16vh,180px);
+  }
+  .kicker{
+    font-family:var(--font-mono);
+    font-weight:500;
+    font-size:13px;
+    letter-spacing:.18em;
+    text-transform:lowercase;
+    opacity:.85;
+    margin:0 0 14px 2px;
+  }
+  .title{
+    font-family:var(--font-display);
+    font-weight:400;
+    text-transform:uppercase;
+    color:var(--ink);
+    line-height:.82;
+    letter-spacing:.005em;
+    font-size:clamp(2.4rem,10vw,8rem);
+    margin:0 0 clamp(30px,5vw,56px) -2px;
+  }
+
+  /* ---------------- BELTS ---------------- */
+  .belts{
+    border-top:2px solid var(--ink);
+    /* pull belts to the full viewport width while header stays padded */
+    margin:0 calc(-1 * clamp(20px,6vw,90px));
+  }
+
+  .row{
+    position:relative;
+    display:flex;
+    align-items:stretch;
+    border-bottom:1px solid var(--line);
+    min-height:74px;
+  }
+  .row:last-child{border-bottom:2px solid var(--ink);}
+
+  .row-label{
+    flex:0 0 auto;
+    width:clamp(140px,18vw,230px);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:0 clamp(16px,2vw,26px);
+    border-right:2px solid var(--ink);
+    background:var(--red);
+    z-index:2;
+  }
+  .row-label .idx{
+    font-weight:700;
+    font-size:11px;
+    letter-spacing:.1em;
+    color:var(--black);
+    background:var(--ink);
+    padding:2px 6px;
+  }
+  .row-label .name{
+    font-weight:700;
+    font-size:12px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    white-space:nowrap;
+  }
+
+  .viewport{
+    position:relative;
+    flex:1 1 auto;
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+  }
+  /* fade-free hard mask using solid red wedges at the seams so chips
+     vanish crisply rather than poking past the label / right edge */
+  .viewport::before,
+  .viewport::after{
+    content:"";
+    position:absolute;
+    top:0;bottom:0;
+    width:18px;
+    z-index:3;
+    pointer-events:none;
+  }
+  .viewport::before{left:0;  background:linear-gradient(90deg,var(--red),rgba(237,28,36,0));}
+  .viewport::after {right:0; background:linear-gradient(270deg,var(--red),rgba(237,28,36,0));}
+
+  .track{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:0 7px;
+    will-change:transform;
+    /* translateX driven by JS */
+  }
+
+  /* OUTLINE CHIP */
+  .chip{
+    position:relative;
+    flex:0 0 auto;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    height:34px;
+    padding:0 14px;
+    border:2px solid var(--ink);
+    border-radius:100px;
+    background:transparent;
+    color:var(--ink);
+    font-family:var(--font-mono);
+    font-weight:500;
+    font-size:11px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    white-space:nowrap;
+    cursor:default;
+    overflow:hidden;
+    user-select:none;
+  }
+  .chip .label{position:relative;z-index:2;}
+  /* proficiency pips */
+  .chip .pips{
+    position:relative;
+    z-index:2;
+    display:inline-flex;
+    gap:3px;
+  }
+  .chip .pips i{
+    width:5px;height:5px;
+    border-radius:50%;
+    border:1px solid var(--ink);
+    background:transparent;
+    display:block;
+  }
+  .chip .pips i.on{background:var(--ink);}
+
+  /* CLIP-PATH WIPE OVERLAY (left -> right) -> red fill / white text */
+  .chip .wipe{
+    position:absolute;
+    inset:0;
+    z-index:1;
+    background:var(--red);
+    clip-path:inset(0 100% 0 0);            /* hidden: clipped from right */
+    transition:clip-path 150ms cubic-bezier(.2,.9,.2,1);
+  }
+  .chip.inv{
+    border-color:var(--ink);
+    color:var(--ink);
+  }
+  .chip.inv .wipe{
+    clip-path:inset(0 0 0 0);               /* revealed full width */
+  }
+  /* when inverted, pip outlines/fills stay white over the red wipe -> reads strong */
+  .chip.inv .pips i{border-color:var(--ink);}
+  .chip.inv .pips i.on{background:var(--ink);}
+
+  /* ---------------- DRIVE INDICATOR ---------------- */
+  .drive{
+    margin-top:clamp(26px,4vw,46px);
+    padding-bottom:clamp(60px,10vh,120px);
+    display:flex;
+    align-items:center;
+    gap:14px;
+    font-weight:500;
+    font-size:11px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    opacity:.9;
+  }
+  .drive .dir{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    border:2px solid var(--ink);
+    padding:6px 12px;
+    box-shadow:4px 4px 0 var(--black);
+  }
+  .drive .arrow{
+    font-family:var(--font-display);
+    font-size:15px;
+    line-height:1;
+    transition:transform 120ms steps(2,end);
+    display:inline-block;
+  }
+  .drive .arrow.rev{transform:scaleX(-1);}
+  .drive .meter{
+    flex:0 0 120px;
+    height:8px;
+    border:2px solid var(--ink);
+    position:relative;
+    overflow:hidden;
+  }
+  .drive .meter b{
+    position:absolute;
+    left:0;top:0;bottom:0;
+    width:0%;
+    background:var(--ink);
+    transition:width 90ms linear;
+  }
+
+  /* ---------------- REDUCED MOTION ---------------- */
+  @media (prefers-reduced-motion:reduce){
+    body{min-height:auto;}
+    .viewport{overflow-x:auto;}
+    .viewport::-webkit-scrollbar{height:6px;}
+    .viewport::-webkit-scrollbar-thumb{background:var(--line);}
+    .track{transform:none !important;}
+    .drive{display:none;}
+  }
+
+  @media (max-width:640px){
+    .row-label{width:120px;}
+    .caption .c-hint{display:none;}
+  }
+</style>
+</head>
+<body>
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <a class="index-btn" href="index.html">&larr; INDEX</a>
+    <div class="caption">
+      <div class="c-style">STYLE 02 / CONVEYOR BELTS</div>
+      <div class="c-hint">hover a row to stop it &middot; hover a chip to invert &middot; scroll to drive</div>
+    </div>
+  </div>
+
+  <!-- SECTION -->
+  <main class="wrap">
+    <p class="kicker">// stack</p>
+    <h1 class="title">WHAT I<br />WORK WITH</h1>
+
+    <section class="belts" id="belts" aria-label="skills by category"></section>
+
+    <div class="drive" aria-hidden="true">
+      <span>drive</span>
+      <span class="dir"><span class="arrow" id="driveArrow">&rarr;</span> <span id="driveWord">IDLE DRIFT</span></span>
+      <span class="meter"><b id="driveMeter"></b></span>
+    </div>
+  </main>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---- DATA (verbatim) ----
+  var DATA = [
+    {group:"Languages", items:[["C",4],["Python",5],["TypeScript",5],["JavaScript",4],["SQL",3],["HTML",4],["CSS",4],["WGSL",3]]},
+    {group:"ML / AI", items:[["PyTorch",4],["TensorFlow",3],["scikit-learn",4],["NumPy",4],["Pandas",4],["TransformerLens",4],["LLM Evaluation",4],["RAG",4],["Failure Taxonomy",3],["Deep Learning",4]]},
+    {group:"Web / Frontend", items:[["React",5],["Tailwind CSS",4],["Vite",4],["WebGPU",4],["PWA",4],["IndexedDB / Dexie.js",4],["Canvas",3],["Web Workers",3]]},
+    {group:"Backend / Data", items:[["FastAPI",4],["Pydantic",3],["Node.js",4],["Express",3],["MongoDB",3],["REST APIs",4]]},
+    {group:"Tools / Systems", items:[["Git",4],["Linux",4],["OpenRouter API",3]]}
+  ];
+
+  var prefersReduced = window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var beltsEl = document.getElementById("belts");
+
+  // ---- build a single chip element ----
+  function makeChip(name, weight){
+    var chip = document.createElement("span");
+    chip.className = "chip";
+
+    var wipe = document.createElement("span");
+    wipe.className = "wipe";
+    chip.appendChild(wipe);
+
+    var label = document.createElement("span");
+    label.className = "label";
+    label.textContent = name;
+    chip.appendChild(label);
+
+    var pips = document.createElement("span");
+    pips.className = "pips";
+    for (var p=1; p<=5; p++){
+      var dot = document.createElement("i");
+      if (p <= weight) dot.className = "on";
+      pips.appendChild(dot);
+    }
+    chip.appendChild(pips);
+
+    // hover a single chip -> invert via clip-path wipe (CSS handles transition)
+    chip.addEventListener("pointerenter", function(){ chip.classList.add("inv"); });
+    chip.addEventListener("pointerleave", function(){ chip.classList.remove("inv"); });
+
+    return chip;
+  }
+
+  // each row holds its own animation state
+  var rows = [];
+
+  DATA.forEach(function(cat, i){
+    var row = document.createElement("div");
+    row.className = "row";
+
+    var labelBox = document.createElement("div");
+    labelBox.className = "row-label";
+    var idx = document.createElement("span");
+    idx.className = "idx";
+    idx.textContent = String(i+1).padStart(2,"0");
+    var nm = document.createElement("span");
+    nm.className = "name";
+    nm.textContent = cat.group;
+    labelBox.appendChild(idx);
+    labelBox.appendChild(nm);
+
+    var vp = document.createElement("div");
+    vp.className = "viewport";
+
+    var track = document.createElement("div");
+    track.className = "track";
+
+    // build ONE logical set of chips
+    var oneSet = document.createDocumentFragment();
+    cat.items.forEach(function(it){
+      oneSet.appendChild(makeChip(it[0], it[1]));
+    });
+    track.appendChild(oneSet);
+
+    vp.appendChild(track);
+    row.appendChild(labelBox);
+    row.appendChild(vp);
+    beltsEl.appendChild(row);
+
+    // base direction alternates; slightly different base speeds per row
+    var baseDir = (i % 2 === 0) ? -1 : 1;          // row 0 left, row 1 right...
+    var baseSpeed = 28 + i * 7;                      // px/sec, varied per row
+
+    var state = {
+      row:row, vp:vp, track:track,
+      baseDir:baseDir,
+      baseSpeed:baseSpeed,
+      offset:0,            // current translateX (negative-ish)
+      setWidth:0,          // width of one logical chip set (incl. trailing gap)
+      curSpeed:baseSpeed,  // eased current speed magnitude (px/sec)
+      targetSpeed:baseSpeed,
+      hovered:false,
+      dupCount:1
+    };
+
+    row.addEventListener("pointerenter", function(){ state.hovered = true; });
+    row.addEventListener("pointerleave", function(){ state.hovered = false; });
+
+    rows.push(state);
+  });
+
+  // ---- measure & duplicate so the belt always overflows the viewport ----
+  function gapPx(track){
+    var g = parseFloat(getComputedStyle(track).columnGap || getComputedStyle(track).gap || "14");
+    return isNaN(g) ? 14 : g;
+  }
+
+  function layoutRow(state){
+    var track = state.track;
+    var gap = gapPx(track);
+
+    // strip down to exactly one set first (remove any prior duplicates)
+    if (state.dupCount > 1){
+      var keep = state.itemCount;
+      while (track.children.length > keep){
+        track.removeChild(track.lastChild);
+      }
+      state.dupCount = 1;
+    }
+
+    // remember how many chips form one set
+    state.itemCount = track.children.length;
+
+    // width of one set = sum of child widths + gaps between them + one trailing gap
+    // (trailing gap makes the wrap seamless because between the last chip of set N
+    //  and the first chip of set N+1 there is also a gap)
+    var setW = 0;
+    for (var c=0; c<state.itemCount; c++){
+      setW += track.children[c].offsetWidth;
+    }
+    setW += gap * state.itemCount; // (itemCount-1) internal gaps + 1 trailing gap
+    state.setWidth = setW;
+
+    // duplicate the set until track width >= viewport width + one full set,
+    // guaranteeing seamless wrap with no gap appearing on screen
+    var need = state.vp.clientWidth + setW;
+    var copies = Math.max(2, Math.ceil(need / setW) + 1);
+
+    var firstSet = [];
+    for (var k=0; k<state.itemCount; k++) firstSet.push(track.children[k]);
+
+    for (var d=1; d<copies; d++){
+      firstSet.forEach(function(node){
+        track.appendChild(node.cloneNode(true));
+      });
+    }
+    state.dupCount = copies;
+
+    // re-bind hover handlers on cloned chips (cloneNode does not copy listeners)
+    bindChipHover(track);
+  }
+
+  function bindChipHover(track){
+    var chips = track.querySelectorAll(".chip");
+    chips.forEach(function(chip){
+      if (chip.__bound) return;
+      chip.__bound = true;
+      chip.addEventListener("pointerenter", function(){ chip.classList.add("inv"); });
+      chip.addEventListener("pointerleave", function(){ chip.classList.remove("inv"); });
+    });
+  }
+
+  // ---- SCROLL / WHEEL DRIVE ----
+  // recent scroll velocity -> a signed multiplier that decays back to idle drift.
+  var driveDir = 1;       // +1 forward (matches base), -1 reversed
+  var driveBoost = 0;     // 0..~3 extra speed multiplier from recent input
+  var lastScrollY = window.scrollY || window.pageYOffset || 0;
+
+  function applyScrollDelta(delta){
+    if (delta === 0) return;
+    // sign of scroll sets direction; magnitude adds a decaying boost
+    driveDir = delta > 0 ? 1 : -1;
+    driveBoost = Math.min(3.2, driveBoost + Math.min(Math.abs(delta) / 90, 1.1));
+  }
+
+  window.addEventListener("scroll", function(){
+    var y = window.scrollY || window.pageYOffset || 0;
+    applyScrollDelta(y - lastScrollY);
+    lastScrollY = y;
+  }, {passive:true});
+
+  // wheel gives direction even when the page can't scroll further (top/bottom)
+  window.addEventListener("wheel", function(e){
+    applyScrollDelta(e.deltaY);
+  }, {passive:true});
+
+  // touch drag -> drive (mobile)
+  var touchY = null;
+  window.addEventListener("touchstart", function(e){
+    if (e.touches.length) touchY = e.touches[0].clientY;
+  }, {passive:true});
+  window.addEventListener("touchmove", function(e){
+    if (touchY == null || !e.touches.length) return;
+    var y = e.touches[0].clientY;
+    applyScrollDelta((touchY - y) * 1.4);
+    touchY = y;
+  }, {passive:true});
+
+  // ---- DRIVE READOUT (decorative) ----
+  var driveArrow = document.getElementById("driveArrow");
+  var driveWord  = document.getElementById("driveWord");
+  var driveMeter = document.getElementById("driveMeter");
+
+  // ---- MAIN LOOP ----
+  var lastT = performance.now();
+
+  function lerp(a,b,t){ return a + (b-a)*t; }
+
+  function tick(now){
+    var dt = (now - lastT) / 1000;
+    lastT = now;
+    if (dt > 0.05) dt = 0.05;          // clamp after tab-switch / jank
+
+    // decay the input boost back toward idle drift
+    driveBoost *= Math.pow(0.0001, dt); // fast exponential decay (~ to 0 in <1s)
+    if (driveBoost < 0.001) driveBoost = 0;
+
+    var globalMul = 1 + driveBoost;     // idle = 1x, recent scroll pushes faster
+
+    rows.forEach(function(state){
+      if (!state.setWidth) return;
+
+      // per-row target speed: 0 when the row is hovered, else base * globalMul
+      state.targetSpeed = state.hovered ? 0 : state.baseSpeed * globalMul;
+
+      // ease current speed toward target -> smooth hard stop / resume
+      var ease = state.hovered ? 0.18 : 0.10;
+      state.curSpeed = lerp(state.curSpeed, state.targetSpeed, 1 - Math.pow(1-ease, dt*60));
+
+      // direction = row base direction * global drive direction
+      var dir = state.baseDir * driveDir;
+
+      // advance offset
+      state.offset += dir * state.curSpeed * dt;
+
+      // wrap modulo one set width -> perfectly seamless
+      var w = state.setWidth;
+      // keep offset in (-w, 0] range regardless of sign
+      state.offset = ((state.offset % w) + w) % w - w; // -> (-w, 0]
+      // (the above maps any value into (-w, 0]; chips fill leftward/rightward seamlessly)
+
+      state.track.style.transform = "translate3d(" + state.offset + "px,0,0)";
+    });
+
+    // update decorative readout
+    if (driveArrow){
+      var reversed = driveDir < 0;
+      driveArrow.classList.toggle("rev", reversed);
+      driveWord.textContent = driveBoost > 0.05
+        ? (reversed ? "REVERSE" : "FORWARD")
+        : "IDLE DRIFT";
+      driveMeter.style.width = Math.min(100, (driveBoost/3.2)*100).toFixed(0) + "%";
+    }
+
+    rafId = requestAnimationFrame(tick);
+  }
+
+  var rafId = null;
+
+  function startAll(){
+    rows.forEach(layoutRow);
+    if (!prefersReduced){
+      lastT = performance.now();
+      rafId = requestAnimationFrame(tick);
+    }
+  }
+
+  // relayout on resize (debounced) so duplication stays correct
+  var resizeTimer = null;
+  window.addEventListener("resize", function(){
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function(){
+      rows.forEach(function(state){
+        // reset offset to avoid a visible jump after recount
+        state.offset = 0;
+        layoutRow(state);
+      });
+    }, 150);
+  });
+
+  // fonts can change chip widths after load -> remeasure once ready
+  if (document.fonts && document.fonts.ready){
+    document.fonts.ready.then(function(){
+      rows.forEach(function(state){
+        state.offset = 0;
+        layoutRow(state);
+      });
+    });
+  }
+
+  // kick off
+  if (document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", startAll);
+  } else {
+    startAll();
+  }
+})();
+</script>
+</body>
+</html>

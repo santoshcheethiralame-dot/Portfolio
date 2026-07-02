@@ -1,0 +1,401 @@
+---
+import { site } from '../data/site';
+const ghUser = site.socials.github.replace(/^https?:\/\/github\.com\//, '').replace(/\/+$/, '');
+const liPath = site.socials.linkedin
+  .replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//, '')
+  .replace(/\/+$/, '');
+---
+
+{/* Decide visibility before first paint so a phone never flashes the broadsheet.
+    JS-gated: no-JS visitors just get the page (nothing to dismiss). */}
+<script is:inline>
+  try {
+    var narrow = matchMedia('(max-width: 820px)').matches;
+    var seen = false;
+    try { seen = sessionStorage.getItem('dc-mn') === 'seen'; } catch (e) {}
+    if (narrow && !seen) document.documentElement.classList.add('mn-on');
+  } catch (e) {}
+</script>
+
+<div class="mn" id="mob-notice" role="dialog" aria-modal="true" aria-labelledby="mn-head">
+  <!-- press calibration strip -->
+  <div class="mn-bar" aria-hidden="true">
+    <i style="--c:#00aeef"></i><i style="--c:#ec008c"></i><i style="--c:#ffd400"></i>
+    <i style="--c:#1a1a1a"></i><i style="--c:#ed1c24"></i><i style="--c:var(--neon-lime,#c2f04a)"></i>
+  </div>
+
+  <div class="mn-wrap">
+    <!-- ===== THE NOTICE ===== -->
+    <section class="mn-sheet" id="mn-sheet">
+      <span class="mn-crop tl" aria-hidden="true"></span>
+      <span class="mn-crop tr" aria-hidden="true"></span>
+      <span class="mn-crop bl" aria-hidden="true"></span>
+      <span class="mn-crop br" aria-hidden="true"></span>
+
+      <header class="mn-mast">
+        <span class="mn-mast-name">The Daily Cheethirala</span>
+        <span class="mn-mast-ed">Press Desk</span>
+      </header>
+
+      <svg class="mn-target" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.4" />
+        <path d="M12 1v22M1 12h22" stroke="currentColor" stroke-width="1" />
+      </svg>
+      <div class="mn-stamp" aria-hidden="true"><b>PROOF</b><span>desk only</span></div>
+
+      <p class="mn-kicker"><span class="mn-warn">!</span> notice to readers — small screen detected</p>
+      <h2 class="mn-head" id="mn-head"><span>MIND</span><span>THE FOLD</span></h2>
+
+      <div class="mn-fold" aria-hidden="true"><span>&#8597; fold</span></div>
+
+      <p class="mn-body">
+        This edition was set for a <b>broadsheet</b> — live ink, a press that stacks page
+        on page, cursors cut by hand. On a column this narrow the type crashes and the
+        ink runs. It reads right at a desk.
+      </p>
+      <p class="mn-spec" aria-hidden="true">
+        your column <b id="mn-width">—</b> &middot; the press runs at <b>900px+</b>
+      </p>
+
+      <div class="mn-actions">
+        <button class="mn-btn mn-btn--go" id="mn-continue" type="button">
+          Read it anyway <span aria-hidden="true">&rarr;</span>
+        </button>
+        <button class="mn-btn mn-btn--alt" id="mn-pocket" type="button">The pocket edition</button>
+      </div>
+      <button class="mn-leave" id="mn-leave" type="button">&larr; back to the newsstand</button>
+    </section>
+
+    <!-- ===== THE POCKET EDITION (set for a small column) ===== -->
+    <section class="mn-sheet mn-pkt" id="mn-pocket-view" hidden>
+      <span class="mn-crop tl" aria-hidden="true"></span>
+      <span class="mn-crop tr" aria-hidden="true"></span>
+      <span class="mn-crop bl" aria-hidden="true"></span>
+      <span class="mn-crop br" aria-hidden="true"></span>
+
+      <header class="mn-mast">
+        <span class="mn-mast-name">Pocket Edition</span>
+        <span class="mn-mast-ed">the short version</span>
+      </header>
+
+      <p class="mn-kicker">// the essentials, reset for one column</p>
+      <h3 class="mn-name">Santosh<br />Cheethirala</h3>
+      <p class="mn-role">SWE &middot; AI / ML — building local-first software and turning black-box ML into glass.</p>
+      <p class="mn-avail"><i></i>{site.availability}</p>
+
+      <nav class="mn-links" aria-label="Direct contact">
+        <a class="mn-tile" href={`mailto:${site.email}`}>
+          <span class="mn-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0l-8 5-8-5h16zm0 12H4V8l8 5 8-5v10z" /></svg></span>
+          <span class="mn-tile-t"><b>Email</b><small>{site.email}</small></span>
+          <span class="mn-go-ar" aria-hidden="true">&rarr;</span>
+        </a>
+        <a class="mn-tile" href={site.resume} target="_blank" rel="noopener noreferrer">
+          <span class="mn-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z" /></svg></span>
+          <span class="mn-tile-t"><b>Résumé</b><small>1-page PDF</small></span>
+          <span class="mn-go-ar" aria-hidden="true">&#8599;</span>
+        </a>
+        <a class="mn-tile" href={site.socials.github} target="_blank" rel="noopener noreferrer">
+          <span class="mn-ico" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.65 7.65 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z" /></svg></span>
+          <span class="mn-tile-t"><b>GitHub</b><small>/{ghUser}</small></span>
+          <span class="mn-go-ar" aria-hidden="true">&#8599;</span>
+        </a>
+        <a class="mn-tile" href={site.socials.linkedin} target="_blank" rel="noopener noreferrer">
+          <span class="mn-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0z" /></svg></span>
+          <span class="mn-tile-t"><b>LinkedIn</b><small>/{liPath}</small></span>
+          <span class="mn-go-ar" aria-hidden="true">&#8599;</span>
+        </a>
+      </nav>
+
+      <div class="mn-actions">
+        <button class="mn-btn mn-btn--go" id="mn-pocket-continue" type="button">
+          Read the full paper <span aria-hidden="true">&rarr;</span>
+        </button>
+        <button class="mn-btn mn-btn--alt" id="mn-pocket-back" type="button">&larr; back</button>
+      </div>
+      <p class="mn-30" aria-hidden="true">&mdash;&nbsp;30&nbsp;&mdash;</p>
+    </section>
+  </div>
+</div>
+
+<style>
+  .mn {
+    --ink: #141414; --paper: #f3f1ea; --sheet: #fbf9f4; --red: #ed1c24; --red-deep: #b3001b;
+    --black: #0a0a0a; --muted: rgba(20, 20, 20, 0.56); --line: rgba(20, 20, 20, 0.22);
+    --lime: var(--neon-lime, #c2f04a);
+    --fd: 'Anton', sans-serif; --fm: 'JetBrains Mono', monospace;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: none;
+    flex-direction: column;
+    background: var(--paper);
+    color: var(--ink);
+    background-image: var(--press-grain, none),
+      linear-gradient(rgba(20, 20, 20, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(20, 20, 20, 0.05) 1px, transparent 1px);
+    background-size: 280px 280px, 26px 26px, 26px 26px;
+    font-family: var(--fm);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+  :global(html.mn-on) .mn { display: flex; }
+
+  /* CMYK + spot calibration strip */
+  .mn-bar { display: flex; height: 12px; flex: none; border-bottom: 2px solid var(--ink); }
+  .mn-bar i { flex: 1; background: var(--c); }
+
+  .mn-wrap {
+    flex: 1 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(30px, 9vw, 52px) clamp(18px, 6vw, 40px) clamp(44px, 11vw, 70px);
+  }
+
+  .mn-sheet {
+    position: relative;
+    width: 100%;
+    max-width: 432px;
+    background: var(--sheet);
+    border: 3px solid var(--ink);
+    box-shadow: 9px 9px 0 var(--black);
+    padding: clamp(22px, 6.5vw, 32px);
+  }
+  :global(html.mn-on) .mn-sheet { animation: mn-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  @keyframes mn-in {
+    from { opacity: 0; transform: translateY(16px) scale(0.985); }
+    to { opacity: 1; transform: none; }
+  }
+
+  /* print crop marks, just outside the sheet's corners */
+  .mn-crop { position: absolute; width: 13px; height: 13px; pointer-events: none; }
+  .mn-crop::before, .mn-crop::after { content: ''; position: absolute; background: var(--ink); }
+  .mn-crop::before { width: 13px; height: 1.5px; }
+  .mn-crop::after { width: 1.5px; height: 13px; }
+  .mn-crop.tl { top: -8px; left: -8px; }
+  .mn-crop.tr { top: -8px; right: -8px; }
+  .mn-crop.tr::before { right: 0; } .mn-crop.tr::after { right: 0; }
+  .mn-crop.bl { bottom: -8px; left: -8px; }
+  .mn-crop.bl::before { bottom: 0; } .mn-crop.bl::after { bottom: 0; }
+  .mn-crop.br { bottom: -8px; right: -8px; }
+  .mn-crop.br::before { bottom: 0; right: 0; } .mn-crop.br::after { bottom: 0; right: 0; }
+
+  .mn-mast {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+    padding-bottom: 9px; margin-bottom: 16px; border-bottom: 2px solid var(--ink);
+  }
+  .mn-mast-name { font-family: var(--fd); font-size: 15px; letter-spacing: 0.02em; text-transform: uppercase; }
+  .mn-mast-ed { font-size: 8.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+
+  .mn-target { position: absolute; top: 54px; right: 16px; width: 22px; height: 22px; color: var(--line); }
+
+  .mn-stamp {
+    position: absolute; top: 70px; right: 14px; transform: rotate(8deg);
+    border: 2.5px solid var(--red-deep); color: var(--red-deep);
+    padding: 5px 9px 4px; text-align: center; line-height: 1; background: rgba(247, 245, 241, 0.4);
+    box-shadow: inset 0 0 0 1px rgba(179, 0, 27, 0.45);
+  }
+  .mn-stamp b { display: block; font-family: var(--fd); font-size: 19px; letter-spacing: 0.04em; }
+  .mn-stamp span { display: block; font-size: 7px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; margin-top: 2px; }
+  :global(html.mn-on) .mn-stamp { animation: mn-stamp 0.32s var(--mn-thunk, cubic-bezier(0.18, 1.5, 0.3, 1)) 0.34s both; }
+  @keyframes mn-stamp { from { opacity: 0; transform: rotate(8deg) scale(1.5); } to { opacity: 1; transform: rotate(8deg) scale(1); } }
+
+  .mn-kicker {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--red-deep); margin: 4px 0 10px;
+  }
+  .mn-warn {
+    flex: none; width: 16px; height: 16px; display: grid; place-items: center;
+    background: var(--red); color: var(--paper); font-family: var(--fd); font-size: 13px;
+    border-radius: 2px; transform: translateY(-0.5px);
+  }
+
+  .mn-head {
+    font-family: var(--fd); text-transform: uppercase; line-height: 0.84; letter-spacing: 0.004em;
+    font-size: clamp(3.1rem, 17vw, 4.6rem); margin: 0; color: var(--ink); max-width: 12ch;
+  }
+  .mn-head span { display: block; }
+  .mn-head span:last-child { color: var(--red); }
+
+  .mn-fold {
+    position: relative; height: 0; border-top: 2px dashed var(--line);
+    margin: clamp(16px, 4.6vw, 22px) 0 clamp(13px, 3.4vw, 18px);
+  }
+  .mn-fold span {
+    position: absolute; left: 50%; top: 0; transform: translate(-50%, -50%);
+    background: var(--sheet); padding: 0 9px; font-size: 8.5px; letter-spacing: 0.26em;
+    text-transform: uppercase; color: var(--muted); white-space: nowrap;
+  }
+
+  .mn-body { font-size: 13px; line-height: 1.6; color: var(--ink); margin: 0; max-width: 38ch; }
+  .mn-body b { color: var(--red-deep); }
+  .mn-spec {
+    margin: 12px 0 0; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
+  }
+  .mn-spec b { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+  .mn-actions { display: flex; flex-direction: column; gap: 10px; margin-top: clamp(20px, 5vw, 28px); }
+  .mn-btn {
+    font-family: var(--fm); font-weight: 700; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 14px 18px; border: 2.5px solid var(--ink); cursor: pointer; width: 100%;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    transition: transform 0.1s var(--mn-ease, cubic-bezier(0.2, 0.9, 0.2, 1)), box-shadow 0.1s, background 0.1s, color 0.1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mn-btn--go { background: var(--ink); color: var(--sheet); box-shadow: 5px 5px 0 var(--black); }
+  .mn-btn--go:active { background: var(--red); border-color: var(--red); transform: translate(5px, 5px); box-shadow: 0 0 0; }
+  .mn-btn--alt { background: transparent; color: var(--ink); box-shadow: 4px 4px 0 var(--line); }
+  .mn-btn--alt:active { background: var(--ink); color: var(--sheet); transform: translate(4px, 4px); box-shadow: 0 0 0; }
+  .mn-btn:focus-visible { outline: 3px solid var(--red); outline-offset: 3px; }
+
+  .mn-leave {
+    display: block; width: 100%; margin-top: 14px; padding: 6px; background: none; border: 0;
+    font-family: var(--fm); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--muted); cursor: pointer; text-align: center;
+  }
+  .mn-leave:hover, .mn-leave:focus-visible { color: var(--ink); outline: none; text-decoration: underline; }
+
+  /* ---------- POCKET EDITION ---------- */
+  .mn-name {
+    font-family: var(--fd); text-transform: uppercase; line-height: 0.82; letter-spacing: 0.005em;
+    font-size: clamp(2.6rem, 13vw, 3.6rem); margin: 4px 0 0; color: var(--ink);
+  }
+  .mn-role { font-size: 12.5px; line-height: 1.55; color: var(--ink); margin: 11px 0 0; max-width: 40ch; }
+  .mn-avail {
+    display: inline-flex; align-items: center; gap: 8px; margin: 14px 0 0;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink);
+    border: 2px solid var(--ink); padding: 6px 10px;
+  }
+  .mn-avail i { width: 8px; height: 8px; flex: none; border-radius: 50%; background: #2e9e3f; box-shadow: 0 0 0 2px rgba(46, 158, 63, 0.25); }
+  :global(html.mn-on) .mn-avail i { animation: mn-blip 1.4s steps(1, end) infinite; }
+  @keyframes mn-blip { 0%, 60% { opacity: 1; } 61%, 100% { opacity: 0.3; } }
+
+  .mn-links { display: flex; flex-direction: column; gap: 9px; margin-top: 18px; }
+  .mn-tile {
+    display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--ink);
+    border: 2px solid var(--ink); background: var(--paper); padding: 11px 13px;
+    transition: transform 0.1s var(--mn-ease, cubic-bezier(0.2, 0.9, 0.2, 1)), background 0.1s, color 0.1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mn-tile:active { background: var(--ink); color: var(--sheet); transform: translate(2px, 2px); }
+  .mn-tile:focus-visible { outline: 3px solid var(--red); outline-offset: 2px; }
+  .mn-ico { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border: 2px solid currentColor; }
+  .mn-ico svg { width: 16px; height: 16px; fill: currentColor; display: block; }
+  .mn-tile-t { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .mn-tile-t b { font-family: var(--fd); font-size: 16px; letter-spacing: 0.01em; text-transform: uppercase; line-height: 1; }
+  .mn-tile-t small { font-size: 9.5px; letter-spacing: 0.02em; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mn-tile:active .mn-tile-t small { color: rgba(247, 245, 241, 0.7); }
+  .mn-go-ar { margin-left: auto; font-size: 15px; line-height: 1; }
+  .mn-30 { text-align: center; margin: 18px 0 0; font-size: 11px; letter-spacing: 0.3em; color: var(--muted); }
+
+  @media (prefers-reduced-motion: reduce) {
+    :global(html.mn-on) .mn-sheet,
+    :global(html.mn-on) .mn-stamp { animation: none; }
+    :global(html.mn-on) .mn-avail i { animation: none; opacity: 1; }
+  }
+  /* very short phones: let the sheet breathe rather than clip */
+  @media (max-height: 560px) {
+    .mn-wrap { align-items: flex-start; }
+  }
+</style>
+
+<script>
+  import { trapFocus, type FocusTrap } from '../scripts/focus-trap';
+
+  const root = document.getElementById('mob-notice');
+  if (root) {
+    const html = document.documentElement;
+    const sheet = document.getElementById('mn-sheet');
+    const pocket = document.getElementById('mn-pocket-view');
+    const widthEl = document.getElementById('mn-width');
+    const mq = window.matchMedia('(max-width: 820px)');
+    const SEEN = 'dc-mn';
+
+    let trap: FocusTrap | null = null;
+    let opened = false;
+    let scrollLocked = false;
+
+    const seen = () => {
+      try { return sessionStorage.getItem(SEEN) === 'seen'; } catch { return false; }
+    };
+    const lenis = () => (window as unknown as { __lenis?: { stop?: () => void; start?: () => void } }).__lenis;
+    const stampWidth = () => { if (widthEl) widthEl.textContent = window.innerWidth + 'px'; };
+
+    const lock = () => {
+      if (scrollLocked) return;
+      scrollLocked = true;
+      document.body.style.overflow = 'hidden';
+      try { lenis()?.stop?.(); } catch { /* ignore */ }
+    };
+    const unlock = () => {
+      if (!scrollLocked) return;
+      scrollLocked = false;
+      document.body.style.overflow = '';
+      try { lenis()?.start?.(); } catch { /* ignore */ }
+    };
+
+    const retrap = (panel: HTMLElement | null) => {
+      trap?.release();
+      trap = panel ? trapFocus(panel, { initialFocus: panel.querySelector('button, a') as HTMLElement | null }) : null;
+    };
+
+    const open = () => {
+      if (opened) return;
+      opened = true;
+      html.classList.add('mn-on');
+      stampWidth();
+      lock();
+      retrap(pocket && !pocket.hidden ? pocket : sheet);
+    };
+    const close = () => {
+      if (!opened) return;
+      opened = false;
+      html.classList.remove('mn-on');
+      unlock();
+      trap?.release();
+      trap = null;
+    };
+    const dismiss = () => {
+      try { sessionStorage.setItem(SEEN, 'seen'); } catch { /* ignore */ }
+      close();
+    };
+
+    const showPocket = (on: boolean) => {
+      if (!sheet || !pocket) return;
+      sheet.hidden = on;
+      pocket.hidden = !on;
+      const panel = on ? pocket : sheet;
+      panel.scrollTop = 0;
+      root.scrollTop = 0;
+      retrap(panel);
+    };
+
+    document.getElementById('mn-continue')?.addEventListener('click', dismiss);
+    document.getElementById('mn-pocket-continue')?.addEventListener('click', dismiss);
+    document.getElementById('mn-pocket')?.addEventListener('click', () => showPocket(true));
+    document.getElementById('mn-pocket-back')?.addEventListener('click', () => showPocket(false));
+
+    const leave = document.getElementById('mn-leave');
+    if (leave) {
+      if (history.length > 1) leave.addEventListener('click', () => history.back());
+      else leave.style.display = 'none'; // nowhere to go back to
+    }
+
+    // Esc lets them in rather than trapping
+    root.addEventListener('keydown', (e) => { if (e.key === 'Escape') dismiss(); });
+
+    // the inline script may already have shown it — run the side-effects
+    if (html.classList.contains('mn-on')) open();
+
+    // react to viewport changes (rotate, resize a narrow desktop window)
+    const onChange = () => {
+      stampWidth();
+      if (mq.matches && !seen()) open();
+      else close();
+    };
+    if (mq.addEventListener) mq.addEventListener('change', onChange);
+    else (mq as MediaQueryList).addListener(onChange);
+  }
+</script>

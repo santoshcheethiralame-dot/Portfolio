@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>STACK SECTION — 9 MOCKUPS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --red:#ed1c24;
+    --red-deep:#b3001b;
+    --red-dark:#7a0014;
+    --ink:#ffffff;
+    --black:#0a0a0a;
+    --lime:#c8e620;
+    --line:rgba(255,255,255,0.26);
+    --font-display:"Anton",sans-serif;
+    --font-mono:"JetBrains Mono",monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{ -webkit-font-smoothing:antialiased; }
+  body{
+    background:var(--red);
+    color:var(--ink);
+    font-family:var(--font-mono);
+    min-height:100vh;
+    padding:clamp(28px,6vw,80px);
+    overflow-x:hidden;
+  }
+
+  .kicker{ font-size:12px; letter-spacing:.06em; color:rgba(255,255,255,.72); }
+  .kicker::before{ content:"// "; color:#fff; }
+
+  h1{
+    font-family:var(--font-display);
+    font-weight:400; text-transform:uppercase;
+    line-height:.82; letter-spacing:.01em;
+    font-size:clamp(2.6rem,11vw,9rem);
+    margin:14px 0 0;
+  }
+  .sub{ max-width:64ch; margin-top:22px; font-size:13px; line-height:1.6; color:rgba(255,255,255,.86); }
+  .sub b{ color:#fff; font-weight:700; }
+
+  .rule{ height:2px; background:var(--ink); margin:34px 0 24px; }
+
+  /* shared moves strip */
+  .moves{
+    display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:34px;
+    font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
+  }
+  .moves span{ border:1.5px solid var(--ink); padding:5px 10px; color:#fff; }
+  .moves .accent{ border-color:var(--lime); color:var(--lime); }
+
+  .grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(16px,2vw,24px); }
+  @media (max-width:1080px){ .grid{ grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:680px){ .grid{ grid-template-columns:1fr; } }
+
+  .card{
+    position:relative; display:flex; flex-direction:column; gap:14px;
+    background:var(--red); border:2px solid var(--ink); box-shadow:8px 8px 0 var(--black);
+    padding:clamp(20px,2.2vw,28px); color:var(--ink); text-decoration:none;
+    transition:transform .12s cubic-bezier(.2,.9,.2,1), box-shadow .12s cubic-bezier(.2,.9,.2,1);
+    min-height:212px;
+  }
+  .card:hover,.card:focus-visible{ transform:translate(-4px,-4px); box-shadow:14px 14px 0 var(--black); outline:none; }
+  .card:active{ transform:translate(2px,2px); box-shadow:4px 4px 0 var(--black); }
+
+  .card-top{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
+  .num{ font-family:var(--font-display); font-size:clamp(2rem,4vw,3rem); line-height:.8; }
+  .open{ font-size:10px; letter-spacing:.16em; font-weight:700; border:2px solid var(--ink); padding:7px 10px; white-space:nowrap; transition:background .12s, color .12s; }
+  .card:hover .open{ background:var(--ink); color:var(--red); }
+
+  .name{ font-family:var(--font-display); font-size:clamp(1.35rem,2.2vw,1.9rem); text-transform:uppercase; letter-spacing:.01em; line-height:.96; }
+  .blurb{ font-size:12px; line-height:1.55; color:rgba(255,255,255,.9); }
+
+  .tags{ display:flex; flex-wrap:wrap; gap:7px; margin-top:auto; }
+  .tag{ font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; border:1.5px solid var(--ink); border-radius:100px; padding:4px 9px; color:#fff; }
+
+  /* the one lime accent: the SHIPPED flag on the chosen style */
+  .flag{
+    position:absolute; top:-2px; right:-2px;
+    background:var(--lime); color:var(--black); font-weight:700;
+    font-size:9.5px; letter-spacing:.14em; padding:5px 9px;
+    border:2px solid var(--black);
+  }
+  .card.shipped{ border-color:var(--lime); }
+
+  .foot{ margin-top:46px; display:flex; flex-wrap:wrap; gap:10px 22px; font-size:11px; letter-spacing:.08em; color:rgba(255,255,255,.7); }
+  .foot b{ color:#fff; font-weight:700; }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">stack · mockups</p>
+    <h1>What I Work With<br />— 9 Ways</h1>
+    <p class="sub">
+      Nine interactive treatments of the same skills section, one neo-brutalist
+      language — <b>red, white, black</b>, hard shadows, mono type, one
+      <b style="color:var(--lime)">lime</b> accent each. Pick a card to open the
+      live mockup. Every one is a single self-contained HTML file.
+    </p>
+  </header>
+
+  <div class="rule"></div>
+  <div class="moves">
+    <span>shared:</span>
+    <span>terminal readout</span>
+    <span>decode-in labels</span>
+    <span class="accent">one lime accent</span>
+    <span>judging cat 🐱</span>
+  </div>
+
+  <main class="grid">
+    <a class="card" href="01-physics.html">
+      <div class="card-top"><span class="num">01</span><span class="open">OPEN →</span></div>
+      <div class="name">Physics Chips</div>
+      <p class="blurb">Pills are real rigid bodies (Matter.js) — they clatter into their rows like dumped tiles, stay grabbable, and SHAKE re-drops the pile.</p>
+      <div class="tags"><span class="tag">drag &amp; fling</span><span class="tag">shake / space</span><span class="tag">matter.js</span></div>
+    </a>
+
+    <a class="card" href="02-conveyor.html">
+      <div class="card-top"><span class="num">02</span><span class="open">OPEN →</span></div>
+      <div class="name">Conveyor Belts</div>
+      <p class="blurb">Each row is an infinite belt; adjacent rows counter-scroll. Hover to hard-stop, hover a chip to invert via clip-path wipe, scroll to drive direction.</p>
+      <div class="tags"><span class="tag">hover to stop</span><span class="tag">invert wipe</span><span class="tag">scroll-driven</span></div>
+    </a>
+
+    <a class="card shipped" href="03-wires.html">
+      <span class="flag">SHIPPED ✓</span>
+      <div class="card-top"><span class="num">03</span><span class="open">OPEN →</span></div>
+      <div class="name">Exposed Wiring</div>
+      <p class="blurb">Hover a chip and hard right-angle traces wire it to related skills across categories — a circuit schematic of the stack. Now live on the real site.</p>
+      <div class="tags"><span class="tag">hover to trace</span><span class="tag">click to pin</span><span class="tag">circuit bus</span></div>
+    </a>
+
+    <a class="card" href="04-morph.html">
+      <div class="card-top"><span class="num">04</span><span class="open">OPEN →</span></div>
+      <div class="name">Morph The Layout</div>
+      <p class="blurb">A SORT / VIEW toggle — GRID · LIST · CLOUD · A–Z. Flip it and every chip FLIP-animates to its new home with a shadow-snap on landing.</p>
+      <div class="tags"><span class="tag">grid / list</span><span class="tag">cloud / a–z</span><span class="tag">flip animation</span></div>
+    </a>
+
+    <a class="card" href="05-periodic.html">
+      <div class="card-top"><span class="num">05</span><span class="open">OPEN →</span></div>
+      <div class="name">Periodic Table</div>
+      <p class="blurb">Every tech as an element tile — symbol + atomic number, blocked by domain. Hover lights its group and bonds by position and colour. Zero crossing lines.</p>
+      <div class="tags"><span class="tag">hover to bond</span><span class="tag">no spaghetti</span><span class="tag">photogenic</span></div>
+    </a>
+
+    <a class="card" href="06-slabs.html">
+      <div class="card-top"><span class="num">06</span><span class="open">OPEN →</span></div>
+      <div class="name">The Stack (slabs)</div>
+      <p class="blurb">Lean into the pun: a physical pile of slabs — systems at the bottom, web on top. Hover a layer and it slides out; lower layers hold up the higher ones.</p>
+      <div class="tags"><span class="tag">slide-out layers</span><span class="tag">load-bearing</span><span class="tag">the literal stack</span></div>
+    </a>
+
+    <a class="card" href="07-toolchain.html">
+      <div class="card-top"><span class="num">07</span><span class="open">OPEN →</span></div>
+      <div class="name">Task Toolchain</div>
+      <p class="blurb">Pick a task — train a model, ship a web app, go fast on the metal, make it legible — and the exact tools assemble into a left-to-right pipeline.</p>
+      <div class="tags"><span class="tag">pick a task</span><span class="tag">pipeline</span><span class="tag">shows judgment</span></div>
+    </a>
+
+    <a class="card" href="08-mixer.html">
+      <div class="card-top"><span class="num">08</span><span class="open">OPEN →</span></div>
+      <div class="name">Mixing Desk</div>
+      <p class="blurb">A wall of hard faders, one per tech, grouped into channels — each level is honest proficiency (core / working / familiar). Drag to audition.</p>
+      <div class="tags"><span class="tag">faders</span><span class="tag">proficiency signal</span><span class="tag">tactile</span></div>
+    </a>
+
+    <a class="card" href="09-loadout.html">
+      <div class="card-top"><span class="num">09</span><span class="open">OPEN →</span></div>
+      <div class="name">Loadout</div>
+      <p class="blurb">The stack as a game character loadout — equipped tools in slots by class, tier/rarity styling, hover for an item card with stats and set bonuses.</p>
+      <div class="tags"><span class="tag">item cards</span><span class="tag">rarity</span><span class="tag">set bonus</span></div>
+    </a>
+  </main>
+
+  <div class="foot">
+    <span><b>palette</b> #ED1C24 · #FFFFFF · #0A0A0A · <b style="color:var(--lime)">#C8E620</b></span>
+    <span><b>type</b> Anton + JetBrains Mono</span>
+    <span><b>style</b> neo-brutalism</span>
+  </div>
+</body>
+</html>

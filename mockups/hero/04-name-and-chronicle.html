@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>THE NAME + THE CHRONICLE — integrated hero</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --ink:#141414; --cream:#f7f5f1; --cream2:#efece4; --red:#ed1c24; --lime:#b4ff2e; --gray:#928b80;
+  --fd:"Anton",sans-serif; --fm:"JetBrains Mono",monospace; --fi:"Instrument Serif",serif;
+}
+*{ box-sizing:border-box; margin:0; padding:0; }
+html{ -webkit-font-smoothing:antialiased; }
+body{ background:var(--red); color:var(--ink); font-family:var(--fm); height:100svh;
+  padding:clamp(10px,1.4vw,20px); display:flex; overflow:hidden; }
+::selection{ background:var(--ink); color:var(--lime); }
+
+.hero-panel{ flex:1; min-height:0; display:flex; flex-direction:column; background:var(--cream);
+  border:4px solid var(--ink); box-shadow:10px 10px 0 var(--ink); overflow:hidden; }
+
+.hp-bar{ display:flex; align-items:center; gap:clamp(12px,2vw,26px); flex-wrap:wrap; min-height:56px;
+  padding:8px clamp(16px,2.4vw,30px); border-bottom:3px solid var(--ink);
+  font-family:var(--fm); font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--ink); }
+.hp-pill{ background:var(--ink); color:var(--cream); padding:4px 10px; }
+.hp-meta{ display:inline-flex; align-items:center; gap:8px; }
+.hp-avail .dot{ width:8px; height:8px; border-radius:50%; background:var(--red); box-shadow:0 0 0 2px var(--ink); animation:blink 1.6s steps(1) infinite; }
+.hp-clock{ margin-left:auto; }
+@keyframes blink{ 50%{ opacity:.25; } }
+
+.hp-stage{ flex:1; min-height:0; display:grid; grid-template-columns:1.32fr 1fr; gap:clamp(20px,2.8vw,42px);
+  padding:clamp(16px,2.2vw,30px) clamp(16px,2.6vw,32px); }
+.hp-left{ display:flex; flex-direction:column; min-width:0; }
+
+/* ── THE NAME — justified two-line wordmark, left-locked to the card ── */
+.hp-name{ min-width:0; }
+.hero-name{ font-family:var(--fd); font-weight:400; line-height:.8; letter-spacing:.005em;
+  text-transform:uppercase; color:var(--ink); white-space:nowrap; display:block; }
+.hero-name.is-out{ color:transparent; -webkit-text-stroke:2px var(--ink); margin-top:.02em; }
+.hero-name .dc{ display:inline-block; }
+.hero-name.is-out .dc.scr{ -webkit-text-stroke:2px var(--lime); color:transparent; }
+.hero-name.is-out .dc.on{ -webkit-text-stroke:2px var(--ink); transition:-webkit-text-stroke-color .25s ease; }
+
+/* ── THE CHRONICLE PREVIEW — folded, flush to the column ── */
+.teaser-wrap{ margin-top:clamp(14px,1.8vw,24px); flex:1; min-height:0; display:flex; }
+.chron{ position:relative; width:100%; display:flex; flex-direction:column;
+  background:var(--cream); border:2.5px solid var(--ink); box-shadow:8px 8px 0 var(--ink);
+  padding:clamp(11px,1.2vw,17px) clamp(13px,1.4vw,19px) 0; cursor:pointer; outline:none;
+  transition:transform .15s ease, box-shadow .15s ease;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E"); }
+.chron::before, .chron::after{ content:""; position:absolute; inset:0; background:var(--cream2);
+  border:2.5px solid var(--ink); z-index:-1; }
+.chron::before{ transform:translate(5px,6px); }
+.chron::after{ transform:translate(10px,12px); z-index:-2; background:var(--cream); }
+.chron:hover, .chron:focus-visible{ transform:translateY(-3px); box-shadow:11px 13px 0 var(--ink); }
+.chron:focus-visible{ box-shadow:11px 13px 0 var(--ink), 0 0 0 3px var(--lime); }
+
+.stamp{ position:absolute; top:-13px; right:-11px; z-index:6; font-family:var(--fm); font-size:8px; font-weight:700;
+  line-height:1.15; letter-spacing:.1em; text-transform:uppercase; text-align:center; color:var(--cream);
+  background:var(--red); border:2px solid var(--ink); box-shadow:3px 3px 0 var(--ink); padding:4px 7px; transform:rotate(7deg); }
+.stamp .b{ color:var(--lime); }
+
+.ch-folio{ display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
+  font-family:var(--fm); font-size:8px; font-weight:500; letter-spacing:.1em; text-transform:uppercase; color:var(--gray); margin-bottom:5px; }
+.ch-rule{ border:none; border-top:3px solid var(--ink); margin:0 0 7px; }
+.ch-mast{ font-family:var(--fd); font-weight:400; font-size:clamp(1.5rem,2.7vw,2.3rem); line-height:.88;
+  letter-spacing:.012em; text-transform:uppercase; color:var(--ink); text-align:center; }
+.ch-dateline{ margin-top:7px; background:var(--ink); color:var(--cream); font-family:var(--fm); font-size:7.5px;
+  font-weight:700; letter-spacing:.13em; text-transform:uppercase; padding:4px 7px;
+  display:flex; align-items:center; justify-content:center; gap:6px; flex-wrap:wrap; text-align:center; }
+.ch-dateline .dl-tag{ color:var(--lime); }
+
+.ch-lead{ padding-top:8px; }
+.ch-kicker{ display:block; font-family:var(--fm); font-size:7.5px; font-weight:700; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--red); margin-bottom:5px; }
+.ch-head{ font-family:var(--fd); font-weight:400; font-size:clamp(1.05rem,1.55vw,1.35rem); line-height:1.04;
+  letter-spacing:.008em; text-transform:uppercase; color:var(--ink); }
+.ch-head .dc{ display:inline-block; }
+.ch-head .dc.scr{ color:#c4302b; }
+.ch-head .dc.on{ color:var(--ink); transition:color .2s ease; }
+.ch-deck{ margin-top:7px; font-family:var(--fi); font-style:italic; font-size:clamp(.9rem,1.1vw,1.05rem); line-height:1.22; color:var(--ink); }
+
+.ch-inside{ list-style:none; margin:9px 0 0; padding-top:7px; border-top:1.5px solid rgba(20,20,20,.25); }
+.ch-inside .ih{ font-family:var(--fm); font-size:7.5px; font-weight:700; letter-spacing:.15em; text-transform:uppercase; color:var(--gray); margin-bottom:3px; }
+.ch-inside li.row{ display:flex; align-items:baseline; gap:6px; font-family:var(--fi); font-size:.86rem; color:var(--ink); padding:1px 0; }
+.ch-inside .dots{ flex:1; border-bottom:1.5px dotted rgba(20,20,20,.4); transform:translateY(-3px); }
+.ch-inside .pg{ font-family:var(--fm); font-size:8.5px; font-weight:700; color:var(--ink); }
+
+/* the fold: crease, then everything below tucked under (clip + cream→transparent mask) */
+.ch-foldzone{ position:relative; flex:1; min-height:0; margin-top:7px; display:flex; flex-direction:column; }
+.ch-crease{ height:9px; flex:none; border-top:1px solid rgba(20,20,20,.6);
+  box-shadow:0 -7px 9px -7px rgba(20,20,20,.4) inset, 0 7px 9px -7px rgba(20,20,20,.22) inset; }
+.ch-under{ position:relative; flex:1; min-height:0; overflow:hidden; margin-top:3px;
+  font-family:var(--fi); font-size:.74rem; line-height:1.45; color:var(--ink);
+  columns:2; column-gap:15px; column-rule:1px solid rgba(20,20,20,.2);
+  -webkit-mask-image:linear-gradient(180deg,#000 0,#000 14%,transparent 88%);
+          mask-image:linear-gradient(180deg,#000 0,#000 14%,transparent 88%); }
+.ch-under p{ margin:0 0 .5em; }
+.ch-hint{ display:flex; align-items:center; gap:8px; flex:none; padding:6px 0 8px;
+  font-family:var(--fm); font-size:8px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--red); }
+.ch-hint .tri{ color:var(--lime); font-size:10px; line-height:1; }
+.ch-hint .arrow{ margin-left:auto; }
+
+/* ── CAT (hard gutter = the grid gap; name never touches it) ── */
+.hp-side{ display:flex; min-width:0; }
+.hp-photo{ flex:1; border:6px solid var(--ink); box-shadow:8px 8px 0 var(--ink); background:#16060a;
+  position:relative; overflow:hidden; }
+.cat-parallax{ position:absolute; inset:-6%; will-change:transform; }
+.hp-cat{ width:100%; height:100%; object-fit:cover; object-position:center 38%; image-rendering:pixelated; display:block; }
+.cat-scan{ position:absolute; inset:0; z-index:3; pointer-events:none; opacity:.12; mix-blend-mode:multiply;
+  background:repeating-linear-gradient(0deg,rgba(10,10,10,.6) 0 1px,transparent 1px 3px); }
+.cat-fallback{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; z-index:1;
+  font-family:var(--fd); font-size:clamp(2rem,5vw,4rem); color:rgba(247,245,241,.1); text-transform:uppercase; text-align:center; line-height:.9; }
+.hp-photo-tag{ position:absolute; bottom:10px; left:12px; z-index:5; font-family:var(--fm); font-size:10px;
+  letter-spacing:.16em; text-transform:uppercase; color:rgba(247,245,241,.72); background:rgba(20,20,20,.6); padding:3px 6px; }
+
+/* ── MARQUEE ── */
+.hp-marquee{ border-top:3px solid var(--ink); background:var(--ink); overflow:hidden; }
+.mq-track{ display:flex; width:max-content; animation:mq 46s linear infinite; }
+.mq-track span{ white-space:nowrap; padding:11px 0; font-family:var(--fd); font-weight:400;
+  font-size:clamp(1rem,1.5vw,1.4rem); letter-spacing:.06em; text-transform:uppercase; color:var(--cream); }
+@keyframes mq{ to{ transform:translateX(-50%); } }
+
+#tag{ position:fixed; left:50%; bottom:6px; transform:translateX(-50%); z-index:40; font-size:9px;
+  letter-spacing:.13em; text-transform:uppercase; color:rgba(255,255,255,.55); }
+
+@media(max-width:860px){
+  body{ overflow:auto; height:auto; min-height:100svh; }
+  .hp-stage{ grid-template-columns:1fr; gap:18px; }
+  .hero-name{ white-space:normal!important; word-break:break-word; font-size:clamp(2.4rem,12vw,5.4rem)!important; }
+  .hp-photo{ min-height:240px; }
+}
+@media(prefers-reduced-motion:reduce){ .mq-track,.hp-avail .dot{ animation:none; } .chron{ transition:none; } }
+</style>
+</head>
+<body>
+<div class="hero-panel">
+  <div class="hp-bar">
+    <span class="hp-pill">PORTFOLIO '26</span>
+    <span class="hp-meta">BENGALURU, IN</span>
+    <span class="hp-meta hp-avail"><i class="dot"></i>OPEN TO WORK</span>
+    <span class="hp-meta hp-clock" id="clock">—</span>
+  </div>
+
+  <div class="hp-stage">
+    <!-- LEFT: name + folded chronicle, one column -->
+    <div class="hp-left">
+      <div class="hp-name">
+        <h1 class="hero-name" id="line1">SANTOSH</h1>
+        <h1 class="hero-name is-out" id="line2">CHEETHIRALA</h1>
+      </div>
+
+      <div class="teaser-wrap">
+        <figure class="chron" id="chron" role="button" tabindex="0" aria-label="Read today's edition">
+          <span class="stamp">LATE EDITION<br><span class="b">&#9658;</span> BREAKING</span>
+          <div class="ch-folio"><span>VOL. PES1UG24CS127</span><span>PRICE: ONE FILTER COFFEE</span></div>
+          <hr class="ch-rule" />
+          <div class="ch-mast">THE DAILY CHEETHIRALA</div>
+          <div class="ch-dateline">
+            <span class="dl-tag">BENGALURU</span><span>&middot;</span>
+            <span id="dl-date">—</span><span>&middot;</span><span id="dl-time">—</span>
+          </div>
+          <div class="ch-lead">
+            <span class="ch-kicker">&#9654; FRONT PAGE &middot; BENGALURU BUREAU</span>
+            <h2 class="ch-head" id="ch-head" data-text="THE INTERESTING WORK IS INSIDE THE BOX EVERYONE ELSE LEAVES SEALED"></h2>
+            <p class="ch-deck">I open black boxes &mdash; neural nets, version control, whatever&rsquo;s opaque.</p>
+          </div>
+          <ul class="ch-inside">
+            <li class="ih">// INSIDE TODAY</li>
+            <li class="row"><span>The throughline</span><span class="dots"></span><span class="pg">p.1</span></li>
+            <li class="row"><span>House rules &amp; stderr</span><span class="dots"></span><span class="pg">p.2</span></li>
+            <li class="row"><span>Orbit &middot; GlassBox &middot; git-in-C</span><span class="dots"></span><span class="pg">p.3</span></li>
+            <li class="row"><span>Open to work &middot; summer &rsquo;26</span><span class="dots"></span><span class="pg">p.4</span></li>
+          </ul>
+          <div class="ch-foldzone">
+            <div class="ch-crease" aria-hidden="true"></div>
+            <div class="ch-under" aria-hidden="true">
+              <p>i spent more time planning to study than actually studying. orbit started as the fix &mdash; a planner that thinks in forgetting curves.</p>
+              <p>i wrote a neural net by hand in the browser, backprop and all. a black box is just a system nobody&rsquo;s opened yet.</p>
+            </div>
+            <div class="ch-hint">
+              <span class="tri" aria-hidden="true">&#9658;</span><span>Open today&rsquo;s edition</span>
+              <span class="arrow" aria-hidden="true">&darr;</span>
+            </div>
+          </div>
+        </figure>
+      </div>
+    </div>
+
+    <!-- RIGHT: the cat, across a hard gutter -->
+    <div class="hp-side">
+      <div class="hp-photo" id="photo">
+        <div class="cat-fallback">[ THE<br>CAT ]</div>
+        <div class="cat-parallax" id="parallax"><img class="hp-cat" src="../about/cat.jpg" alt="Pixel-art portrait" onerror="this.style.display='none'" /></div>
+        <div class="cat-scan" aria-hidden="true"></div>
+        <span class="hp-photo-tag">[ it me ]</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="hp-marquee" aria-hidden="true">
+    <div class="mq-track">
+      <span>LOCAL-FIRST TOOLS &nbsp;✱&nbsp; TRANSPARENT ML &nbsp;✱&nbsp; GPU KERNELS IN THE BROWSER &nbsp;✱&nbsp; THE INTERNALS OF GPT-2 &nbsp;✱&nbsp; GIT REBUILT IN C &nbsp;✱&nbsp; </span>
+      <span aria-hidden="true">LOCAL-FIRST TOOLS &nbsp;✱&nbsp; TRANSPARENT ML &nbsp;✱&nbsp; GPU KERNELS IN THE BROWSER &nbsp;✱&nbsp; THE INTERNALS OF GPT-2 &nbsp;✱&nbsp; GIT REBUILT IN C &nbsp;✱&nbsp; </span>
+    </div>
+  </div>
+</div>
+
+<div id="tag">integrated · name justified + left-locked · outline surname ↔ solid masthead echo · folded preview · both decode in the wake's language</div>
+
+<script>
+(function(){
+  'use strict';
+  var REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var GLYPHS='ABCDEFGHJKLMNPQRSTUVWXYZ0123456789#/<>[]{}*+=·.@%&';
+  function rg(){ return GLYPHS[(Math.random()*GLYPHS.length)|0]; }
+
+  var _meas=null;
+  function textW(refEl, text){
+    if(!_meas){ _meas=document.createElement('span');
+      _meas.style.cssText='position:absolute;left:-99999px;top:0;white-space:nowrap;visibility:hidden;pointer-events:none;';
+      document.body.appendChild(_meas); }
+    var cs=getComputedStyle(refEl);
+    _meas.style.fontFamily=cs.fontFamily; _meas.style.fontWeight=cs.fontWeight;
+    _meas.style.letterSpacing=cs.letterSpacing; _meas.style.textTransform='uppercase'; _meas.style.fontSize='100px';
+    _meas.textContent=text; return _meas.offsetWidth;
+  }
+  function fit(el, text, targetW){ el.style.whiteSpace='nowrap'; el.textContent=text;
+    var w=textW(el, text); if(w>0){ el.style.fontSize=(100*targetW/w)+'px'; } }
+
+  function cipher(el, text){ el.textContent='';
+    text.split('').forEach(function(ch,i){ var s=document.createElement('span'); s.className='dc';
+      if(ch===' '){ s.innerHTML='&nbsp;'; } else { s.textContent=GLYPHS[((i*29+13)>>>0)%GLYPHS.length]; s.classList.add('scr'); }
+      el.appendChild(s); }); }
+
+  function decode(el, text, opts){ opts=opts||{}; var stagger=opts.stagger||40, scr=opts.scramble||400;
+    if(REDUCE){ el.textContent=text; return; }
+    var spans=text.split('').map(function(ch){ var s=document.createElement('span'); s.className='dc';
+      if(ch===' '){ s.innerHTML='&nbsp;'; s.dataset.sp='1'; } else { s.textContent=rg(); s.classList.add('scr'); }
+      s.dataset.ch=ch; return s; });
+    el.textContent=''; spans.forEach(function(s){ el.appendChild(s); });
+    var start=performance.now(), bucket=-1;
+    (function tick(now){ var b=(now/48)|0, swap=(b!==bucket); bucket=b; var done=true;
+      spans.forEach(function(s,i){ if(s.dataset.sp) return; var begin=start+i*stagger, rt=begin+scr;
+        if(now>=rt){ if(!s.dataset.on){ s.dataset.on='1'; s.textContent=s.dataset.ch; s.classList.remove('scr'); s.classList.add('on'); } }
+        else { done=false; if(now>=begin && swap){ s.textContent=rg(); } } });
+      if(!done) requestAnimationFrame(tick); })(performance.now());
+  }
+
+  /* THE NAME */
+  var line1=document.getElementById('line1'), line2=document.getElementById('line2'), L1='SANTOSH', L2='CHEETHIRALA';
+  function layoutName(){ var w=line1.parentElement.getBoundingClientRect().width;
+    if(window.innerWidth<=860 || w<2){ line1.style.fontSize=''; line2.style.fontSize=''; line1.style.whiteSpace=''; line2.style.whiteSpace=''; line1.textContent=L1; line2.textContent=L2; return; }
+    fit(line1,L1,w); fit(line2,L2,w); }
+  function runName(){ layoutName(); if(REDUCE){ line2.textContent=L2; return; }
+    line1.textContent=L1; decode(line2,L2,{stagger:62,scramble:460}); }
+  addEventListener('resize', layoutName);
+
+  /* THE CHRONICLE */
+  var head=document.getElementById('ch-head'), TEXT=head.dataset.text, chron=document.getElementById('chron'), leaveT=null;
+  if(REDUCE){ head.textContent=TEXT; } else { cipher(head,TEXT); }
+  chron.addEventListener('pointerenter', function(){ clearTimeout(leaveT); decode(head,TEXT,{stagger:26,scramble:360}); });
+  chron.addEventListener('focus', function(){ clearTimeout(leaveT); decode(head,TEXT,{stagger:26,scramble:360}); });
+  chron.addEventListener('pointerleave', function(){ leaveT=setTimeout(function(){ cipher(head,TEXT); },1400); });
+  chron.addEventListener('blur', function(){ leaveT=setTimeout(function(){ cipher(head,TEXT); },1400); });
+
+  /* cat parallax */
+  var px=document.getElementById('parallax'), photo=document.getElementById('photo');
+  if(!REDUCE){ photo.addEventListener('pointermove', function(e){ var r=photo.getBoundingClientRect();
+    var dx=(e.clientX-r.left)/r.width-.5, dy=(e.clientY-r.top)/r.height-.5;
+    px.style.transform='translate('+(dx*-14)+'px,'+(dy*-14)+'px)'; });
+    photo.addEventListener('pointerleave', function(){ px.style.transform=''; }); }
+
+  /* live IST clock + dateline */
+  function tickClock(){ try{ var now=new Date();
+    var t=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Kolkata',hour:'numeric',minute:'2-digit',hour12:true}).format(now);
+    document.getElementById('clock').textContent=t.replace(' ','')+' IST';
+    var d=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Kolkata',weekday:'short',month:'short',day:'numeric'}).format(now).toUpperCase();
+    var t2=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Kolkata',hour:'numeric',minute:'2-digit',hour12:true}).format(now);
+    document.getElementById('dl-date').textContent=d; document.getElementById('dl-time').textContent=t2.replace(' ',''); }catch(e){} }
+  tickClock(); setInterval(tickClock, 1000*20);
+
+  if(document.fonts && document.fonts.ready){ document.fonts.ready.then(runName); } else { runName(); }
+  setTimeout(runName, 650);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,879 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>STYLE 08 / MIXING DESK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --red:#ed1c24;        /* page / canvas */
+    --red-deep:#b3001b;   /* deeper red panel */
+    --red-dark:#7a0014;   /* darkest red */
+    --ink:#ffffff;        /* white */
+    --black:#0a0a0a;      /* hard shadows / inverted text */
+    --line:rgba(255,255,255,0.26);
+    --lime:#c8e620;       /* THE single accent — fader cap only */
+    --font-display:"Anton",sans-serif;
+    --font-mono:"JetBrains Mono",monospace;
+    --bar-h:64px;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{
+    background:var(--red);
+    color:var(--ink);
+    font-family:var(--font-mono);
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+
+  /* ----------  FIXED TOP BAR  ---------- */
+  .topbar{
+    position:fixed; top:0; left:0; right:0;
+    height:var(--bar-h); z-index:60;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 clamp(14px,4vw,34px);
+    background:var(--red);
+    border-bottom:2px solid var(--ink);
+  }
+  .index-btn{
+    display:inline-flex; align-items:center; gap:.5em;
+    font-family:var(--font-mono); font-weight:700; font-size:11px;
+    letter-spacing:.14em; text-transform:uppercase;
+    color:var(--ink); text-decoration:none;
+    padding:9px 16px; border:2px solid var(--ink); background:transparent;
+    box-shadow:4px 4px 0 var(--black);
+    transition:transform 120ms cubic-bezier(.2,.9,.2,1),
+               background-color 120ms cubic-bezier(.2,.9,.2,1),
+               color 120ms cubic-bezier(.2,.9,.2,1),
+               box-shadow 120ms cubic-bezier(.2,.9,.2,1);
+  }
+  .index-btn:hover,.index-btn:focus-visible{
+    background:var(--ink); color:var(--red);
+    transform:translate(2px,2px); box-shadow:2px 2px 0 var(--black); outline:none;
+  }
+  .index-btn:active{transform:translate(4px,4px); box-shadow:0 0 0 var(--black);}
+  .caption{text-align:right; line-height:1.35;}
+  .caption .style-no{font-weight:700; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink);}
+  .caption .hint{font-weight:400; font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,0.72);}
+
+  /* ----------  PAGE / SECTION  ---------- */
+  .wrap{
+    position:relative;
+    padding:calc(var(--bar-h) + clamp(26px,5vw,60px)) clamp(20px,6vw,90px) clamp(40px,8vw,110px);
+    max-width:1560px; margin:0 auto;
+  }
+  .kicker{
+    font-family:var(--font-mono); font-weight:500; font-size:13px;
+    letter-spacing:.04em; text-transform:lowercase;
+    color:rgba(255,255,255,0.78); margin-bottom:10px;
+  }
+  .title{
+    font-family:var(--font-display); font-weight:400; text-transform:uppercase;
+    color:var(--ink); line-height:.82; letter-spacing:.005em;
+    font-size:clamp(2.4rem,10vw,8rem); margin-bottom:clamp(20px,3vw,34px);
+  }
+
+  /* ----------  DESK SHELL  ---------- */
+  .desk{
+    position:relative;
+    border:2px solid var(--ink);
+    background:var(--red-deep);
+    box-shadow:8px 8px 0 var(--black);
+  }
+  /* meter / brand strip across the top of the desk */
+  .desk-head{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:14px 22px; flex-wrap:wrap;
+    padding:12px clamp(12px,2vw,20px);
+    border-bottom:2px solid var(--ink);
+    background:var(--red-dark);
+  }
+  .desk-brand{
+    font-family:var(--font-display); text-transform:uppercase;
+    font-size:clamp(1rem,2vw,1.5rem); letter-spacing:.02em; line-height:1;
+    color:var(--ink); white-space:nowrap;
+  }
+  .desk-brand small{
+    display:inline-block; font-family:var(--font-mono); font-weight:700;
+    font-size:9px; letter-spacing:.2em; color:rgba(255,255,255,0.6);
+    vertical-align:middle; margin-left:10px;
+  }
+  /* fake VU / power LEDs — strictly red/white/black */
+  .leds{ display:flex; gap:7px; align-items:center; }
+  .led{ width:9px; height:9px; border:2px solid var(--ink); background:transparent; }
+  .led.on{ background:var(--ink); }
+  .led.full{ box-shadow:inset 0 0 0 2px var(--red-dark); background:var(--ink); }
+  .desk-tier-key{
+    display:flex; gap:14px; flex-wrap:wrap;
+    font-size:9px; letter-spacing:.14em; text-transform:uppercase;
+    color:rgba(255,255,255,0.7);
+  }
+  .desk-tier-key b{ color:var(--ink); }
+
+  /* horizontal scroll region for the channel strips */
+  .desk-scroll{
+    overflow-x:auto; overflow-y:hidden;
+    scrollbar-color:var(--ink) var(--red-dark);
+  }
+  .desk-scroll::-webkit-scrollbar{ height:12px; }
+  .desk-scroll::-webkit-scrollbar-track{ background:var(--red-dark); border-top:2px solid var(--ink); }
+  .desk-scroll::-webkit-scrollbar-thumb{ background:var(--ink); border:2px solid var(--red-dark); }
+
+  .channels{
+    display:flex; align-items:stretch;
+    min-width:min-content;
+  }
+  .channel{
+    border-right:2px solid var(--ink);
+    padding:0;
+    display:flex; flex-direction:column;
+  }
+  .channel:last-child{ border-right:none; }
+
+  .channel-head{
+    padding:9px 12px 8px;
+    border-bottom:2px solid var(--ink);
+    background:var(--red-dark);
+  }
+  .channel-name{
+    font-family:var(--font-mono); font-weight:700;
+    font-size:11px; letter-spacing:.13em; text-transform:uppercase;
+    color:var(--ink); white-space:nowrap;
+  }
+  .channel-sub{
+    font-size:9px; letter-spacing:.16em; text-transform:uppercase;
+    color:rgba(255,255,255,0.55); margin-top:3px;
+  }
+
+  .faders{
+    display:flex; align-items:flex-end;
+    padding:18px 10px 0;
+    flex:1;
+  }
+
+  /* ----------  ONE FADER STRIP  ---------- */
+  .fader{
+    --lvl:0.5;                  /* 0..1 honest level */
+    --draglvl:var(--lvl);       /* what the cap currently shows (audition) */
+    position:relative;
+    display:flex; flex-direction:column; align-items:center;
+    width:46px; flex:0 0 46px;
+    margin:0 1px;
+  }
+  /* tiny per-fader value readout above the track */
+  .fader-val{
+    font-size:9px; font-weight:700; letter-spacing:.04em;
+    color:rgba(255,255,255,0.55);
+    height:14px; line-height:14px;
+    transition:color 110ms cubic-bezier(.2,.9,.2,1);
+    font-variant-numeric:tabular-nums;
+  }
+  .fader.is-active .fader-val,
+  .fader.is-drag .fader-val{ color:var(--ink); }
+
+  /* the slot the cap rides in */
+  .track{
+    position:relative;
+    width:14px; height:200px;
+    border:2px solid var(--ink);
+    background:var(--red-dark);
+    cursor:grab;
+    touch-action:none;
+  }
+  .track:active{ cursor:grabbing; }
+
+  /* tick marks down the side of the track */
+  .ticks{
+    position:absolute; top:0; bottom:0; left:-9px; width:7px;
+    pointer-events:none;
+  }
+  .ticks i{
+    position:absolute; right:0; height:2px; width:6px; background:var(--line);
+  }
+  .ticks i.major{ width:9px; left:-2px; background:var(--ink); }
+
+  /* the filled portion = honest signal level. CORE (100%) shown solid. */
+  .fill{
+    position:absolute; left:0; right:0; bottom:0;
+    height:calc(var(--draglvl) * 100%);
+    background:repeating-linear-gradient(
+      0deg,
+      rgba(255,255,255,0.22) 0px,
+      rgba(255,255,255,0.22) 2px,
+      transparent 2px,
+      transparent 6px
+    );
+    border-top:2px solid var(--ink);
+    pointer-events:none;
+    transition:height 90ms cubic-bezier(.2,.9,.2,1);
+  }
+  .fader.is-drag .fill{ transition:none; }
+  /* CORE channels (level 100%) get a solid signal fill */
+  .fader[data-tier="CORE"] .fill{
+    background:rgba(255,255,255,0.16);
+  }
+
+  /* the cap — THE lime accent. hard square knob with a center groove. */
+  .cap{
+    position:absolute; left:50%;
+    width:30px; height:16px;
+    transform:translate(-50%, 50%);
+    bottom:calc(var(--draglvl) * 100%);
+    background:var(--lime);
+    border:2px solid var(--black);
+    box-shadow:3px 3px 0 var(--black);
+    cursor:grab;
+    transition:bottom 90ms cubic-bezier(.2,.9,.2,1),
+               transform 90ms cubic-bezier(.2,.9,.2,1),
+               box-shadow 90ms cubic-bezier(.2,.9,.2,1);
+    z-index:3;
+  }
+  .cap::after{ /* center grip line */
+    content:""; position:absolute; left:3px; right:3px; top:50%;
+    height:2px; transform:translateY(-1px); background:var(--black);
+  }
+  .fader.is-drag .cap{ transition:none; cursor:grabbing; box-shadow:1px 1px 0 var(--black); }
+  .fader.is-active .cap,
+  .fader.is-drag .cap{ transform:translate(-50%, 50%) scaleX(1.08); }
+  .fader:focus-within .cap{ outline:2px solid var(--ink); outline-offset:2px; }
+  .track:focus-visible{ outline:2px dashed var(--ink); outline-offset:3px; }
+
+  /* tier pill under the track */
+  .fader-tier{
+    margin-top:8px;
+    font-size:8px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--ink);
+    border:2px solid var(--ink); padding:2px 4px;
+    background:transparent;
+    white-space:nowrap;
+    transition:background 110ms, color 110ms;
+  }
+  .fader.is-active .fader-tier{ background:var(--ink); color:var(--red-dark); }
+
+  /* rotated label beneath each fader (vertical, mono terminal) */
+  .fader-label{
+    margin-top:8px;
+    height:118px;
+    display:flex; align-items:flex-start; justify-content:center;
+  }
+  .fader-label span{
+    writing-mode:vertical-rl;
+    transform:rotate(180deg);
+    font-size:11px; font-weight:500; letter-spacing:.08em;
+    text-transform:uppercase; white-space:nowrap;
+    color:var(--ink);
+    transition:color 110ms;
+  }
+  .fader.is-dim .fader-label span,
+  .fader.is-dim .fader-tier,
+  .fader.is-dim .fader-val{ color:rgba(255,255,255,0.4); }
+  .fader.is-dim .fader-tier{ border-color:var(--line); }
+  .fader.is-active .fader-label span{ color:var(--ink); }
+
+  .fader-foot{
+    padding:0 6px 14px;
+    display:flex; flex-direction:column; align-items:center;
+  }
+
+  /* ----------  READOUT (terminal status line)  ---------- */
+  .readout{
+    position:relative; z-index:8;
+    margin-top:clamp(18px,2.6vw,28px);
+    display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px;
+    font-family:var(--font-mono); font-size:11px; letter-spacing:.1em;
+    text-transform:uppercase; color:rgba(255,255,255,0.8); min-height:24px;
+  }
+  .readout .prompt{ color:var(--ink); font-weight:700; }
+  .readout .tag{ border:2px solid var(--ink); padding:4px 9px; color:var(--ink); font-weight:700; }
+  .readout .tag.tier{ background:var(--ink); color:var(--red); }
+  .readout .val{ color:var(--ink); font-weight:700; font-variant-numeric:tabular-nums; }
+  .readout .sep{ color:rgba(255,255,255,0.45); }
+  .readout .blink{
+    display:inline-block; width:9px; height:14px; background:var(--ink);
+    margin-left:2px;
+    animation:blink 1s steps(2,start) infinite; vertical-align:middle;
+  }
+  @keyframes blink{0%,50%{opacity:1;}50.01%,100%{opacity:0;}}
+
+  .hint-line{
+    margin-top:10px;
+    font-size:10px; letter-spacing:.1em; text-transform:uppercase;
+    color:rgba(255,255,255,0.55);
+  }
+  .hint-line b{ color:var(--ink); font-weight:700; }
+
+  /* ----------  JUDGING CAT  ---------- */
+  .cat-wrap{
+    position:fixed; right:clamp(14px,3vw,30px); bottom:clamp(14px,3vw,26px);
+    z-index:55;
+    display:flex; align-items:flex-end; gap:10px;
+    pointer-events:none;
+  }
+  .cat-bubble{
+    position:relative;
+    max-width:200px;
+    background:var(--ink); color:var(--black);
+    border:2px solid var(--black);
+    box-shadow:4px 4px 0 var(--black);
+    padding:7px 11px;
+    font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+    line-height:1.35;
+    transition:transform 120ms cubic-bezier(.2,.9,.2,1), opacity 120ms;
+    pointer-events:auto;
+  }
+  .cat-bubble::after{ /* hard speech tail */
+    content:""; position:absolute; right:-9px; bottom:11px;
+    width:9px; height:9px; background:var(--ink);
+    border-right:2px solid var(--black); border-bottom:2px solid var(--black);
+    transform:rotate(-45deg);
+  }
+  .cat-bubble.pop{ transform:translateY(-3px) scale(1.03); }
+  .cat-box{
+    width:64px; height:60px; flex:0 0 auto;
+    border:2px solid var(--ink); background:var(--red-dark);
+    box-shadow:4px 4px 0 var(--black);
+    display:flex; align-items:center; justify-content:center;
+    pointer-events:auto; cursor:default;
+  }
+  .cat-box svg{ width:46px; height:46px; display:block; }
+  .cat-eye{ transform-box:fill-box; transform-origin:center; }
+  .cat-box.blink .cat-eye{ transform:scaleY(0.1); }
+
+  /* ----------  RESPONSIVE  ---------- */
+  @media (max-width:760px){
+    .caption .hint{display:none;}
+    .desk-tier-key{display:none;}
+    .cat-bubble{max-width:150px; font-size:9px;}
+  }
+  @media (max-width:520px){
+    .cat-wrap{ display:none; }
+  }
+
+  /* ----------  REDUCED MOTION  ---------- */
+  @media (prefers-reduced-motion:reduce){
+    *{animation-duration:.001ms !important; animation-iteration-count:1 !important;}
+    .fill,.cap{ transition:none !important; }
+    .cat-bubble{ transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <a class="index-btn" href="index.html">&larr;&nbsp;INDEX</a>
+    <div class="caption">
+      <div class="style-no">STYLE 08 / MIXING DESK</div>
+      <div class="hint">each fader = honest proficiency &middot; drag to audition</div>
+    </div>
+  </header>
+
+  <!-- SECTION -->
+  <main class="wrap">
+    <div class="kicker">// stack</div>
+    <h1 class="title">WHAT I<br>WORK WITH</h1>
+
+    <section class="desk" id="desk">
+      <div class="desk-head">
+        <div class="desk-brand">SANTOSH&nbsp;//&nbsp;MIX <small>35-CHANNEL PROFICIENCY CONSOLE</small></div>
+        <div class="leds" id="leds" aria-hidden="true"></div>
+        <div class="desk-tier-key">
+          <span><b>CORE</b> 100</span>
+          <span><b>WORKING</b> 75</span>
+          <span><b>FAMILIAR</b> 50</span>
+        </div>
+      </div>
+
+      <div class="desk-scroll" id="deskScroll">
+        <div class="channels" id="channels"></div>
+      </div>
+    </section>
+
+    <div class="readout" id="readout">
+      <span class="prompt">&gt;</span>
+      <span id="readout-text">idle&hellip; hover or drag a fader to audition the signal</span>
+      <span class="blink"></span>
+    </div>
+    <div class="hint-line">
+      drag a cap to <b>audition</b> a value &middot; release or <b>double-click</b> snaps back to the honest level &middot; <b>arrow keys</b> nudge when focused
+    </div>
+  </main>
+
+  <!-- JUDGING CAT -->
+  <div class="cat-wrap" id="catWrap" aria-hidden="true">
+    <div class="cat-bubble" id="catBubble">just idling, are we.</div>
+    <div class="cat-box" id="catBox">
+      <!-- simple brutalist cat: white outline on dark, no soft edges -->
+      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- ears -->
+        <path d="M10 18 L13 6 L22 14 Z" fill="#ffffff"/>
+        <path d="M38 18 L35 6 L26 14 Z" fill="#ffffff"/>
+        <!-- head -->
+        <rect x="9" y="13" width="30" height="26" fill="#ffffff"/>
+        <!-- eyes (judging slits) -->
+        <rect class="cat-eye" x="15" y="22" width="6" height="4" fill="#0a0a0a"/>
+        <rect class="cat-eye" x="27" y="22" width="6" height="4" fill="#0a0a0a"/>
+        <!-- nose -->
+        <rect x="22" y="29" width="4" height="3" fill="#ed1c24"/>
+        <!-- whisker hints -->
+        <rect x="2"  y="27" width="7" height="2" fill="#ffffff"/>
+        <rect x="2"  y="31" width="7" height="2" fill="#ffffff"/>
+        <rect x="39" y="27" width="7" height="2" fill="#ffffff"/>
+        <rect x="39" y="31" width="7" height="2" fill="#ffffff"/>
+      </svg>
+    </div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ----------  DATA (verbatim)  ---------- */
+  var DATA = [
+    { group:"Languages", items:[
+      ["C",4],["Python",5],["TypeScript",5],["JavaScript",4],
+      ["SQL",3],["HTML",4],["CSS",4],["WGSL",3] ]},
+    { group:"ML / AI", items:[
+      ["PyTorch",4],["TensorFlow",3],["scikit-learn",4],["NumPy",4],
+      ["Pandas",4],["TransformerLens",4],["LLM Evaluation",4],["RAG",4],
+      ["Failure Taxonomy",3],["Deep Learning",4] ]},
+    { group:"Web / Frontend", items:[
+      ["React",5],["Tailwind CSS",4],["Vite",4],["WebGPU",4],
+      ["PWA",4],["IndexedDB / Dexie.js",4],["Canvas",3],["Web Workers",3] ]},
+    { group:"Backend / Data", items:[
+      ["FastAPI",4],["Pydantic",3],["Node.js",4],["Express",3],
+      ["MongoDB",3],["REST APIs",4] ]},
+    { group:"Tools / Systems", items:[
+      ["Git",4],["Linux",4],["OpenRouter API",3] ]}
+  ];
+
+  /* weight -> { level 0..1, tier label } */
+  function levelFor(w){ return w/5; }            // 5->1.0, 4->0.8, 3->0.6
+  function tierFor(w){
+    if(w >= 5) return "CORE";
+    if(w >= 4) return "WORKING";
+    return "FAMILIAR";
+  }
+  /* the brief states "weight 4 -> 75% / weight 3 -> 50%" for the readout numbers.
+     We show the spec's percentage in the readout/value, while the fader fill uses
+     w/5 so the geometry is honest and monotonic. Map: */
+  function pctFor(w){
+    if(w >= 5) return 100;
+    if(w >= 4) return 75;
+    return 50;
+  }
+
+  var REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var GLYPHS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/#%&*+=<>_".split("");
+
+  /* ----------  DOM refs  ---------- */
+  var channelsEl = document.getElementById("channels");
+  var readoutText = document.getElementById("readout-text");
+  var ledsEl = document.getElementById("leds");
+  var catBubble = document.getElementById("catBubble");
+  var catBox = document.getElementById("catBox");
+
+  /* decorative LED strip (red/white/black only) */
+  for(var L=0; L<7; L++){
+    var d = document.createElement("span");
+    d.className = "led" + (L < 4 ? " on" : "") + (L === 0 ? " full" : "");
+    ledsEl.appendChild(d);
+  }
+
+  /* ----------  BUILD CHANNELS + FADERS  ---------- */
+  var faders = []; // { el, name, weight, level, track, cap, fill, valEl, labelSpan, f+state }
+  var globalIndex = 0;
+
+  DATA.forEach(function(grp, gi){
+    var channel = document.createElement("div");
+    channel.className = "channel";
+
+    var head = document.createElement("div");
+    head.className = "channel-head";
+    var cname = document.createElement("div");
+    cname.className = "channel-name";
+    cname.setAttribute("data-decode", grp.group);
+    cname.textContent = grp.group;
+    var csub = document.createElement("div");
+    csub.className = "channel-sub";
+    csub.textContent = "CH " + String(gi+1).padStart(2,"0") + " / " + grp.items.length + " IN";
+    head.appendChild(cname);
+    head.appendChild(csub);
+    channel.appendChild(head);
+
+    var faderRow = document.createElement("div");
+    faderRow.className = "faders";
+
+    grp.items.forEach(function(it){
+      var name = it[0], weight = it[1];
+      var level = levelFor(weight);
+      var tier = tierFor(weight);
+
+      var f = document.createElement("div");
+      f.className = "fader";
+      f.dataset.tier = tier;
+      f.style.setProperty("--lvl", level);
+      f.style.setProperty("--draglvl", level);
+
+      // value readout above
+      var val = document.createElement("div");
+      val.className = "fader-val";
+      val.textContent = pctFor(weight);
+
+      // track + ticks + fill + cap
+      var track = document.createElement("div");
+      track.className = "track";
+      track.tabIndex = 0;
+      track.setAttribute("role", "slider");
+      track.setAttribute("aria-label", name + " proficiency");
+      track.setAttribute("aria-valuemin", "0");
+      track.setAttribute("aria-valuemax", "100");
+      track.setAttribute("aria-valuenow", String(pctFor(weight)));
+
+      var ticks = document.createElement("div");
+      ticks.className = "ticks";
+      for(var t=0; t<=10; t++){
+        var ti = document.createElement("i");
+        ti.style.bottom = (t*10) + "%";
+        if(t % 5 === 0) ti.className = "major";
+        ticks.appendChild(ti);
+      }
+      var fill = document.createElement("div");
+      fill.className = "fill";
+      var cap = document.createElement("div");
+      cap.className = "cap";
+
+      track.appendChild(ticks);
+      track.appendChild(fill);
+      track.appendChild(cap);
+
+      // tier pill
+      var tierPill = document.createElement("div");
+      tierPill.className = "fader-tier";
+      tierPill.textContent = tier;
+
+      // rotated label
+      var labelWrap = document.createElement("div");
+      labelWrap.className = "fader-label";
+      var labelSpan = document.createElement("span");
+      labelSpan.setAttribute("data-decode", name);
+      labelSpan.textContent = name;
+      labelWrap.appendChild(labelSpan);
+
+      var foot = document.createElement("div");
+      foot.className = "fader-foot";
+      foot.appendChild(tierPill);
+      foot.appendChild(labelWrap);
+
+      f.appendChild(val);
+      f.appendChild(track);
+      f.appendChild(foot);
+      faderRow.appendChild(f);
+
+      var rec = {
+        el:f, name:name, weight:weight, level:level, tier:tier,
+        group:grp.group, track:track, cap:cap, fill:fill, val:val,
+        labelSpan:labelSpan, idx:globalIndex
+      };
+      faders.push(rec);
+      globalIndex++;
+
+      wireFader(rec);
+    });
+
+    channel.appendChild(faderRow);
+    channelsEl.appendChild(channel);
+  });
+
+  /* ----------  AUDITION / DRAG LOGIC  ---------- */
+  var dragging = null;
+
+  function setDragLevel(rec, lvl){
+    lvl = Math.max(0, Math.min(1, lvl));
+    rec.el.style.setProperty("--draglvl", lvl);
+    rec.val.textContent = Math.round(lvl * 100);
+    rec.track.setAttribute("aria-valuenow", String(Math.round(lvl*100)));
+  }
+  function resetLevel(rec){
+    rec.el.style.setProperty("--draglvl", rec.level);
+    rec.val.textContent = pctFor(rec.weight);
+    rec.track.setAttribute("aria-valuenow", String(pctFor(rec.weight)));
+  }
+
+  function levelFromEvent(rec, clientY){
+    var r = rec.track.getBoundingClientRect();
+    // bottom = 0, top = 1
+    var lvl = (r.bottom - clientY) / r.height;
+    return Math.max(0, Math.min(1, lvl));
+  }
+
+  function wireFader(rec){
+    var track = rec.track;
+
+    function pointerDown(e){
+      e.preventDefault();
+      dragging = rec;
+      rec.el.classList.add("is-drag");
+      try{ track.setPointerCapture(e.pointerId); }catch(_){}
+      var lvl = levelFromEvent(rec, e.clientY);
+      setDragLevel(rec, lvl);
+      activate(rec, true);
+    }
+    function pointerMove(e){
+      if(dragging !== rec) return;
+      var lvl = levelFromEvent(rec, e.clientY);
+      setDragLevel(rec, lvl);
+      reportAudition(rec, Math.round(lvl*100));
+    }
+    function pointerUp(e){
+      if(dragging !== rec) return;
+      dragging = null;
+      rec.el.classList.remove("is-drag");
+      try{ track.releasePointerCapture(e.pointerId); }catch(_){}
+      resetLevel(rec);                  // snap back to honest level
+      activate(rec, false);             // readout returns to honest reading
+      catSay(catLineFor(rec, "release"));
+    }
+
+    track.addEventListener("pointerdown", pointerDown);
+    track.addEventListener("pointermove", pointerMove);
+    track.addEventListener("pointerup", pointerUp);
+    track.addEventListener("pointercancel", pointerUp);
+
+    // hover audition (no drag) — just light it up + report honest level
+    rec.el.addEventListener("mouseenter", function(){
+      if(dragging) return;
+      activate(rec, false);
+    });
+    rec.el.addEventListener("mouseleave", function(){
+      if(dragging === rec) return;
+      deactivate();
+    });
+
+    // keyboard focus
+    track.addEventListener("focus", function(){ if(!dragging) activate(rec, false); });
+    track.addEventListener("blur", function(){ if(dragging !== rec) deactivate(); });
+
+    // arrow keys nudge (audition) — does not persist; resets after a beat
+    track.addEventListener("keydown", function(e){
+      var cur = parseFloat(getComputedStyle(rec.el).getPropertyValue("--draglvl")) || rec.level;
+      if(e.key === "ArrowUp" || e.key === "ArrowRight"){
+        e.preventDefault(); setDragLevel(rec, cur + 0.05); reportAudition(rec, Math.round((cur+0.05)*100));
+      } else if(e.key === "ArrowDown" || e.key === "ArrowLeft"){
+        e.preventDefault(); setDragLevel(rec, cur - 0.05); reportAudition(rec, Math.round((cur-0.05)*100));
+      } else if(e.key === "Enter" || e.key === " " || e.key === "Home"){
+        e.preventDefault(); resetLevel(rec); activate(rec, false);
+      }
+    });
+
+    // double-click resets to honest level
+    track.addEventListener("dblclick", function(){
+      resetLevel(rec);
+      activate(rec, false);
+      catSay("there. honest again.");
+    });
+  }
+
+  /* ----------  ACTIVE STATE + READOUT  ---------- */
+  var activeRec = null;
+
+  function activate(rec, fromDrag){
+    activeRec = rec;
+    faders.forEach(function(o){
+      o.el.classList.toggle("is-active", o === rec);
+      o.el.classList.toggle("is-dim", o !== rec);
+    });
+    reportHonest(rec);
+    if(!fromDrag) catSay(catLineFor(rec, "hover"));
+  }
+
+  function deactivate(){
+    if(dragging) return;
+    activeRec = null;
+    faders.forEach(function(o){ o.el.classList.remove("is-active","is-dim"); });
+    readoutText.innerHTML = "idle&hellip; hover or drag a fader to audition the signal";
+  }
+
+  function reportHonest(rec){
+    readoutText.innerHTML =
+      '<span class="prompt">ch:</span> ' +
+      '<span class="tag">' + esc(rec.group.toUpperCase()) + '</span> ' +
+      '<span class="sep">&middot;</span> ' +
+      esc(rec.name) + ' ' +
+      '<span class="sep">&middot;</span> ' +
+      '<span class="tag tier">' + rec.tier + '</span> ' +
+      '<span class="sep">&middot;</span> ' +
+      '<span class="val">' + pctFor(rec.weight) + '</span>';
+  }
+
+  function reportAudition(rec, guessPct){
+    var honest = pctFor(rec.weight);
+    var delta = guessPct - honest;
+    var deltaStr = delta === 0 ? "&plusmn;0" : (delta > 0 ? "+" + delta : String(delta));
+    readoutText.innerHTML =
+      '<span class="prompt">audition:</span> ' +
+      esc(rec.name) + ' ' +
+      '<span class="sep">&middot;</span> guess ' +
+      '<span class="val">' + guessPct + '</span> ' +
+      '<span class="sep">/</span> actual ' +
+      '<span class="val">' + honest + '</span> ' +
+      '<span class="sep">(</span>' + deltaStr + '<span class="sep">)</span>';
+  }
+
+  /* ----------  JUDGING CAT  ---------- */
+  var CAT_HOVER = {
+    "C":["c? bold.","close to the metal. respect.","pointers and pain. nice."],
+    "Python":["python at 100. predictable.","the comfort blanket. fine.","snake on max. sure."],
+    "TypeScript":["types? showoff.","ts maxed. of course it is.","strictly typed, strictly trying."],
+    "JavaScript":["the language that runs everything. sigh.","js. it'll do.","callback to me later."],
+    "React":["react again…","react on full. shocking.","hooks, all the way down."],
+    "PyTorch":["gradients descending. like my opinion of you.","torch lit. fine.","backprop respectably."],
+    "WebGPU":["gpu showoff.","shaders? brave.","compute on the web. cute."],
+    "WGSL":["niche flex. noted.","writing shaders by hand. masochist."],
+    "RAG":["retrieval-augmented ego.","rag. trendy."],
+    "Linux":["a penguin person. figures.","terminal goblin confirmed."],
+    "Git":["git? you'd better.","commit to it."],
+    "FastAPI":["fast and apied. ok.","async, allegedly."],
+    "Failure Taxonomy":["cataloguing failure. relatable."],
+    "TransformerLens":["peeking inside the model. nosy.","interpretability. brave."]
+  };
+  var CAT_DEFAULT_HOVER = [
+    "respectable.","mm. acceptable.","go on then.","i've seen worse.",
+    "a working level. working.","familiar, sure.","core? we'll see.",
+    "auditing in progress…","numbers, numbers."
+  ];
+  var CAT_RELEASE = [
+    "snapped back. honest.","there. no fibbing.","reset. good.",
+    "back to the truth.","nice try.","that's the real number."
+  ];
+  var CAT_IDLE = [
+    "just idling, are we.","i'm watching the faders.","do something.",
+    "the desk awaits."
+  ];
+
+  function pick(arr, seed){
+    // deterministic-ish pick to avoid jitter spam: rotate by seed
+    return arr[(seed >>> 0) % arr.length];
+  }
+  var catTick = 0;
+  function catLineFor(rec, kind){
+    if(kind === "release") return pick(CAT_RELEASE, rec.idx + (catTick++));
+    var specific = CAT_HOVER[rec.name];
+    if(specific) return pick(specific, rec.idx);
+    // tier-flavoured default
+    return pick(CAT_DEFAULT_HOVER, rec.idx + rec.weight);
+  }
+
+  var catTimer = null, lastCat = "";
+  function catSay(text){
+    if(!catBubble || text === lastCat) {
+      // still pop for feedback even if same text
+    }
+    lastCat = text;
+    catBubble.textContent = text;
+    if(!REDUCED){
+      catBubble.classList.remove("pop");
+      void catBubble.offsetWidth;
+      catBubble.classList.add("pop");
+      clearTimeout(catTimer);
+      catTimer = setTimeout(function(){ catBubble.classList.remove("pop"); }, 150);
+    }
+  }
+
+  // idle cat chatter + occasional blink
+  if(!REDUCED){
+    setInterval(function(){
+      if(catBox){
+        catBox.classList.add("blink");
+        setTimeout(function(){ catBox.classList.remove("blink"); }, 130);
+      }
+    }, 3600);
+    setInterval(function(){
+      if(!activeRec && !dragging){
+        catSay(pick(CAT_IDLE, Date.now() / 4000 | 0));
+      }
+    }, 7000);
+  }
+
+  /* ----------  DECODE-IN LABELS  ---------- */
+  /* Scramble through random glyphs, settle to the real word.
+     Per-element offset is derived from index so the cascade is stable. */
+  function decode(el, delay){
+    var target = el.getAttribute("data-decode");
+    if(!target) return;
+    if(REDUCED){ el.textContent = target; return; }
+    var frames = 0;
+    var maxFrames = 16 + target.length; // a few hundred ms at ~60fps after delay
+    var started = false;
+
+    setTimeout(function(){
+      started = true;
+      var id = setInterval(function(){
+        frames++;
+        var out = "";
+        // how many leading chars are "resolved" so far
+        var resolved = Math.floor((frames / maxFrames) * target.length);
+        for(var i=0;i<target.length;i++){
+          var ch = target[i];
+          if(ch === " " || ch === "/" || ch === "." || ch === "-"){ out += ch; continue; }
+          if(i < resolved){ out += ch; }
+          else {
+            // deterministic-ish glyph from frame + position (still feels random)
+            var gi = (i * 7 + frames * 13 + el._seed) % GLYPHS.length;
+            out += GLYPHS[gi];
+          }
+        }
+        el.textContent = out;
+        if(frames >= maxFrames){
+          clearInterval(id);
+          el.textContent = target;
+        }
+      }, 28);
+    }, delay);
+  }
+
+  function runDecode(){
+    var labels = faders.map(function(r){ return r.labelSpan; });
+    var heads = Array.prototype.slice.call(document.querySelectorAll(".channel-name[data-decode]"));
+    // channel headers first, then fader labels in a quick cascade
+    heads.forEach(function(el, i){ el._seed = i * 11; decode(el, i * 40); });
+    labels.forEach(function(el, i){ el._seed = i * 5 + 3; decode(el, 180 + i * 26); });
+  }
+
+  // re-decode a single label on hover (snappy terminal feel)
+  faders.forEach(function(rec){
+    rec.el.addEventListener("mouseenter", function(){
+      if(REDUCED) return;
+      rec.labelSpan._seed = (rec.labelSpan._seed || 0) + 1;
+      decode(rec.labelSpan, 0);
+    });
+  });
+
+  /* ----------  UTIL  ---------- */
+  function esc(str){
+    return String(str).replace(/[&<>"']/g, function(m){
+      return ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" })[m];
+    });
+  }
+
+  /* ----------  BOOT  ---------- */
+  function init(){
+    runDecode();
+  }
+  if(document.fonts && document.fonts.ready){
+    document.fonts.ready.then(init);
+    setTimeout(function(){ /* fallback */ if(faders[0] && faders[0].labelSpan.textContent === "") init(); }, 900);
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</html>

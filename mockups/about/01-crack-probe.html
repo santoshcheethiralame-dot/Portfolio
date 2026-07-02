@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="en" data-mock="crack-probe">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PROBE — hero cracks open → the black box (UI / LOGIC / SOURCE)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --ink:#141414; --cream:#f7f5f1; --cream2:#efece4; --red:#ed1c24; --red-hot:#ff5247;
+  --lime:#b4ff2e;            /* RESERVED for progress / probe / position — matches the live nav */
+  --black:#0a0a0a; --gray:#928b80;
+  --fd:"Anton",sans-serif; --fm:"JetBrains Mono",monospace; --fi:"Instrument Serif",serif;
+  --ease:cubic-bezier(.2,.9,.2,1); --pop:cubic-bezier(.16,1,.3,1); --spring:cubic-bezier(.2,1.25,.3,1);
+}
+*{ box-sizing:border-box; margin:0; padding:0; }
+html{ -webkit-font-smoothing:antialiased; }
+body{ background:var(--cream); color:var(--ink); font-family:var(--fm); }
+::selection{ background:var(--ink); color:var(--lime); }
+a{ color:inherit; text-decoration:none; }
+
+/* ============================================================ TOP RAIL + SATURN MONOGRAM (brand thread) */
+#rail{ position:fixed; top:0; left:0; right:0; height:3px; z-index:1200; background:rgba(10,10,10,.18); }
+#railFill{ position:absolute; inset:0 auto 0 0; width:0; background:var(--lime); border-right:2px solid var(--ink); }
+#mono{ position:fixed; top:clamp(12px,2vw,20px); right:clamp(12px,2vw,20px); z-index:1300; width:46px; height:46px;
+  display:grid; place-items:center; background:var(--red-hot); border:3px solid var(--ink); box-shadow:5px 5px 0 rgba(10,10,10,.4); }
+#mono svg{ width:27px; height:27px; overflow:visible; }
+.mono-bg{ stroke:rgba(20,20,20,.32); }
+.mono-fill{ stroke:var(--lime); stroke-linecap:round; stroke-dasharray:100; }
+
+/* ============================================================ ACT 1 — HERO THAT CRACKS OPEN (fixed overlay) */
+#heroSpacer{ height:100svh; }                              /* scroll runway for the crack */
+#hero{ position:fixed; inset:0; z-index:40; background:var(--red); padding:clamp(10px,1.4vw,20px); display:flex; }
+.case-panel{ flex:1; min-height:0; display:flex; flex-direction:column; background:var(--cream);
+  border:4px solid var(--ink); box-shadow:10px 10px 0 var(--ink); position:relative; }
+.hrow{ position:relative; will-change:transform,opacity; }
+.hrow.bar{ display:flex; align-items:center; gap:clamp(12px,2vw,26px); flex-wrap:wrap; min-height:56px;
+  padding:8px clamp(16px,2.4vw,30px); padding-right:74px; border-bottom:3px solid var(--ink);
+  font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; }
+.pill{ background:var(--ink); color:var(--cream); padding:4px 10px; }
+.meta{ display:inline-flex; align-items:center; gap:8px; }
+.avail .dot{ width:8px; height:8px; border-radius:50%; background:var(--red); box-shadow:0 0 0 2px var(--ink); animation:blink 1.6s steps(1) infinite; }
+@keyframes blink{ 50%{ opacity:.25; } }
+.clock{ margin-left:auto; }
+.hrow.stage{ flex:1; min-height:0; display:grid; grid-template-columns:1.33fr 1fr; gap:clamp(6px,.7vw,11px);
+  padding:clamp(16px,2.2vw,32px) clamp(16px,2.6vw,34px); }
+.hname{ align-self:start; }
+.hname h1{ font-family:var(--fd); font-weight:500; font-size:clamp(2.6rem,15vw,13rem); line-height:.8;
+  letter-spacing:.005em; text-transform:uppercase; color:var(--ink); white-space:nowrap; }
+.hname h1.out{ color:transparent; -webkit-text-stroke:2px var(--ink); }
+.hphoto{ position:relative; align-self:stretch; min-height:0; border:6px solid var(--ink); box-shadow:8px 8px 0 var(--ink);
+  background:#24090d; overflow:hidden; }
+.cat-par{ position:absolute; inset:-7%; will-change:transform; }
+.cat-jit{ position:absolute; inset:0; }
+.cat-jit.glitch{ animation:catg 160ms steps(2,end); }
+@keyframes catg{ 0%{transform:translateX(0)} 25%{transform:translateX(-3px)} 50%{transform:translateX(4px)} 75%{transform:translateX(-2px)} 100%{transform:translateX(0)} }
+.cat-img{ width:100%; height:100%; object-fit:cover; object-position:center 38%; image-rendering:pixelated; display:block; }
+.cat-rain{ position:absolute; inset:0; z-index:2; pointer-events:none; }
+.cat-scan{ position:absolute; inset:0; z-index:3; pointer-events:none; opacity:.10; mix-blend-mode:multiply;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.6) 0 1px,transparent 1px 3px); }
+.cat-flash{ position:absolute; inset:0; z-index:4; pointer-events:none; opacity:0;
+  background:linear-gradient(180deg,rgba(237,28,36,0),rgba(237,28,36,.22),rgba(247,245,241,.12)); }
+.cat-flash.go{ animation:catf 160ms steps(3,end); }
+@keyframes catf{ 0%{opacity:0} 40%{opacity:1} 100%{opacity:0} }
+.phototag{ position:absolute; bottom:10px; left:12px; z-index:6; font-size:11px; font-weight:700; letter-spacing:.16em;
+  text-transform:uppercase; color:rgba(247,245,241,.82); background:rgba(20,20,20,.62); padding:4px 7px; border:1px solid rgba(247,245,241,.25); }
+.hrow.mq{ border-top:3px solid var(--ink); background:var(--ink); overflow:hidden; }
+.mq-track{ display:flex; width:max-content; animation:mq 46s linear infinite; }
+.mq-track span{ white-space:nowrap; padding:12px 0; font-family:var(--fd); font-weight:500; font-size:clamp(1rem,1.6vw,1.45rem);
+  letter-spacing:.06em; text-transform:uppercase; color:var(--cream); }
+@keyframes mq{ to{ transform:translateX(-50%); } }
+/* the portrait that lifts out of the case and docks into the About avatar */
+#flyPhoto{ position:fixed; z-index:45; border:4px solid var(--ink); box-shadow:6px 6px 0 var(--ink);
+  background:#24090d center/cover; image-rendering:pixelated; opacity:0; pointer-events:none; }
+/* lime probe-light through the two seams */
+.seam{ position:absolute; left:0; right:0; height:0; z-index:4; background:var(--lime); pointer-events:none; opacity:0;
+  box-shadow:0 0 18px 2px rgba(180,255,46,.7); }
+/* UI / LOGIC / SOURCE stamps during the crack */
+.stamp{ position:absolute; z-index:6; font-family:var(--fd); font-weight:500; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--lime); -webkit-text-stroke:1px var(--ink); font-size:clamp(1.4rem,4vw,3.4rem); opacity:0; pointer-events:none;
+  background:rgba(20,20,20,.86); padding:2px 14px; border:2px solid var(--lime); }
+.stamp.s-ui{ top:14px; right:84px; }
+.stamp.s-logic{ top:50%; left:50%; transform:translate(-50%,-50%) rotate(-4deg); }
+.stamp.s-source{ bottom:14px; left:24px; }
+
+/* ============================================================ ACT 2 — THE BLACK BOX (left prose / right ledger) */
+#about{ position:relative; z-index:2; background:var(--cream); }
+.about-inner{ display:grid; grid-template-columns:minmax(0,1.55fr) minmax(310px,.92fr); gap:clamp(22px,3.6vw,68px);
+  padding:clamp(26px,4vw,70px) clamp(20px,5vw,92px) 32vh; align-items:start; }
+.prose{ min-width:0; }
+
+/* — layer headers on the left — */
+.lblk{ position:relative; }
+.lblk + .lblk{ margin-top:clamp(34px,7vh,90px); }
+.lkick{ display:flex; align-items:center; gap:12px; font-size:11px; font-weight:700; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--gray); margin-bottom:14px; }
+.lkick b{ color:var(--red); }
+.lkick .ln{ font-family:var(--fd); font-weight:500; font-size:clamp(2rem,5vw,3.4rem); line-height:.82; letter-spacing:.02em;
+  color:var(--ink); -webkit-text-stroke:0; }
+.lkick .lz{ margin-left:auto; }
+
+/* UI header (layer 01) — compact, dense, not a lone sentence */
+.uihead{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom:18px; }
+#dockAvatar{ width:clamp(54px,5vw,72px); height:clamp(54px,5vw,72px); flex:none; border:3px solid var(--ink);
+  box-shadow:5px 5px 0 var(--ink); background:#24090d center/cover; image-rendering:pixelated; opacity:0; }
+.uiname{ font-family:var(--fd); font-weight:500; font-size:clamp(1.5rem,3.4vw,2.6rem); line-height:.9; letter-spacing:.02em; text-transform:uppercase; }
+.thesis{ font-family:var(--fi); font-weight:400; font-size:clamp(1.7rem,3.4vw,3rem); line-height:1.14; letter-spacing:-.01em;
+  color:var(--ink); max-width:24ch; margin-bottom:16px; }
+.thesis .hot{ color:var(--red); font-style:italic; }
+.uimeta{ display:flex; flex-wrap:wrap; gap:8px 10px; }
+.uichip{ font-size:11px; font-weight:700; letter-spacing:.06em; color:var(--ink); border:2px solid var(--ink); padding:6px 10px; }
+.uichip b{ color:var(--red); }
+
+/* — claim lines — */
+.claim{ position:relative; font-family:var(--fm); font-weight:500; font-size:clamp(1.1rem,2.1vw,1.7rem); line-height:1.62;
+  letter-spacing:-.005em; color:var(--gray); max-width:34ch; margin:clamp(16px,3.2vh,34px) 0; padding:13px 16px;
+  border-left:4px solid rgba(20,20,20,.16); transform:translateY(6px);
+  transition:color .2s, border-color .2s, background .2s, transform .35s var(--spring), box-shadow .35s var(--spring); }
+.claim.big{ font-family:var(--fi); font-weight:400; font-size:clamp(1.7rem,3.4vw,2.9rem); line-height:1.16; max-width:24ch; }
+.claim .ctext .hot{ color:inherit; }
+.claim.lit{ color:var(--ink); border-color:var(--red); background:var(--cream2); transform:translateY(0); box-shadow:8px 8px 0 var(--ink); }
+.claim.lit .hot{ color:var(--red); }
+.claim.big.lit{ box-shadow:11px 11px 0 var(--ink); }
+.claim .cref{ display:block; margin-top:9px; font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--gray); }
+.claim.lit .cref{ color:var(--red); }
+.claim .cref::before{ content:"▸ docked → "; color:var(--gray); }
+.claim.lit .cref::before{ color:var(--ink); }
+
+/* — SOURCE raw cards — */
+.src{ position:relative; border:3px solid var(--ink); background:var(--cream2); box-shadow:6px 6px 0 var(--ink); padding:16px 16px 14px;
+  margin:clamp(14px,2.6vh,26px) 0; transform:translateY(8px); opacity:.55;
+  transition:transform .4s var(--spring), opacity .3s, box-shadow .3s, border-color .3s; }
+.src.lit{ transform:translateY(0); opacity:1; border-color:var(--red); box-shadow:10px 10px 0 var(--ink); }
+.src-top{ display:flex; align-items:center; gap:10px; border-bottom:2px solid var(--ink); padding-bottom:8px; margin-bottom:10px; }
+.src-led{ width:9px; height:9px; border-radius:50%; background:rgba(20,20,20,.25); }
+.src.lit .src-led{ background:var(--lime); box-shadow:0 0 0 2px var(--ink),0 0 9px var(--lime); }
+.src-name{ font-family:var(--fd); font-weight:500; font-size:1.4rem; letter-spacing:.02em; text-transform:uppercase; }
+.src-stat{ margin-left:auto; font-size:10px; font-weight:700; letter-spacing:.1em; color:var(--red); }
+.src-body{ font-size:12px; line-height:1.7; color:#5d574e; }
+.src-body code{ font-family:var(--fm); color:var(--ink); background:rgba(20,20,20,.07); padding:1px 5px; }
+.src-body .hot{ color:var(--red); font-weight:700; }
+
+.cta{ display:flex; flex-wrap:wrap; gap:clamp(14px,1.8vw,24px); margin-top:clamp(26px,5vh,52px); }
+.bbtn{ display:inline-flex; align-items:center; gap:8px; padding:clamp(12px,1.3vw,18px) clamp(16px,1.8vw,26px);
+  background:var(--ink); color:var(--cream); border:4px solid var(--ink); box-shadow:6px 6px 0 var(--ink);
+  font-size:clamp(.9rem,1.4vw,1.25rem); font-weight:700; letter-spacing:.08em; text-transform:uppercase; cursor:pointer;
+  transition:transform .12s var(--ease), background .12s, color .12s, box-shadow .12s; }
+.bbtn:hover{ background:var(--red); transform:translate(-3px,-3px); box-shadow:10px 10px 0 var(--ink); }
+.bbtn.ghost{ background:var(--cream); color:var(--ink); }
+.bbtn.ghost:hover{ background:var(--red); color:var(--cream); }
+
+/* ============================================================ THE BLACK BOX (sticky right cutaway / ledger) */
+.xbox{ position:sticky; top:11vh; height:78vh; display:flex; flex-direction:column;
+  border:4px solid var(--ink); box-shadow:10px 10px 0 var(--ink); background:var(--cream);
+  background-image:radial-gradient(rgba(20,20,20,.13) 1px, transparent 1.4px); background-size:13px 13px; overflow:hidden; }
+.xhead{ display:flex; align-items:center; gap:10px; padding:10px 12px; border-bottom:3px solid var(--ink); background:var(--ink); color:var(--cream); }
+.xhead .xk{ font-size:9.5px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:var(--lime); }
+.xhead .xs{ margin-left:auto; font-size:9.5px; font-weight:700; letter-spacing:.12em; color:rgba(247,245,241,.7); }
+.xbody{ position:relative; flex:1; display:flex; flex-direction:column; min-height:0; }
+#xfill{ position:absolute; left:0; top:0; width:5px; height:0; background:var(--lime); z-index:3; box-shadow:0 0 8px rgba(180,255,46,.6); }
+.band{ position:relative; flex:1; min-height:0; display:flex; flex-direction:column; gap:6px; padding:12px 14px 12px 18px;
+  border-bottom:3px dashed rgba(20,20,20,.3); transition:background .25s; overflow:hidden; }
+.band:last-child{ border-bottom:none; }
+.band.active{ background:rgba(180,255,46,.16); }
+.band-tab{ display:flex; align-items:baseline; gap:8px; }
+.band-n{ font-family:var(--fd); font-weight:500; font-size:1.05rem; color:var(--gray); letter-spacing:.06em; }
+.band.active .band-n{ color:var(--ink); }
+.band-name{ font-family:var(--fd); font-weight:500; font-size:clamp(1.3rem,2.3vw,2rem); letter-spacing:.03em; text-transform:uppercase; line-height:.9; }
+.band-cnt{ margin-left:auto; font-size:10px; font-weight:700; letter-spacing:.08em; color:var(--gray); }
+.band.active .band-cnt{ color:var(--red); }
+.band-sub{ font-size:9.5px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--gray); }
+.band-slots{ display:flex; flex-wrap:wrap; align-content:flex-start; gap:6px; margin-top:6px; }
+.rcpt{ display:inline-flex; align-items:center; font-family:var(--fm); font-size:10px; font-weight:700; letter-spacing:.03em;
+  color:var(--cream); background:var(--ink); border:1.5px solid var(--ink); padding:4px 8px; white-space:nowrap;
+  opacity:0; transform:translateX(14px); transition:opacity .3s, transform .3s var(--spring); }
+.rcpt.in{ opacity:1; transform:none; }
+a.rcpt:hover{ background:var(--red); border-color:var(--red); }
+/* the probe marker that names the active band — "the band it's currently in" */
+.band-probe{ position:absolute; left:-4px; top:10px; display:none; align-items:center; gap:5px; background:var(--lime); color:var(--ink);
+  border:2px solid var(--ink); padding:2px 7px 2px 4px; font-size:9px; font-weight:700; letter-spacing:.1em; }
+.band.active .band-probe{ display:inline-flex; }
+
+/* ============================================================ FIXED INSTRUMENTS (probe line + readout, narrator) */
+#probe{ position:fixed; left:0; right:0; top:46vh; height:0; z-index:1100; pointer-events:none; opacity:0; transition:opacity .3s; }
+#probe.on{ opacity:1; }
+.pline{ position:absolute; left:0; right:0; top:0; height:2px; background:var(--lime); box-shadow:0 0 12px 1px rgba(180,255,46,.7); }
+.pcap{ position:absolute; left:0; top:-3px; width:52px; height:8px; background:var(--lime); }
+.pread{ position:absolute; right:clamp(14px,3vw,40px); top:-13px; display:inline-flex; align-items:center; gap:7px;
+  background:var(--ink); color:var(--lime); border:2px solid var(--lime); padding:5px 9px; font-size:10px; font-weight:700;
+  letter-spacing:.12em; text-transform:uppercase; white-space:nowrap; }
+.pread .pk{ color:var(--red-hot); }
+
+#narrator{ position:fixed; left:clamp(12px,2.5vw,30px); bottom:clamp(12px,3vh,28px); z-index:1090; display:flex; align-items:flex-end;
+  gap:10px; opacity:0; transform:translateY(8px); transition:opacity .3s, transform .3s; pointer-events:none; }
+#narrator.on{ opacity:1; transform:none; }
+#narrator svg{ width:80px; height:52px; color:var(--ink); }
+.meow{ margin-bottom:8px; font-size:11px; font-weight:600; letter-spacing:.04em; color:var(--ink); background:var(--cream);
+  border:2px solid var(--ink); box-shadow:3px 3px 0 var(--ink); padding:6px 10px; white-space:nowrap; }
+.meow::before{ content:"“"; } .meow::after{ content:"”"; }
+
+#tag{ position:fixed; left:50%; bottom:7px; transform:translateX(-50%); z-index:1400; font-size:9.5px; letter-spacing:.14em;
+  text-transform:uppercase; color:rgba(20,20,20,.4); pointer-events:none; }
+
+@media (max-width:900px){
+  .about-inner{ grid-template-columns:1fr; }
+  .xbox{ position:static; height:auto; min-height:60vh; }
+  #probe{ display:none; } #narrator{ display:none; }
+}
+@media (prefers-reduced-motion:reduce){ .mq-track,.avail .dot{ animation:none; } }
+</style>
+</head>
+<body>
+<div id="rail"><span id="railFill"></span></div>
+<div id="mono" title="scroll progress">
+  <svg viewBox="0 0 24 24" fill="none">
+    <ellipse class="mono-bg" cx="12" cy="12" rx="10.6" ry="3.9" transform="rotate(-26 12 12)" stroke-width="1.7"></ellipse>
+    <ellipse id="monoFill" class="mono-fill" cx="12" cy="12" rx="10.6" ry="3.9" pathLength="100" transform="rotate(-26 12 12)" stroke-width="2.4" stroke-dashoffset="100"></ellipse>
+    <circle cx="12" cy="12" r="3" fill="var(--ink)"></circle>
+    <circle cx="3.7" cy="16.1" r="1.7" fill="var(--ink)"></circle>
+  </svg>
+</div>
+
+<!-- ░░░░░░░░░░ ACT 1 — the hero, cracking open ░░░░░░░░░░ -->
+<div id="hero">
+  <div class="case-panel">
+    <div class="hrow bar">
+      <span class="pill">PORTFOLIO ’26</span>
+      <span class="meta">Bengaluru, India</span>
+      <span class="meta avail"><i class="dot"></i>Open to SWE / ML internships</span>
+      <span class="meta clock" id="clock">—</span>
+    </div>
+    <div class="hrow stage">
+      <div class="hname"><h1>SANTOSH</h1><h1 class="out">CHEETHIRALA</h1></div>
+      <div class="hphoto" id="heroPhoto">
+        <div class="cat-par" id="catPar"><div class="cat-jit" id="catJit"><img class="cat-img" src="cat.jpg" alt="pixel portrait" /></div></div>
+        <canvas class="cat-rain" id="catRain"></canvas>
+        <div class="cat-scan"></div><div class="cat-flash" id="catFlash"></div>
+        <span class="phototag" id="phototag" data-decode="[ it me ]">[ it me ]</span>
+      </div>
+    </div>
+    <div class="hrow mq">
+      <div class="mq-track">
+        <span>LOCAL-FIRST TOOLS&nbsp;&nbsp;✱&nbsp;&nbsp;TRANSPARENT ML&nbsp;&nbsp;✱&nbsp;&nbsp;GPU KERNELS IN THE BROWSER&nbsp;&nbsp;✱&nbsp;&nbsp;THE INTERNALS OF GPT-2&nbsp;&nbsp;✱&nbsp;&nbsp;GIT REBUILT IN C&nbsp;&nbsp;✱&nbsp;&nbsp;</span>
+        <span>LOCAL-FIRST TOOLS&nbsp;&nbsp;✱&nbsp;&nbsp;TRANSPARENT ML&nbsp;&nbsp;✱&nbsp;&nbsp;GPU KERNELS IN THE BROWSER&nbsp;&nbsp;✱&nbsp;&nbsp;THE INTERNALS OF GPT-2&nbsp;&nbsp;✱&nbsp;&nbsp;GIT REBUILT IN C&nbsp;&nbsp;✱&nbsp;&nbsp;</span>
+      </div>
+    </div>
+  </div>
+  <div class="seam s1" id="seam1"></div><div class="seam s2" id="seam2"></div>
+  <span class="stamp s-ui" id="stUi">UI</span><span class="stamp s-logic" id="stLogic">LOGIC</span><span class="stamp s-source" id="stSource">SOURCE</span>
+</div>
+<div id="flyPhoto"></div>
+<div id="heroSpacer"></div>
+
+<!-- ░░░░░░░░░░ ACT 2 — the black box ░░░░░░░░░░ -->
+<main id="about">
+  <div class="about-inner">
+
+    <!-- LEFT: the prose, dissected layer by layer -->
+    <div class="prose">
+
+      <!-- LAYER 01 · UI -->
+      <section class="lblk">
+        <div class="lkick"><span><b>// about</b></span><span class="lz">LAYER 01 · <b>UI</b></span></div>
+        <div class="uihead" data-band="UI" data-receipt="open to internships" data-href="#">
+          <span id="dockAvatar"></span>
+          <span class="uiname">Santosh Cheethirala</span>
+        </div>
+        <p class="thesis">Building local-first software and turning black-box ML into <span class="hot">glass</span>.</p>
+        <div class="uimeta">
+          <span class="uichip" data-band="UI" data-receipt="Bengaluru · IST">Bengaluru, India</span>
+          <span class="uichip" data-band="UI" data-receipt="B.Tech CSE · PESU"><b>B.Tech CSE</b> · PES University</span>
+          <a class="uichip" data-band="UI" data-receipt="résumé ↗" data-href="#"><b>Résumé</b> ↗</a>
+        </div>
+      </section>
+
+      <!-- LAYER 02 · LOGIC -->
+      <section class="lblk">
+        <div class="lkick"><span class="ln">Logic</span><span class="lz">LAYER 02 · <b>how I actually work</b></span></div>
+
+        <p class="claim" data-band="LOGIC" data-receipt="GlassBox" data-href="https://github.com/santoshcheethiralame-dot/GlassBox">
+          <span class="ctext">I take the black box apart until every layer is visible.</span>
+          <span class="cref">GlassBox — GPT-2 internals</span>
+        </p>
+        <p class="claim big" data-band="LOGIC" data-receipt="PESU Labs" data-href="#">
+          <span class="ctext">I care as much about <span class="hot">why</span> a system fails as whether it works.</span>
+          <span class="cref">PESU Intelligence Labs — incoming, hallucination attribution</span>
+        </p>
+        <p class="claim" data-band="LOGIC" data-receipt="GRADIENT" data-href="https://santoshcheethiralame-dot.github.io/GRADIENT/">
+          <span class="ctext">Local-first by default — your data, your GPU, no server.</span>
+          <span class="cref">GRADIENT — trains in the browser</span>
+        </p>
+        <p class="claim" data-band="LOGIC" data-receipt="pes-vcs" data-href="https://github.com/santoshcheethiralame-dot/PES1UG24CS127-pes-vcs">
+          <span class="ctext">I rebuild the tools I use until I understand them — Git in C, training in WGSL.</span>
+          <span class="cref">pes-vcs — Git from scratch</span>
+        </p>
+      </section>
+
+      <!-- LAYER 03 · SOURCE -->
+      <section class="lblk">
+        <div class="lkick"><span class="ln">Source</span><span class="lz">LAYER 03 · <b>the raw proof</b></span></div>
+
+        <article class="src" data-band="SOURCE" data-receipt="44/44 checks">
+          <div class="src-top"><i class="src-led"></i><span class="src-name">Gradient</span><span class="src-stat">SHIPPED</span></div>
+          <p class="src-body"><span class="hot">~97%</span> MNIST from a 2-layer MLP, trained entirely on your GPU in the browser; <code>44/44</code> kernel checks pass against an f64 CPU oracle; <span class="hot">0</span> deps; raw <code>WGSL</code> compute shaders.</p>
+        </article>
+        <article class="src" data-band="SOURCE" data-receipt="L0 fact site">
+          <div class="src-top"><i class="src-led"></i><span class="src-name">GlassBox</span><span class="src-stat">RESEARCH</span></div>
+          <p class="src-body">Activation patching localizes the <code>"France"</code> fact to <span class="hot">layer 0</span> — flipping the capital logit <code>+1.89 → −2.81</code>. All <span class="hot">144</span> attention heads, live.</p>
+        </article>
+        <article class="src" data-band="SOURCE" data-receipt="SHA-256 objects">
+          <div class="src-top"><i class="src-led"></i><span class="src-name">pes-vcs</span><span class="src-stat">BUILT</span></div>
+          <p class="src-body">Git, rebuilt from scratch in <span class="hot">C</span>: a <code>.pes/</code> store with <code>SHA-256</code> content-addressable objects, tree snapshots, a staging index, and commit history walked by parent pointers.</p>
+        </article>
+        <article class="src" data-band="SOURCE" data-receipt="&lt;5ms local">
+          <div class="src-top"><i class="src-led"></i><span class="src-name">Orbit</span><span class="src-stat">v3.2</span></div>
+          <p class="src-body">A local-first focus engine: <span class="hot">&lt;5ms</span> scheduling, no server; IndexedDB v11 (5 tables) with snapshot recovery; an installable offline PWA shipped to <span class="hot">5+</span> users.</p>
+        </article>
+
+        <div class="cta">
+          <a class="bbtn" href="#">View projects →</a>
+          <a class="bbtn ghost" href="#">Résumé ↗</a>
+          <button class="bbtn ghost" type="button" id="copyEmail" data-email="santoshcheethirala.me@gmail.com"><span id="copyLabel">Copy email</span></button>
+        </div>
+      </section>
+    </div>
+
+    <!-- RIGHT: the black box — bands fill with receipts as the probe lights them -->
+    <aside class="xbox" aria-label="The black box — UI / LOGIC / SOURCE">
+      <div class="xhead"><span class="xk">// THE BLACK BOX</span><span class="xs">SUBJECT — S. CHEETHIRALA</span></div>
+      <div class="xbody">
+        <span id="xfill"></span>
+        <div class="band" id="bandUI">
+          <span class="band-probe">◂ PROBE</span>
+          <div class="band-tab"><span class="band-n">01</span><span class="band-name">UI</span><span class="band-cnt" id="cntUI">(0)</span></div>
+          <span class="band-sub">the public surface</span>
+          <div class="band-slots" id="slotUI"></div>
+        </div>
+        <div class="band" id="bandLOGIC">
+          <span class="band-probe">◂ PROBE</span>
+          <div class="band-tab"><span class="band-n">02</span><span class="band-name">Logic</span><span class="band-cnt" id="cntLOGIC">(0)</span></div>
+          <span class="band-sub">how I actually work</span>
+          <div class="band-slots" id="slotLOGIC"></div>
+        </div>
+        <div class="band" id="bandSOURCE">
+          <span class="band-probe">◂ PROBE</span>
+          <div class="band-tab"><span class="band-n">03</span><span class="band-name">Source</span><span class="band-cnt" id="cntSOURCE">(0)</span></div>
+          <span class="band-sub">the raw proof</span>
+          <div class="band-slots" id="slotSOURCE"></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<div id="probe"><div class="pline"></div><span class="pcap"></span><span class="pread"><span class="pk">▸</span><span id="pread">PROBE · STANDBY</span></span></div>
+<div id="narrator">
+  <svg viewBox="0 0 120 78" fill="currentColor" aria-hidden="true">
+    <path d="M6 60 q0 -16 22 -16 h54 q26 0 26 16 q0 12 -16 12 H20 q-14 0 -14 -12 Z"></path>
+    <path d="M14 46 l2 -12 l9 9 Z M28 45 l2 -12 l8 10 Z"></path>
+    <path d="M104 56 q14 -2 14 -16 q0 -6 -5 -8 q4 5 1 11 q-3 7 -10 9 Z"></path>
+    <rect x="20" y="51" width="6" height="2.6" rx="1.3" fill="#f7f5f1"></rect>
+    <rect x="33" y="51" width="6" height="2.6" rx="1.3" fill="#f7f5f1"></rect>
+  </svg>
+  <span class="meow" id="meow">the version HR reads.</span>
+</div>
+<div id="tag">01 · crack-the-box → probe descent · UI / LOGIC / SOURCE ledger</div>
+
+<script>
+(function(){
+  'use strict';
+  var REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var $ = function(id){ return document.getElementById(id); };
+  var clamp = function(v,a,b){ return v<a?a:v>b?b:v; };
+  var lerp = function(a,b,t){ return a+(b-a)*t; };
+  var smooth = function(v,a,b){ var t=clamp((v-a)/(b-a),0,1); return t*t*(3-2*t); };
+  var VH = function(){ return window.innerHeight || document.documentElement.clientHeight || 800; };
+  var GLYPHS = 'ABCDEFGHJKLMNPQRSTUVWXYZ#@/[]0123456789'.split('');
+
+  /* ---------- single-text decode (tag, narrator) ---------- */
+  function decode(el, text, dur){
+    if(!el) return;
+    if(REDUCE){ el.textContent=text; return; }
+    if(el._raf) cancelAnimationFrame(el._raf);
+    var start=null;
+    function f(now){ if(start===null) start=now; var k=clamp((now-start)/(dur||520),0,1), rev=Math.floor(k*text.length), out='';
+      for(var i=0;i<text.length;i++){ var c=text[i]; out += (i<rev||c===' '||c==='·'||c==='['||c===']') ? c : GLYPHS[(Math.random()*GLYPHS.length)|0]; }
+      el.textContent=out; if(k<1) el._raf=requestAnimationFrame(f); else { el.textContent=text; el._raf=null; } }
+    el._raf=requestAnimationFrame(f);
+  }
+  /* ---------- structure-preserving decode for claim lines (keeps <span class="hot">) ---------- */
+  function collectChars(ct){
+    if(ct._chars) return ct._chars;
+    var walker=document.createTreeWalker(ct, NodeFilter.SHOW_TEXT, null), n, nodes=[], total=0;
+    while(n=walker.nextNode()){ nodes.push({node:n, orig:n.nodeValue}); total+=n.nodeValue.length; }
+    ct._chars={nodes:nodes, total:total}; return ct._chars;
+  }
+  function renderProgress(ct, rev){
+    var info=collectChars(ct), seen=0;
+    info.nodes.forEach(function(it){ var o=it.orig, s='';
+      for(var i=0;i<o.length;i++){ var c=o[i];
+        s += ((seen+i)<rev || c===' '||c==='—'||c==='·'||c===','||c==='.') ? c : GLYPHS[(Math.random()*GLYPHS.length)|0]; }
+      it.node.nodeValue=s; seen+=o.length; });
+  }
+  function scrambleEl(ct){ renderProgress(ct, 0); }
+  function decodeEl(ct, dur){
+    var info=collectChars(ct);
+    if(REDUCE){ renderProgress(ct, info.total); return; }
+    if(ct._raf) cancelAnimationFrame(ct._raf);
+    var start=null;
+    function f(now){ if(start===null) start=now; var k=clamp((now-start)/(dur||500),0,1);
+      renderProgress(ct, Math.floor(k*info.total));
+      if(k<1) ct._raf=requestAnimationFrame(f); else { renderProgress(ct, info.total); ct._raf=null; } }
+    ct._raf=requestAnimationFrame(f);
+  }
+
+  /* ============================== live IST clock ============================== */
+  var clock=$('clock');
+  function tick(){ try{ clock.textContent=new Intl.DateTimeFormat('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false,timeZone:'Asia/Kolkata'}).format(new Date())+' IST'; }catch(e){ clock.textContent='—'; } }
+  tick(); setInterval(tick,1000);
+
+  /* ============================== reactive cat (ACT 1) ============================== */
+  var hero=$('hero'), heroPhoto=$('heroPhoto'), par=$('catPar'), jit=$('catJit'), flash=$('catFlash'), rainCv=$('catRain');
+  var ctx=rainCv.getContext('2d'), dpr=Math.min(2,window.devicePixelRatio||1), drops=[];
+  function seed(){ var w=rainCv.width/dpr,h=rainCv.height/dpr,n=Math.max(36,Math.min(110,Math.round(w*h/2700))); drops=[];
+    for(var i=0;i<n;i++){ var near=Math.random()>0.55; drops.push({x:Math.random()*w,y:Math.random()*h,
+      len:near?14+Math.random()*16:7+Math.random()*9, sp:near?9+Math.random()*6:4+Math.random()*4, w:near?2:1,
+      a:near?0.3+Math.random()*0.2:0.12+Math.random()*0.1}); } }
+  function sizeRain(){ var r=heroPhoto.getBoundingClientRect(); rainCv.width=Math.max(1,Math.round(r.width*dpr)); rainCv.height=Math.max(1,Math.round(r.height*dpr)); ctx.setTransform(dpr,0,0,dpr,0,0); seed(); }
+  function drawRain(){ var w=rainCv.width/dpr,h=rainCv.height/dpr; ctx.clearRect(0,0,w,h);
+    for(var i=0;i<drops.length;i++){ var d=drops[i]; ctx.fillStyle='rgba(214,221,236,'+d.a+')'; ctx.fillRect(Math.round(d.x),Math.round(d.y),d.w,d.len);
+      if(!REDUCE){ d.y+=d.sp; d.x+=0.6; } if(d.y>h){ d.y=-d.len; d.x=Math.random()*w; } } }
+  var LEAN=9, tx=0,ty=0,cx=0,cy=0;
+  hero.addEventListener('pointermove',function(e){ var r=heroPhoto.getBoundingClientRect();
+    tx=clamp(((e.clientX-r.left)/r.width-0.5)*2,-1,1)*LEAN; ty=clamp(((e.clientY-r.top)/r.height-0.5)*2,-1,1)*LEAN*0.7; });
+  hero.addEventListener('pointerleave',function(){ tx=0; ty=0; });
+  function scheduleGlitch(){ if(REDUCE) return; setTimeout(function(){ jit.classList.add('glitch'); flash.classList.add('go');
+    setTimeout(function(){ jit.classList.remove('glitch'); flash.classList.remove('go'); },170); scheduleGlitch(); }, 3500+Math.random()*5500); }
+
+  /* ============================== ACT 1 — crack + portrait FLIP dock ============================== */
+  var caseEl=document.querySelector('.case-panel'), flyPhoto=$('flyPhoto'), dockAvatar=$('dockAvatar'),
+      barRow=document.querySelector('.hrow.bar'), stageRow=document.querySelector('.hrow.stage'), mqRow=document.querySelector('.hrow.mq'),
+      seam1=$('seam1'), seam2=$('seam2'), stUi=$('stUi'), stLogic=$('stLogic'), stSource=$('stSource');
+  flyPhoto.style.backgroundImage="url('cat.jpg')"; dockAvatar.style.backgroundImage="url('cat.jpg')";
+
+  function applyCrack(lp){
+    var open = smooth(lp,0.12,0.92), vh=VH();
+    barRow.style.transform = 'translateY('+(-open*vh*0.55)+'px)'; barRow.style.opacity=String(1-smooth(lp,0.12,0.5));
+    mqRow.style.transform  = 'translateY('+( open*vh*0.55)+'px)'; mqRow.style.opacity =String(1-smooth(lp,0.12,0.5));
+    stageRow.style.opacity = String(1-smooth(lp,0.5,0.82));
+    caseEl.style.opacity   = String(1-smooth(lp,0.55,0.96));
+    var sg=smooth(lp,0.12,0.7)*(1-smooth(lp,0.86,1));
+    [seam1,seam2].forEach(function(s,i){ s.style.opacity=String(sg); s.style.height=(smooth(lp,0.12,0.7)*5+1)+'px'; s.style.top=(i?66:33)+'%'; });
+    stUi.style.opacity=String(smooth(lp,0.16,0.34)*(1-smooth(lp,0.42,0.58))); stUi.style.transform='translateY('+(-open*vh*0.5)+'px) rotate(3deg)';
+    stLogic.style.opacity=String(smooth(lp,0.24,0.42)*(1-smooth(lp,0.56,0.74)));
+    stSource.style.opacity=String(smooth(lp,0.16,0.34)*(1-smooth(lp,0.42,0.58))); stSource.style.transform='translateY('+(open*vh*0.5)+'px) rotate(-3deg)';
+    // portrait lifts out and tracks the (rising) About avatar
+    var t=smooth(lp,0.4,0.95), hr=heroPhoto.getBoundingClientRect(), av=dockAvatar.getBoundingClientRect();
+    flyPhoto.style.opacity=(lp>0.05 && lp<0.99)?'1':'0';
+    flyPhoto.style.left=lerp(hr.left,av.left,t)+'px'; flyPhoto.style.top=lerp(hr.top,av.top,t)+'px';
+    flyPhoto.style.width=lerp(hr.width,av.width,t)+'px'; flyPhoto.style.height=lerp(hr.height,av.height,t)+'px';
+    dockAvatar.style.opacity = lp>0.97 ? '1':'0';
+  }
+
+  /* ============================== ACT 2 — the black box ============================== */
+  var about=$('about'), probe=$('probe'), pread=$('pread'), narrator=$('narrator'), meow=$('meow'),
+      railFill=$('railFill'), monoFill=$('monoFill'), xfill=$('xfill');
+  var anchors=[].slice.call(document.querySelectorAll('[data-band]'));
+  // seed claim text as glyph-noise — but only what's below the fold; anything on-screen at load stays resolved
+  anchors.forEach(function(a){ a._ct=a.querySelector('.ctext'); if(!a._ct) return; collectChars(a._ct);
+    if(REDUCE || a.getBoundingClientRect().top < VH()*0.82) a._dec=true; else scrambleEl(a._ct); });
+
+  var BANDS={ UI:{n:'01',meow:'the version HR reads.'}, LOGIC:{n:'02',meow:'ok — the real answer.'}, SOURCE:{n:'03',meow:'show, don’t tell. fine.'} };
+  var curBand='';
+  function setBand(name){ if(name===curBand) return; curBand=name;
+    ['UI','LOGIC','SOURCE'].forEach(function(b){ $('band'+b).classList.toggle('active', b===name); });
+    pread.textContent='PROBE · LAYER '+BANDS[name].n+' · '+name;
+    decode(meow, BANDS[name].meow, 600);
+  }
+  function dockReceipt(band, text, href){
+    var slot=$('slot'+band); if(!slot) return;
+    var use=href && href!=='#', el=document.createElement(use?'a':'span'); el.className='rcpt';
+    if(use){ el.href=href; el.target='_blank'; el.rel='noopener'; }
+    el.innerHTML='▸ '+text; slot.appendChild(el);
+    requestAnimationFrame(function(){ el.classList.add('in'); });
+    var cnt=$('cnt'+band); if(cnt) cnt.textContent='('+slot.children.length+')';
+  }
+
+  function updateAbout(){
+    var vh=VH(), probeY=vh*0.46, decodeY=vh*0.82, ar=about.getBoundingClientRect();
+    var inAbout = ar.top < vh*0.82;
+    probe.classList.toggle('on', inAbout); narrator.classList.toggle('on', inAbout);
+    var active=null;
+    anchors.forEach(function(a){
+      var r=a.getBoundingClientRect();
+      if(a._ct && !a._dec && r.top < decodeY){ a._dec=true; decodeEl(a._ct, 460); }   // latching decode (gates load-visible to resolved)
+      if(r.top < probeY){
+        if(!a._docked && a.dataset.receipt){ a._docked=true; dockReceipt(a.dataset.band, a.dataset.receipt, a.dataset.href); }
+        a.classList.add('lit'); active=a.dataset.band;
+      }
+    });
+    if(active) setBand(active);
+    var depth = clamp((probeY - ar.top)/Math.max(1, about.offsetHeight - vh*0.4), 0, 1);
+    xfill.style.height=(depth*100).toFixed(1)+'%';
+  }
+
+  /* ============================== master loop ============================== */
+  function frame(){
+    var vh=VH(), y=window.pageYOffset||document.documentElement.scrollTop||0, lp=clamp(y/(vh*0.95),0,1);
+    applyCrack(lp);
+    hero.style.visibility = lp>=0.995 ? 'hidden':'visible';
+    hero.style.pointerEvents = lp>0.4 ? 'none':'';
+    if(lp<0.6) drawRain();
+    updateAbout();
+    var doc=document.documentElement, max=doc.scrollHeight-doc.clientHeight, gp=max>0?clamp(doc.scrollTop/max,0,1):0;
+    railFill.style.width=(gp*100).toFixed(2)+'%'; monoFill.setAttribute('stroke-dashoffset', String(100-gp*100));
+    requestAnimationFrame(frame);
+  }
+  function boot(){ sizeRain(); decode($('phototag'),'[ it me ]',700); scheduleGlitch(); applyCrack(0); requestAnimationFrame(frame); }
+  window.addEventListener('resize', sizeRain);
+  if(document.fonts && document.fonts.ready){ document.fonts.ready.then(boot); } else { window.addEventListener('load', boot); }
+  setTimeout(function(){ if(!drops.length) boot(); }, 1200);
+
+  /* copy-email affordance */
+  var copyBtn=$('copyEmail');
+  if(copyBtn) copyBtn.addEventListener('click', function(){ var em=copyBtn.getAttribute('data-email');
+    var done=function(){ $('copyLabel').textContent='Copied ✓'; setTimeout(function(){ $('copyLabel').textContent='Copy email'; },1400); };
+    if(navigator.clipboard) navigator.clipboard.writeText(em).then(done,done); else done(); });
+})();
+</script>
+</body>
+</html>

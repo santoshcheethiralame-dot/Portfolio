@@ -1,0 +1,712 @@
+<!doctype html>
+<html lang="en" data-mock="transit">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CHEETHIRALA TRANSIT AUTHORITY · SYSTEM MAP 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --ink:#141414; --cream:#f7f5f1; --cream2:#efece4; --red:#ed1c24; --red-hot:#ff5247;
+  --lime:#b4ff2e; --black:#0a0a0a; --gray:#928b80;
+  --fd:"Anton",sans-serif; --fm:"JetBrains Mono",monospace; --fi:"Instrument Serif",serif;
+}
+*{ box-sizing:border-box; margin:0; padding:0; }
+html{ -webkit-font-smoothing:antialiased; }
+body{ background:var(--cream); color:var(--ink); font-family:var(--fm); min-height:100vh; }
+::selection{ background:var(--ink); color:var(--lime); }
+a{ color:inherit; text-decoration:none; }
+
+/* ---- PAGE WRAPPER ---- */
+.page{
+  max-width:1400px; margin:0 auto;
+  padding:clamp(18px,3vw,56px) clamp(14px,3vw,52px) 80px;
+}
+
+/* ---- TITLE BLOCK ---- */
+.title-block{
+  border:3px solid var(--ink); background:var(--ink); color:var(--cream);
+  box-shadow:7px 7px 0 var(--red);
+  padding:clamp(14px,2.2vw,28px) clamp(18px,2.8vw,40px);
+  margin-bottom:clamp(18px,3vw,40px);
+  display:flex; flex-wrap:wrap; align-items:baseline; gap:12px 28px;
+  position:relative; overflow:hidden;
+}
+.title-block::before{
+  content:"";
+  position:absolute; inset:0;
+  background:repeating-linear-gradient(
+    90deg,
+    rgba(180,255,46,.04) 0 1px,
+    transparent 1px 28px
+  );
+  pointer-events:none;
+}
+.t-auth{
+  font-family:var(--fd); font-size:clamp(1.4rem,4.5vw,3.8rem);
+  letter-spacing:.04em; text-transform:uppercase;
+  color:var(--cream); line-height:1;
+}
+.t-sub{
+  font-family:var(--fm); font-size:clamp(.65rem,1.3vw,1rem);
+  font-weight:700; letter-spacing:.18em; text-transform:uppercase;
+  color:rgba(247,245,241,.55);
+  display:flex; flex-direction:column; gap:4px;
+}
+.t-sub .yr{ color:var(--lime); }
+.t-tagline{
+  margin-left:auto; font-family:var(--fi); font-style:italic;
+  font-size:clamp(.8rem,1.4vw,1.1rem); color:rgba(247,245,241,.7);
+  max-width:28ch; text-align:right; align-self:center;
+}
+.t-chip{
+  font-family:var(--fm); font-size:10px; font-weight:700; letter-spacing:.1em;
+  text-transform:uppercase; border:2px solid var(--lime); color:var(--lime);
+  padding:4px 10px; align-self:center;
+}
+
+/* ---- MAP WRAPPER ---- */
+.map-outer{
+  border:3px solid var(--ink); box-shadow:7px 7px 0 var(--ink);
+  background:var(--cream);
+  background-image:
+    radial-gradient(circle, rgba(20,20,20,.09) 1px, transparent 1px);
+  background-size:22px 22px;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  position:relative;
+  margin-bottom:clamp(18px,3vw,36px);
+}
+.map-outer::after{
+  content:"swipe →";
+  display:none;
+  position:absolute; right:12px; bottom:10px;
+  font-family:var(--fm); font-size:10px; font-weight:700; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--gray); pointer-events:none;
+}
+@media(max-width:860px){
+  .map-outer::after{ display:block; }
+}
+.map-svg-wrap{
+  min-width:780px;
+}
+.map-svg-wrap svg{
+  display:block; width:100%; height:auto;
+}
+
+/* ---- BOTTOM ROW: LEGEND + DEPARTURE ---- */
+.bottom-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);
+  gap:clamp(14px,2.5vw,32px);
+  align-items:start;
+}
+@media(max-width:680px){
+  .bottom-row{ grid-template-columns:1fr; }
+}
+
+/* ---- LEGEND ---- */
+.legend{
+  border:3px solid var(--ink); box-shadow:6px 6px 0 var(--ink);
+  background:var(--cream2);
+  padding:clamp(12px,1.8vw,22px) clamp(14px,2vw,24px);
+}
+.legend-head{
+  font-family:var(--fd); font-size:clamp(1rem,2vw,1.5rem);
+  letter-spacing:.08em; text-transform:uppercase;
+  border-bottom:3px solid var(--ink); padding-bottom:8px; margin-bottom:14px;
+}
+.legend-grid{ display:flex; flex-direction:column; gap:8px; }
+.legend-row{
+  display:flex; align-items:center; gap:10px;
+  font-family:var(--fm); font-size:clamp(.65rem,1.2vw,.88rem);
+  font-weight:700; letter-spacing:.05em;
+}
+.lg-line{
+  flex:none; width:42px; height:5px;
+}
+.lg-line.role{ background:var(--ink); }
+.lg-line.ship{ background:var(--red); }
+.lg-line.side{
+  background:repeating-linear-gradient(
+    90deg, var(--gray) 0 5px, transparent 5px 10px
+  );
+}
+.lg-sym{
+  flex:none; width:20px; text-align:center;
+  font-size:1.05rem; line-height:1;
+}
+.legend-warn{
+  margin-top:12px; border:2px solid var(--red);
+  background:rgba(237,28,36,.07); padding:7px 11px;
+  font-family:var(--fm); font-size:clamp(.6rem,1.1vw,.82rem);
+  font-weight:700; letter-spacing:.05em; color:var(--red);
+  display:flex; align-items:flex-start; gap:8px;
+}
+.legend-cat{
+  margin-top:14px; border-top:2px dashed rgba(20,20,20,.2); padding-top:12px;
+  display:flex; align-items:center; gap:12px;
+}
+.cat-img{
+  width:48px; height:48px; object-fit:cover; image-rendering:pixelated;
+  border:2px solid var(--ink); box-shadow:3px 3px 0 var(--ink);
+  flex:none;
+}
+.cat-caption{
+  font-family:var(--fm); font-size:clamp(.58rem,1vw,.78rem);
+  font-weight:700; letter-spacing:.05em; color:var(--gray);
+  line-height:1.55;
+}
+.cat-caption b{ color:var(--ink); display:block; margin-bottom:3px; }
+
+/* ---- DEPARTURE BOARD ---- */
+.departure{
+  border:3px solid var(--ink); box-shadow:6px 6px 0 var(--ink);
+  background:var(--ink); color:var(--cream);
+  padding:clamp(14px,2vw,26px) clamp(16px,2.2vw,28px);
+}
+.dep-head{
+  font-family:var(--fd); font-size:clamp(.9rem,1.8vw,1.4rem);
+  letter-spacing:.1em; text-transform:uppercase;
+  color:var(--lime); border-bottom:2px solid rgba(247,245,241,.18);
+  padding-bottom:10px; margin-bottom:14px;
+  display:flex; align-items:center; gap:10px;
+}
+.dep-head .dep-blink{
+  width:9px; height:9px; border-radius:50%;
+  background:var(--lime); flex:none;
+  animation:blink 1.6s steps(1) infinite;
+}
+@keyframes blink{ 50%{ opacity:.2; } }
+.dep-row{
+  display:flex; flex-direction:column; gap:11px;
+}
+.dep-item{
+  font-family:var(--fm); font-size:clamp(.62rem,1.15vw,.88rem);
+  font-weight:700; letter-spacing:.06em; line-height:1.5;
+}
+.dep-item .dep-label{
+  color:rgba(247,245,241,.5); text-transform:uppercase;
+  font-size:.65em; letter-spacing:.16em; display:block; margin-bottom:2px;
+}
+.dep-item a{
+  color:var(--cream); text-decoration:underline; text-underline-offset:3px;
+  text-decoration-color:rgba(247,245,241,.35);
+}
+.dep-item a:hover{ color:var(--lime); }
+.dep-doors{
+  margin-top:16px; background:rgba(180,255,46,.12); border:2px solid var(--lime);
+  padding:10px 12px;
+  font-family:var(--fm); font-size:clamp(.62rem,1.1vw,.84rem);
+  font-weight:700; letter-spacing:.05em; color:var(--lime); line-height:1.6;
+}
+
+/* ---- FIXED FOOTER ---- */
+#tag{
+  position:fixed; left:50%; bottom:7px; transform:translateX(-50%);
+  z-index:999; font-family:var(--fm); font-size:9.5px;
+  letter-spacing:.14em; text-transform:uppercase;
+  color:rgba(20,20,20,.38); pointer-events:none;
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- TITLE BLOCK -->
+  <header class="title-block">
+    <div class="t-auth">CHEETHIRALA TRANSIT AUTHORITY</div>
+    <div class="t-sub">
+      <span>SYSTEM MAP</span>
+      <span class="yr">· 2026 ·</span>
+    </div>
+    <span class="t-chip">OPERATIONAL</span>
+    <p class="t-tagline">mind the gap (in the docs)</p>
+  </header>
+
+  <!-- MAP -->
+  <div class="map-outer">
+    <div class="map-svg-wrap">
+      <!--
+        COORDINATE SYSTEM (viewBox="0 0 1100 620"):
+        ROLE LINE (ink):   y=160  — left terminus PES UNIV → SAHAY AI → PI LABS → HERE
+        SHIP LINE (red):   y=340  — left terminus FIRST SHIP → pes-vcs → GRADIENT → GLASSBOX → ORBIT → HERE
+        Both lines converge at HERE terminus at x≈980, y≈250 (diagonal join)
+        SIDE-QUEST (gray dotted): branches down-right from ORBIT area toward bottom
+        INTERCHANGE: ORBIT (x≈800) is near the role line too, marked with double ring
+        Actually: keep lines strictly horizontal then converge with diagonal at end.
+
+        REVISED LAYOUT:
+          ROLE LINE   y=180, x: 90 → 920 (horizontal), then diagonal to HERE at (980,250)
+          SHIP LINE   y=320, x: 90 → 920 (horizontal), then diagonal to HERE at (980,250)
+          HERE terminus: (980,250) — lime ring, large
+          SIDE-QUEST: branches from ORBIT station (800,320) → diagonal down to x≈920,y≈460
+          Station positions (role line y=180):
+            PES UNIV terminus: x=90
+            SAHAY AI:          x=380
+            PI LABS:           x=640
+          Station positions (ship line y=320):
+            FIRST SHIP:        x=90  (light gray station, origin terminus)
+            pes-vcs:           x=250
+            GRADIENT:          x=430
+            GLASSBOX:          x=610
+            ORBIT:             x=800  ← interchange with SIDE-QUEST
+          INTERCHANGE between lines: a vertical connector at x=640 between PI LABS (180) and GLASSBOX (320)
+          SIDE-QUEST from ORBIT (800,320): diagonal down to ROBLOX(870,420), NOODLE BAR(870,460), AIR RIFLE(870,500), FILTER COFFEE(870,540)
+      -->
+      <svg viewBox="0 0 1100 640" xmlns="http://www.w3.org/2000/svg"
+           preserveAspectRatio="xMidYMid meet" aria-label="Cheethirala Transit Authority system map 2026">
+
+        <!-- ======== BACKGROUND PANEL ======== -->
+        <rect x="0" y="0" width="1100" height="640" fill="#f7f5f1"/>
+
+        <!-- subtle grid -->
+        <defs>
+          <pattern id="grid" x="0" y="0" width="44" height="44" patternUnits="userSpaceOnUse">
+            <path d="M44 0H0V44" fill="none" stroke="rgba(20,20,20,.06)" stroke-width="1"/>
+          </pattern>
+        </defs>
+        <rect x="0" y="0" width="1100" height="640" fill="url(#grid)"/>
+
+        <!-- ======== SIDE-QUEST BRANCH (draw first / under main lines) ======== -->
+        <!-- from ORBIT (800,320) going down-right to a vertical stem at x=880 -->
+        <polyline
+          points="800,320 800,390 880,390"
+          fill="none" stroke="#928b80" stroke-width="5"
+          stroke-dasharray="10 7" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- vertical stem of side-quest -->
+        <line x1="880" y1="390" x2="880" y2="560"
+          stroke="#928b80" stroke-width="5"
+          stroke-dasharray="10 7" stroke-linecap="round"/>
+
+        <!-- ======== INTERCHANGE CONNECTOR (PI LABS ↔ GLASSBOX at x=640) ======== -->
+        <!-- vertical bridge between role line (y=180) and ship line (y=320) -->
+        <line x1="640" y1="180" x2="640" y2="320"
+          stroke="#141414" stroke-width="4" stroke-dasharray="6 5" opacity=".35"/>
+
+        <!-- ======== ROLE LINE (INK) ======== -->
+        <!-- horizontal segment -->
+        <line x1="90" y1="180" x2="920" y2="180"
+          stroke="#141414" stroke-width="9" stroke-linecap="square"/>
+        <!-- diagonal to HERE -->
+        <line x1="920" y1="180" x2="960" y2="250"
+          stroke="#141414" stroke-width="9" stroke-linecap="round"/>
+
+        <!-- ======== SHIP LINE (RED) ======== -->
+        <!-- horizontal segment -->
+        <line x1="90" y1="320" x2="920" y2="320"
+          stroke="#ed1c24" stroke-width="9" stroke-linecap="square"/>
+        <!-- diagonal to HERE -->
+        <line x1="920" y1="320" x2="960" y2="250"
+          stroke="#ed1c24" stroke-width="9" stroke-linecap="round"/>
+
+        <!-- HERE convergence connector (short merge bar) -->
+        <line x1="958" y1="250" x2="980" y2="250"
+          stroke="#141414" stroke-width="12" stroke-linecap="round"/>
+
+        <!-- ======================================================
+             STATIONS — ROLE LINE (y=180)
+        ======================================================= -->
+
+        <!-- PES UNIVERSITY — TERMINUS (origin) -->
+        <!-- terminus bar -->
+        <rect x="82" y="162" width="10" height="36" fill="#141414" rx="2"/>
+        <circle cx="92" cy="180" r="13" fill="#141414"/>
+        <circle cx="92" cy="180" r="7" fill="#f7f5f1"/>
+        <!-- label -->
+        <text x="92" y="148" text-anchor="middle"
+          font-family="'JetBrains Mono',monospace" font-weight="700" font-size="11"
+          fill="#141414" letter-spacing="1.2">PES UNIVERSITY</text>
+        <text x="92" y="138" text-anchor="middle"
+          font-family="'JetBrains Mono',monospace" font-weight="700" font-size="10"
+          fill="#928b80" letter-spacing=".8">BENGALURU · 2024</text>
+        <text x="92" y="127" text-anchor="middle"
+          font-family="'JetBrains Mono',monospace" font-weight="700" font-size="9"
+          fill="#928b80" letter-spacing=".5">CGPA 7.95 · CSE</text>
+
+        <!-- SAHAY AI -->
+        <circle cx="380" cy="180" r="10" fill="#141414"/>
+        <circle cx="380" cy="180" r="5" fill="#f7f5f1"/>
+        <!-- label above -->
+        <text x="380" y="148" text-anchor="middle"
+          font-family="'JetBrains Mono',monospace" font-weight="700" font-size="11"
+          fill="#141414" letter-spacing="1">SAHAY AI</text>
+        <text x="380" y="137" text-anchor="middle"
+          font-family="'JetBrains Mono',monospace" font-weight="400" font-size="9.5"
+          fill="#928b80" letter-spacing=".6">MULTIMEDIA HEAD</text>
+        <text x="380" y="126" text-anchor="middle"
+          font-family="'JetBrains Mono',monospace" font-weight="400" font-size="9"
+          fill="#928b80" letter-spacing=".5">OCT '25–MAR '26</text>
+        <text x="380" y="115" text-anchor="middle"
+          font-family="'JetBrains Mono',monospace" font-weight="700" font-size="9"
+          fill="#ed1c24" letter-spacing=".5">5–6× VIEWS</text>
+
+        <!-- PI LABS — INTERCHANGE (double ring) -->
+        <circle cx="640" cy="180" r="14" fill="#f7f5f1" stroke="#141414" stroke-width="5"/>
+        <circle cx="640" cy="180" r="6" fill="#141414"/>
+        <!-- interchange ring outer -->
+        <circle cx="640" cy="180" r="22" fill="none" stroke="#141414" stroke-width="2.5" stroke-dasharray="4 3"/>
+        <!-- label above -->
+        <text x="640" y="140" text-anchor="middle"
+          font-family="'JetBrains Mono',monospace" font-weight="700" font-size="11"
+          fill="#141414" letter-spacing="1">PI LABS</text>
+        <text x="640" y="129" text-anchor="middle"
+          font-family="'JetBrains Mono',monospace" font-weight="400" font-size="9.5"
+          fill="#928b80" letter-spacing=".6">RESEARCH INTERN</text>
+        <text x="640" y="118" text-anchor="middle"
+          font-family="'JetBrains Mono',monospace" font-weight="700" font-size="9"
+          fill="#ed1c24" letter-spacing=".5">INCOMING · JUN–JUL '26</text>
+        <text x="640" y="107" text-anchor="middle"
+          font-family="'JetBrains Mono',monospace" font-weight="400" font-size="8.5"
+          fill="#928b80" letter-spacing=".4">RAG + LLM RELIABILITY</text>
+        <!-- interchange label below (between lines) -->
+        <text x="640" y="222" text-anchor="middle"
+          font-family="'JetBrains Mono',monospace" font-weight="700" font-size="9"
+          fill="#928b80" letter-spacing=".8">◎ INTERCHANGE</text>
+
+        <!-- ======================================================
+             STATIONS — SHIP LINE (y=320)
+        ======================================================= -->
+
+        <!-- FIRST SHIP — simple small terminus (no-logo origin) -->
+        <rect x="82" y="302" width="10" height="36" fill="#ed1c24" rx="2"/>
+        <circle cx="92" cy="320" r="12" fill="#ed1c24"/>
+        <circle cx="92" cy="320" r="6" fill="#f7f5f1"/>
+        <text x="92" y="351" text-anchor="middle"
+          font-family="'JetBrains Mono',monospace" font-weight="700" font-size="10"
+          fill="#ed1c24" letter-spacing="1">FIRST SHIP</text>
+        <text x="92" y="363" text-anchor="middle"
+          font-family="'JetBrains Mono',monospace" font-weight="400" font-size="9"
+          fill="#928b80" letter-spacing=".5">origin depot</text>
+
+        <!-- pes-vcs -->
+        <circle cx="250" cy="320" r="10" fill="#ed1c24"/>
+        <circle cx="250" cy="320" r="5" fill="#f7f5f1"/>
+        <text x="250" y="351" text-anchor="middle"
+          font-family="'JetBrains Mono',monospace" font-weight="700" font-size="11"
+          fill="#141414" letter-spacing="1">pes-vcs</text>
+        <text x="250" y="363" text-anchor="middle"
+          font-family="'JetBrains Mono',monospace" font-weight="400" font-size="9.5"
+          fill="#928b80" letter-spacing=".6">GIT IN C</text>
+        <text x="250" y="374" text-anchor="middle"
+          font-family="'JetBrains Mono',monospace" font-weight="700" font-size="9"
+          fill="#928b80" letter-spacing=".4">SHA-256 OBJECTS</text>
+
+        <!-- GRADIENT -->
+        <circle cx="430" cy="320" r="10" fill="#ed1c24"/>
+        <circle cx="430" cy="320" r="5" fill="#f7f5f1"/>
+        <text x="430" y="351" text-anchor="middle"
+          font-family="'JetBrains Mono',monospace" font-weight="700" font-size="11"
+          fill="#141414" letter-spacing="1">GRADIENT</text>
+        <text x="430" y="363" text-anchor="middle"
+          font-family="'JetBrains Mono',monospace" font-weight="400" font-size="9.5"
+          fill="#928b80" letter-spacing=".6">IN-BROWSER GPU</text>
+        <text x="430" y="374" text-anchor="middle"
+          font-family="'JetBrains Mono',monospace" font-weight="700" font-size="9"
+          fill="#ed1c24" letter-spacing=".4">~97% MNIST · 44/44</text>
+
+        <!-- GLASSBOX — INTERCHANGE (at same x as PI LABS) -->
+        <circle cx="640" cy="320" r="14" fill="#f7f5f1" stroke="#ed1c24" stroke-width="5"/>
+        <circle cx="640" cy="320" r="6" fill="#ed1c24"/>
+        <circle cx="640" cy="320" r="22" fill="none" stroke="#ed1c24" stroke-width="2.5" stroke-dasharray="4 3"/>
+        <text x="640" y="352" text-anchor="middle"
+          font-family="'JetBrains Mono',monospace" font-weight="700" font-size="11"
+          fill="#141414" letter-spacing="1">GLASSBOX</text>
+        <text x="640" y="364" text-anchor="middle"
+          font-family="'JetBrains Mono',monospace" font-weight="400" font-size="9.5"
+          fill="#928b80" letter-spacing=".6">GPT-2 INTERPRETABILITY</text>
+        <text x="640" y="375" text-anchor="middle"
+          font-family="'JetBrains Mono',monospace" font-weight="700" font-size="9"
+          fill="#ed1c24" letter-spacing=".4">144 HEADS · LAYER 0</text>
+
+        <!-- ORBIT — INTERCHANGE with SIDE-QUEST -->
+        <circle cx="800" cy="320" r="13" fill="#f7f5f1" stroke="#ed1c24" stroke-width="5"/>
+        <circle cx="800" cy="320" r="5.5" fill="#ed1c24"/>
+        <!-- interchange ring for side-quest connection -->
+        <circle cx="800" cy="320" r="21" fill="none" stroke="#928b80" stroke-width="2.5" stroke-dasharray="5 4"/>
+        <text x="800" y="352" text-anchor="middle"
+          font-family="'JetBrains Mono',monospace" font-weight="700" font-size="11"
+          fill="#141414" letter-spacing="1">ORBIT</text>
+        <text x="800" y="364" text-anchor="middle"
+          font-family="'JetBrains Mono',monospace" font-weight="400" font-size="9.5"
+          fill="#928b80" letter-spacing=".6">LOCAL-FIRST PWA</text>
+        <text x="800" y="375" text-anchor="middle"
+          font-family="'JetBrains Mono',monospace" font-weight="700" font-size="9"
+          fill="#928b80" letter-spacing=".4">&lt;5ms · 5+ USERS</text>
+
+        <!-- ======================================================
+             HERE — TERMINUS (LIME, both lines)
+        ======================================================= -->
+        <!-- lime halo -->
+        <circle cx="980" cy="250" r="34" fill="rgba(180,255,46,.22)"/>
+        <!-- lime terminus bar -->
+        <rect x="1014" y="232" width="14" height="36" fill="#b4ff2e" rx="2" stroke="#141414" stroke-width="2"/>
+        <!-- lime outer ring -->
+        <circle cx="980" cy="250" r="24" fill="#b4ff2e" stroke="#141414" stroke-width="4"/>
+        <circle cx="980" cy="250" r="11" fill="#141414"/>
+        <!-- YOU ARE HERE label — single clean stack above the lines, no overlap -->
+        <text x="983" y="140" text-anchor="middle"
+          font-family="'Anton',sans-serif" font-size="17"
+          fill="#141414" letter-spacing="1.5">HERE · 2026</text>
+        <rect x="886" y="150" width="194" height="26" rx="1"
+          fill="#141414" stroke="#b4ff2e" stroke-width="2"/>
+        <text x="983" y="167" text-anchor="middle"
+          font-family="'JetBrains Mono',monospace" font-weight="700" font-size="10"
+          fill="#b4ff2e" letter-spacing="1">▸ YOU ARE HERE · OPEN TO INTERNSHIPS</text>
+
+        <!-- ======================================================
+             SIDE-QUEST STATIONS (gray dotted branch, y from 390 down)
+        ======================================================= -->
+
+        <!-- side-quest header label -->
+        <text x="920" y="383" text-anchor="middle"
+          font-family="'JetBrains Mono',monospace" font-weight="700" font-size="9.5"
+          fill="#928b80" letter-spacing="1">··· SIDE QUESTS</text>
+
+        <!-- ROBLOX -->
+        <circle cx="880" cy="410" r="7" fill="#928b80"/>
+        <circle cx="880" cy="410" r="3.5" fill="#f7f5f1"/>
+        <text x="920" y="413" text-anchor="start"
+          font-family="'JetBrains Mono',monospace" font-weight="700" font-size="10"
+          fill="#928b80" letter-spacing=".8">ROBLOX</text>
+        <text x="920" y="424" text-anchor="start"
+          font-family="'JetBrains Mono',monospace" font-weight="400" font-size="8.5"
+          fill="#928b80" letter-spacing=".5">early builds</text>
+
+        <!-- NOODLE BAR -->
+        <circle cx="880" cy="450" r="7" fill="#928b80"/>
+        <circle cx="880" cy="450" r="3.5" fill="#f7f5f1"/>
+        <text x="920" y="453" text-anchor="start"
+          font-family="'JetBrains Mono',monospace" font-weight="700" font-size="10"
+          fill="#928b80" letter-spacing=".8">NOODLE BAR</text>
+        <text x="920" y="464" text-anchor="start"
+          font-family="'JetBrains Mono',monospace" font-weight="400" font-size="8.5"
+          fill="#928b80" letter-spacing=".5">essential infrastructure</text>
+
+        <!-- AIR RIFLE -->
+        <circle cx="880" cy="490" r="7" fill="#928b80"/>
+        <circle cx="880" cy="490" r="3.5" fill="#f7f5f1"/>
+        <text x="920" y="493" text-anchor="start"
+          font-family="'JetBrains Mono',monospace" font-weight="700" font-size="10"
+          fill="#928b80" letter-spacing=".8">AIR RIFLE</text>
+        <text x="920" y="504" text-anchor="start"
+          font-family="'JetBrains Mono',monospace" font-weight="400" font-size="8.5"
+          fill="#928b80" letter-spacing=".5">10m · national level</text>
+
+        <!-- FILTER COFFEE — DEPOT -->
+        <circle cx="880" cy="535" r="9" fill="#141414"/>
+        <circle cx="880" cy="535" r="4.5" fill="#928b80"/>
+        <rect x="835" y="522" width="5" height="26" fill="#141414" rx="1"/>
+        <!-- depot label -->
+        <text x="920" y="531" text-anchor="start"
+          font-family="'JetBrains Mono',monospace" font-weight="700" font-size="10"
+          fill="#141414" letter-spacing=".8">FILTER COFFEE</text>
+        <text x="920" y="542" text-anchor="start"
+          font-family="'JetBrains Mono',monospace" font-weight="700" font-size="8.5"
+          fill="#928b80" letter-spacing=".5">▮ DEPOT / FUEL</text>
+        <text x="920" y="553" text-anchor="start"
+          font-family="'JetBrains Mono',monospace" font-weight="400" font-size="8.5"
+          fill="#928b80" letter-spacing=".3">not optional</text>
+
+        <!-- ======================================================
+             LINE / ZONE LABELS (on-map typography)
+        ======================================================= -->
+
+        <!-- ROLE LINE label (left of PES) -->
+        <text x="90" y="214" text-anchor="start"
+          font-family="'Anton',sans-serif" font-size="12"
+          fill="#141414" letter-spacing="2" opacity=".55">ROLE LINE</text>
+
+        <!-- SHIP LINE label (left of FIRST SHIP) -->
+        <text x="90" y="297" text-anchor="start"
+          font-family="'Anton',sans-serif" font-size="12"
+          fill="#ed1c24" letter-spacing="2" opacity=".65">SHIP LINE</text>
+
+        <!-- SRN / PART NO. badge (bottom left) -->
+        <rect x="24" y="580" width="320" height="40" fill="#141414" rx="1"/>
+        <text x="32" y="596" text-anchor="start"
+          font-family="'JetBrains Mono',monospace" font-weight="700" font-size="9"
+          fill="rgba(247,245,241,.45)" letter-spacing="1.2">PART NO.</text>
+        <text x="32" y="610" text-anchor="start"
+          font-family="'JetBrains Mono',monospace" font-weight="700" font-size="11"
+          fill="#f7f5f1" letter-spacing="1.2">PES1UG24CS127</text>
+        <text x="200" y="596" text-anchor="start"
+          font-family="'JetBrains Mono',monospace" font-weight="400" font-size="9"
+          fill="rgba(247,245,241,.4)" letter-spacing=".8">SYSTEM MAP · ISS. 2026</text>
+        <text x="200" y="610" text-anchor="start"
+          font-family="'JetBrains Mono',monospace" font-weight="700" font-size="10"
+          fill="rgba(247,245,241,.6)" letter-spacing=".8">B.TECH CSE · PESU</text>
+
+        <!-- thesis quote (bottom right of map) -->
+        <rect x="360" y="575" width="480" height="50" rx="1"
+          fill="#efece4" stroke="#141414" stroke-width="2"/>
+        <text x="372" y="594" text-anchor="start"
+          font-family="'JetBrains Mono',monospace" font-weight="400" font-size="9"
+          fill="#928b80" letter-spacing=".8" font-style="italic">"Building local-first software and turning</text>
+        <text x="372" y="608" text-anchor="start"
+          font-family="'JetBrains Mono',monospace" font-weight="400" font-size="9"
+          fill="#928b80" letter-spacing=".8" font-style="italic">black-box ML into glass." — S. Cheethirala</text>
+        <text x="372" y="620" text-anchor="start"
+          font-family="'JetBrains Mono',monospace" font-weight="700" font-size="8"
+          fill="#141414" letter-spacing=".5">THESIS STATEMENT · CONFIRMED</text>
+
+      </svg>
+    </div>
+  </div><!-- /.map-outer -->
+
+  <!-- BOTTOM ROW: LEGEND + DEPARTURE -->
+  <div class="bottom-row">
+
+    <!-- LEGEND -->
+    <div class="legend">
+      <div class="legend-head">LEGEND</div>
+      <div class="legend-grid">
+        <div class="legend-row">
+          <span class="lg-line role"></span>
+          <span>— ROLE LINE (school / experience)</span>
+        </div>
+        <div class="legend-row">
+          <span class="lg-line ship"></span>
+          <span>— SHIP LINE (projects)</span>
+        </div>
+        <div class="legend-row">
+          <span class="lg-line side"></span>
+          <span>··· SIDE QUESTS (canonical)</span>
+        </div>
+        <div class="legend-row">
+          <span class="lg-sym">◎</span>
+          <span>INTERCHANGE (lines connect)</span>
+        </div>
+        <div class="legend-row">
+          <span class="lg-sym" style="color:var(--lime);-webkit-text-stroke:1px var(--ink);">◉</span>
+          <span>YOU ARE HERE (2026 terminus)</span>
+        </div>
+        <div class="legend-row">
+          <span class="lg-sym">▮</span>
+          <span>TERMINUS / DEPOT</span>
+        </div>
+        <div class="legend-row">
+          <span class="lg-sym" style="color:var(--ink);">○</span>
+          <span>STATION (standard)</span>
+        </div>
+      </div>
+      <div class="legend-warn">
+        <span>⚠</span>
+        <span>UNDER CONSTRUCTION: SWE / ML internship, summer '26 — platform not yet confirmed</span>
+      </div>
+      <div class="legend-cat">
+        <img class="cat-img" src="cat.jpg" alt="station cat" />
+        <div class="cat-caption">
+          <b>STATION CAT · LOST &amp; FOUND</b>
+          present at all stops.<br>
+          found nothing. still here.<br>
+          <span style="color:var(--gray);font-style:italic">unimpressed since 2024.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- DEPARTURE BOARD -->
+    <div class="departure">
+      <div class="dep-head">
+        <span class="dep-blink"></span>
+        NEXT STOP — YOUR TEAM
+      </div>
+      <div class="dep-row">
+        <div class="dep-item">
+          <span class="dep-label">PLATFORM</span>
+          SWE / ML INTERNSHIP · SUMMER 2026
+        </div>
+        <div class="dep-item">
+          <span class="dep-label">DOORS OPEN AT</span>
+          <a href="mailto:santoshcheethirala.me@gmail.com">santoshcheethirala.me@gmail.com</a>
+        </div>
+        <div class="dep-item">
+          <span class="dep-label">TRACK</span>
+          <a href="https://github.com/santoshcheethiralame-dot" target="_blank" rel="noopener">
+            github.com/santoshcheethiralame-dot
+          </a>
+        </div>
+        <div class="dep-item">
+          <span class="dep-label">ORIGIN STATION</span>
+          BENGALURU, INDIA · IST
+        </div>
+        <div class="dep-item">
+          <span class="dep-label">SCHEDULED DEPARTURE</span>
+          SUMMER 2026 · ON TIME
+        </div>
+      </div>
+      <div class="dep-doors">
+        ▸ DOORS OPEN: send a message.<br>
+        ▸ CONNECTIONS: local-first · GPU internals · ML interpretability · systems in C.<br>
+        ▸ MIND THE GAP (in the docs).
+      </div>
+    </div>
+
+  </div><!-- /.bottom-row -->
+</div><!-- /.page -->
+
+<div id="tag">06 · transit map · system 2026 · about</div>
+
+<script>
+(function(){
+  'use strict';
+  // Live IST clock injected into page title bar
+  function tick(){
+    try{
+      var t = new Intl.DateTimeFormat('en-GB',{
+        hour:'2-digit', minute:'2-digit', hour12:false, timeZone:'Asia/Kolkata'
+      }).format(new Date()) + ' IST';
+      document.title = 'CTA · ' + t + ' · SYSTEM MAP 2026';
+    }catch(e){}
+  }
+  tick();
+  setInterval(tick, 10000);
+
+  // Departure board blinking time display
+  var depEl = document.querySelector('.dep-head');
+  if(depEl){
+    var orig = depEl.innerHTML;
+    setInterval(function(){
+      try{
+        var now = new Intl.DateTimeFormat('en-GB',{
+          hour:'2-digit', minute:'2-digit', second:'2-digit',
+          hour12:false, timeZone:'Asia/Kolkata'
+        }).format(new Date());
+        var timeSpan = depEl.querySelector('.dep-time');
+        if(!timeSpan){
+          timeSpan = document.createElement('span');
+          timeSpan.className = 'dep-time';
+          timeSpan.style.cssText = 'margin-left:auto;font-size:.72em;color:rgba(247,245,241,.45);letter-spacing:.1em;';
+          depEl.appendChild(timeSpan);
+        }
+        timeSpan.textContent = now + ' IST';
+      }catch(e){}
+    }, 1000);
+  }
+
+  // Subtle station-label hover highlight on the SVG
+  var svg = document.querySelector('svg');
+  if(svg){
+    var circles = svg.querySelectorAll('circle');
+    circles.forEach(function(c){
+      var r = parseFloat(c.getAttribute('r'));
+      if(r < 7 || r > 30) return; // only station-size circles
+      var fill = c.getAttribute('fill');
+      if(fill === '#f7f5f1' || fill === 'rgba(180,255,46,.22)') return; // skip inner fills + halo
+      c.style.cursor = 'pointer';
+      c.style.transition = 'r .15s, filter .15s';
+      c.addEventListener('mouseenter', function(){
+        this.style.filter = 'brightness(1.22)';
+      });
+      c.addEventListener('mouseleave', function(){
+        this.style.filter = '';
+      });
+    });
+  }
+})();
+</script>
+</body>
+</html>

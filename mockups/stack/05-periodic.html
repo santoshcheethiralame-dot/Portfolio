@@ -1,0 +1,868 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>STACK / 05 — PERIODIC TABLE</title>
+
+<!-- Fonts: Anton (display) + JetBrains Mono (everything else) -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+
+<style>
+  :root{
+    --red:#ed1c24;        /* canvas / page background */
+    --red-deep:#b3001b;   /* deeper red panel */
+    --red-dark:#7a0014;   /* darkest red */
+    --ink:#ffffff;        /* white — primary text + outlines */
+    --black:#0a0a0a;      /* black — hard drop shadows + inverted text */
+    --line:rgba(255,255,255,0.26);
+    --lime:#c8e620;       /* THE single accent — hovered element only */
+    --font-display:"Anton",sans-serif;
+    --font-mono:"JetBrains Mono",monospace;
+    --bar-h:64px;
+    --snap:cubic-bezier(.2,.9,.2,1);
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+
+  body{
+    background:var(--red);
+    color:var(--ink);
+    font-family:var(--font-mono);
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    overflow-x:hidden;
+  }
+
+  /* ---------------------------------------------------------------- TOP BAR */
+  .topbar{
+    position:fixed; top:0; left:0; right:0; height:var(--bar-h);
+    z-index:100;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 clamp(16px,4vw,40px);
+    background:var(--red);
+    border-bottom:2px solid var(--ink);
+  }
+  .index-btn{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--font-mono); font-weight:700;
+    font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--ink); text-decoration:none;
+    padding:9px 16px;
+    border:2px solid var(--ink);
+    background:transparent;
+    box-shadow:4px 4px 0 var(--black);
+    transition:transform 120ms var(--snap),
+               box-shadow 120ms var(--snap),
+               background 120ms steps(1,end),
+               color 120ms steps(1,end);
+    white-space:nowrap;
+  }
+  .index-btn:hover,.index-btn:focus-visible{
+    background:var(--ink); color:var(--red);
+    transform:translate(-2px,-2px);
+    box-shadow:6px 6px 0 var(--black);
+    outline:none;
+  }
+  .index-btn:active{ transform:translate(2px,2px); box-shadow:1px 1px 0 var(--black); }
+
+  .caption{ text-align:right; line-height:1.35; }
+  .caption .cap-id{
+    font-weight:700; font-size:12px; letter-spacing:.18em; text-transform:uppercase;
+  }
+  .caption .cap-hint{
+    font-weight:400; font-size:10.5px; letter-spacing:.06em;
+    color:#fff; text-transform:lowercase;
+  }
+
+  /* ---------------------------------------------------------------- PAGE */
+  .page{
+    padding:calc(var(--bar-h) + clamp(22px,4vw,44px)) clamp(20px,6vw,90px) clamp(40px,8vw,90px);
+    max-width:1600px; margin:0 auto;
+  }
+  .kicker{
+    font-size:13px; font-weight:500; letter-spacing:.16em;
+    color:#fff;
+    margin-bottom:10px;
+  }
+  .title{
+    font-family:var(--font-display); font-weight:400;
+    text-transform:uppercase; color:var(--ink);
+    line-height:.82; letter-spacing:.005em;
+    font-size:clamp(2.4rem,10vw,8rem);
+    margin-bottom:clamp(18px,2.6vw,30px);
+  }
+
+  /* ---------------------------------------------------------------- LEGEND */
+  .legend{
+    display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px;
+    margin-bottom:clamp(18px,2.4vw,26px);
+    padding-bottom:16px;
+    border-bottom:2px solid var(--ink);
+  }
+  .legend-label{
+    font-weight:700; font-size:12px; letter-spacing:.18em;
+    text-transform:uppercase; color:#fff;
+    margin-right:4px;
+  }
+  .key{
+    display:inline-flex; align-items:center; gap:8px;
+    border:2px solid var(--ink);
+    padding:6px 11px 6px 9px;
+    font-weight:700; font-size:11px; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--ink);
+    background:transparent; cursor:pointer;
+    box-shadow:3px 3px 0 var(--black);
+    transition:transform 110ms var(--snap), box-shadow 110ms var(--snap),
+               background 110ms steps(1,end), color 110ms steps(1,end);
+    user-select:none;
+  }
+  .key .swatch{
+    width:13px; height:13px; border:2px solid var(--ink);
+    background:transparent; flex:0 0 auto;
+  }
+  /* each domain's swatch is a distinct hatch of red shades (no extra colours) */
+  .key[data-g="0"] .swatch{ background:var(--ink); }
+  .key[data-g="1"] .swatch{ background:var(--red-deep); }
+  .key[data-g="2"] .swatch{ background:var(--red-dark); }
+  .key[data-g="3"] .swatch{ background:repeating-linear-gradient(45deg,var(--ink) 0 2px,transparent 2px 5px); }
+  .key[data-g="4"] .swatch{ background:repeating-linear-gradient(90deg,var(--ink) 0 2px,transparent 2px 5px); }
+  .key:hover{ transform:translate(-2px,-2px); box-shadow:5px 5px 0 var(--black); }
+  .key.is-active{ background:var(--ink); color:var(--red); box-shadow:1px 1px 0 var(--black); transform:translate(2px,2px); }
+  .key .ct{ color:inherit; opacity:.6; font-weight:500; }
+
+  /* always-visible hint so the bonds mechanic is discoverable without hovering */
+  .micro-legend{
+    display:inline-flex; align-items:center; gap:7px;
+    margin-left:auto;
+    font-weight:700; font-size:10.5px; letter-spacing:.1em;
+    text-transform:uppercase; color:#fff;
+    white-space:nowrap;
+  }
+  .micro-legend .chip{
+    display:inline-block; width:11px; height:11px; flex:0 0 auto;
+    background:var(--red); border:2px solid var(--ink);
+    transform:rotate(45deg);
+  }
+  @media (max-width:520px){
+    .micro-legend{ margin-left:0; font-size:10px; }
+  }
+
+  /* ---------------------------------------------------------------- TABLE */
+  .table{
+    display:flex; flex-wrap:wrap; gap:clamp(14px,1.8vw,26px);
+    align-items:flex-start; justify-content:center;
+  }
+  /* a domain "region" of the periodic table.
+     each block is sized to exactly its grid footprint (cols*cell + gaps +
+     padding + borders) so the 5 regions tile cleanly with no orphan gaps. */
+  .block{
+    position:relative;
+    flex:0 0 auto;
+    width:calc(var(--cols,4) * var(--cell,104px)
+              + (var(--cols,4) - 1) * 8px
+              + 28px + 4px);
+    border:2px solid var(--line);
+    padding:14px 14px 16px;
+    transition:border-color 120ms steps(1,end), background 120ms steps(1,end);
+    background:transparent;
+  }
+  .block.dim{ opacity:.34; transition:opacity 120ms var(--snap); }
+  .block.lit{
+    border-color:var(--ink);
+    background:rgba(0,0,0,0.12);
+  }
+  .block-head{
+    display:flex; align-items:baseline; justify-content:space-between;
+    gap:12px; margin-bottom:12px;
+  }
+  .block-name{
+    font-weight:700; font-size:12px; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--ink); white-space:nowrap;
+  }
+  .block-meta{
+    font-weight:500; font-size:10px; letter-spacing:.1em;
+    color:rgba(255,255,255,.9); text-transform:uppercase;
+  }
+  .block-grid{
+    display:grid;
+    grid-template-columns:repeat(var(--cols,4), var(--cell,104px));
+    gap:8px;
+  }
+
+  /* ---------------------------------------------------------------- ELEMENT TILE */
+  .el{
+    position:relative;
+    width:var(--cell,104px); height:var(--cell,104px);
+    border:2px solid var(--ink);
+    background:var(--ink); color:var(--black);
+    box-shadow:4px 4px 0 var(--black);
+    cursor:default; user-select:none;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:flex-end;
+    padding:8px 7px 9px;
+    transition:transform 120ms var(--snap),
+               box-shadow 120ms var(--snap),
+               background 110ms steps(1,end),
+               color 110ms steps(1,end),
+               opacity 120ms var(--snap);
+  }
+  .el .n{
+    position:absolute; top:5px; left:7px;
+    font-weight:700; font-size:10px; letter-spacing:.04em;
+    line-height:1; color:var(--black); opacity:.75;
+  }
+  .el .sym{
+    flex:0 0 auto;
+    text-align:center;
+    font-family:var(--font-display); font-weight:400;
+    font-size:clamp(20px,2.1vw,22px); line-height:.9;
+    color:var(--black);
+    letter-spacing:.01em;
+    margin-bottom:5px;
+  }
+  .el .nm{
+    width:100%;
+    text-align:center;
+    font-weight:600; font-size:clamp(10px,1.1vw,11px); letter-spacing:.01em;
+    line-height:1.12; text-transform:uppercase;
+    color:var(--black); opacity:.92;
+    display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2;
+    overflow:hidden;
+    word-break:break-word; overflow-wrap:anywhere; hyphens:auto;
+  }
+  .el .wt{
+    position:absolute; top:6px; right:6px;
+    display:flex; gap:2px;
+  }
+  .el .wt i{ width:3px; height:6px; background:var(--black); opacity:.18; }
+  .el .wt i.on{ opacity:.85; }
+
+  /* states ----------------------------------------------------------------- */
+  /* dimmed = not related to the hovered element */
+  .table.has-hover .el:not(.bond):not(.hovered){ opacity:.22; }
+
+  /* bonded element: invert to RED tile + white text, lifted */
+  .el.bond{
+    background:var(--red); color:var(--ink);
+    border-color:var(--ink);
+    box-shadow:6px 6px 0 var(--black);
+    transform:translate(-2px,-2px);
+    z-index:4;
+  }
+  .el.bond .n,.el.bond .sym,.el.bond .nm{ color:var(--ink); }
+  .el.bond .n,.el.bond .nm{ opacity:.85; }
+  .el.bond .wt i{ background:var(--ink); }
+
+  /* THE hovered element itself = the single LIME accent */
+  .el.hovered{
+    background:var(--lime); color:var(--black);
+    border-color:var(--black);
+    box-shadow:7px 7px 0 var(--black);
+    transform:translate(-3px,-3px);
+    z-index:6;
+  }
+  .el.hovered .n,.el.hovered .sym,.el.hovered .nm{ color:var(--black); }
+  .el.hovered .n{ opacity:.85; }
+  .el.hovered .wt i{ background:var(--black); }
+
+  /* keyboard focus ring (brutalist dashed) */
+  .el:focus-visible{ outline:3px dashed var(--black); outline-offset:-6px; }
+
+  /* ---------------------------------------------------------------- READOUT */
+  .readout{
+    margin-top:clamp(20px,3vw,34px);
+    display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px;
+    font-family:var(--font-mono); font-size:11.5px; letter-spacing:.1em;
+    text-transform:uppercase; color:#fff;
+    min-height:26px;
+    border-top:2px solid var(--line);
+    padding-top:16px;
+  }
+  .readout .prompt{ color:var(--ink); font-weight:700; }
+  .readout .tag{ border:2px solid var(--ink); padding:4px 9px; color:var(--ink); font-weight:700; }
+  .readout .tag.lime{ background:var(--lime); color:var(--black); border-color:var(--black); }
+  .readout .count{ color:var(--ink); font-weight:700; }
+  .readout .sep{ color:rgba(255,255,255,.4); }
+  .readout .blink{
+    display:inline-block; width:9px; height:14px; background:var(--ink);
+    animation:blink 1s steps(2,start) infinite; vertical-align:middle;
+  }
+  @keyframes blink{0%,50%{opacity:1;}50.01%,100%{opacity:0;}}
+
+  .foot{
+    margin-top:clamp(22px,3vw,34px);
+    font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+    color:rgba(255,255,255,.5);
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;
+  }
+
+  /* ---------------------------------------------------------------- JUDGING CAT */
+  .cat{
+    position:fixed; right:clamp(14px,3vw,34px); bottom:clamp(14px,3vw,30px);
+    z-index:90; display:flex; flex-direction:column; align-items:flex-end; gap:8px;
+    pointer-events:none; max-width:230px;
+  }
+  .cat-bubble{
+    position:relative;
+    border:2px solid var(--ink); background:var(--black); color:var(--ink);
+    box-shadow:4px 4px 0 var(--red-dark);
+    padding:7px 10px;
+    font-size:10.5px; letter-spacing:.06em; text-transform:uppercase;
+    font-weight:500; line-height:1.25;
+    max-width:210px;
+    transition:transform 120ms var(--snap), opacity 120ms var(--snap);
+  }
+  .cat-bubble::after{
+    content:""; position:absolute; right:18px; bottom:-9px;
+    width:11px; height:11px; background:var(--black);
+    border-right:2px solid var(--ink); border-bottom:2px solid var(--ink);
+    transform:rotate(45deg);
+  }
+  .cat-bubble.pop{ transform:translateY(-3px); }
+  .cat-face{
+    border:2px solid var(--ink); background:var(--red-deep);
+    box-shadow:4px 4px 0 var(--black);
+    width:54px; height:54px; flex:0 0 auto;
+    display:grid; place-items:center;
+  }
+  .cat-face svg{ width:38px; height:38px; display:block; }
+
+  /* ---------------------------------------------------------------- REDUCED MOTION */
+  @media (prefers-reduced-motion: reduce){
+    .el,.block,.key,.index-btn,.cat-bubble{ transition:none; }
+    .readout .blink{ animation:none; }
+  }
+
+  /* ---------------------------------------------------------------- RESPONSIVE */
+  @media (max-width:1100px){
+    :root{ --cell:94px; }
+  }
+  @media (max-width:760px){
+    :root{ --cell:86px; }
+    .table{ gap:14px; }
+    .cat{ display:none; }       /* keep it skippable on small screens */
+    .caption .cap-hint{ display:none; }
+    .el .nm{ font-size:10px; }  /* names stay legible on mobile (>=9px) */
+  }
+  @media (max-width:520px){
+    :root{ --cell:80px; }
+    .el .n{ font-size:9px; }
+    .el .sym{ font-size:20px; }
+    .el .nm{ font-size:9px; }
+  }
+</style>
+</head>
+
+<body>
+  <!-- ======================================================= TOP BAR -->
+  <header class="topbar">
+    <a class="index-btn" href="index.html">&larr; Index</a>
+    <div class="caption">
+      <div class="cap-id">STYLE 05 / PERIODIC TABLE</div>
+      <div class="cap-hint">hover an element to light its group + bonds</div>
+    </div>
+  </header>
+
+  <!-- ======================================================= PAGE -->
+  <main class="page">
+    <div class="kicker">// stack</div>
+    <h1 class="title">What I<br>Work With</h1>
+
+    <!-- LEGEND / domain key -->
+    <div class="legend" id="legend">
+      <span class="legend-label">DOMAINS:</span>
+      <!-- keys injected by JS -->
+      <span class="micro-legend" aria-hidden="true">
+        <span class="chip"></span> = bonded tech
+      </span>
+    </div>
+
+    <!-- THE TABLE: domain blocks -->
+    <div class="table" id="table" aria-label="Periodic table of the stack"></div>
+
+    <!-- terminal readout -->
+    <div class="readout" id="readout">
+      <span class="prompt">&gt;</span>
+      <span id="readout-text">IDLE &mdash; HOVER AN ELEMENT</span>
+      <span class="blink" aria-hidden="true"></span>
+    </div>
+
+    <div class="foot">
+      <span>35 elements &middot; 5 domains &middot; relationships by position + highlight</span>
+      <span>no lines drawn &middot; hover = group glow + bond invert</span>
+    </div>
+  </main>
+
+  <!-- ======================================================= JUDGING CAT -->
+  <div class="cat" aria-hidden="true">
+    <div class="cat-bubble" id="catBubble">mrr. show me the stack.</div>
+    <div class="cat-face">
+      <!-- simple brutalist cat: hard strokes, no curves wasted -->
+      <svg viewBox="0 0 40 40" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linejoin="miter">
+        <!-- head -->
+        <path d="M7 14 L7 30 Q7 33 10 33 L30 33 Q33 33 33 30 L33 14" />
+        <!-- ears -->
+        <path d="M7 14 L5 6 L14 11 Z" fill="#0a0a0a" stroke-width="2" />
+        <path d="M33 14 L35 6 L26 11 Z" fill="#0a0a0a" stroke-width="2" />
+        <!-- eyes (judging, half-lidded) -->
+        <line x1="13" y1="21" x2="17" y2="21" />
+        <line x1="23" y1="21" x2="27" y2="21" />
+        <!-- nose + whisker -->
+        <path d="M20 24 L18 26 L22 26 Z" fill="#ffffff" stroke="none" />
+        <line x1="20" y1="26" x2="20" y2="28" />
+      </svg>
+    </div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ----------------------------------------------------------- ELEMENT DATA */
+  var ELEMENTS = [
+    {n:1, name:"C", sym:"C", group:"Languages"},
+    {n:2, name:"Python", sym:"Py", group:"Languages"},
+    {n:3, name:"TypeScript", sym:"Ts", group:"Languages"},
+    {n:4, name:"JavaScript", sym:"Js", group:"Languages"},
+    {n:5, name:"SQL", sym:"Sql", group:"Languages"},
+    {n:6, name:"HTML", sym:"Ht", group:"Languages"},
+    {n:7, name:"CSS", sym:"Cs", group:"Languages"},
+    {n:8, name:"WGSL", sym:"Wg", group:"Languages"},
+    {n:9, name:"PyTorch", sym:"Pt", group:"ML / AI"},
+    {n:10, name:"TensorFlow", sym:"Tf", group:"ML / AI"},
+    {n:11, name:"scikit-learn", sym:"Sk", group:"ML / AI"},
+    {n:12, name:"NumPy", sym:"Np", group:"ML / AI"},
+    {n:13, name:"Pandas", sym:"Pn", group:"ML / AI"},
+    {n:14, name:"TransformerLens", sym:"Tl", group:"ML / AI"},
+    {n:15, name:"LLM Evaluation", sym:"Ev", group:"ML / AI"},
+    {n:16, name:"RAG", sym:"Rg", group:"ML / AI"},
+    {n:17, name:"Failure Taxonomy", sym:"Ft", group:"ML / AI"},
+    {n:18, name:"Deep Learning", sym:"Dl", group:"ML / AI"},
+    {n:19, name:"React", sym:"Re", group:"Web / Frontend"},
+    {n:20, name:"Tailwind CSS", sym:"Tw", group:"Web / Frontend"},
+    {n:21, name:"Vite", sym:"Vi", group:"Web / Frontend"},
+    {n:22, name:"WebGPU", sym:"Wp", group:"Web / Frontend"},
+    {n:23, name:"PWA", sym:"Pw", group:"Web / Frontend"},
+    {n:24, name:"IndexedDB / Dexie.js", sym:"Ix", group:"Web / Frontend"},
+    {n:25, name:"Canvas", sym:"Cv", group:"Web / Frontend"},
+    {n:26, name:"Web Workers", sym:"Ww", group:"Web / Frontend"},
+    {n:27, name:"FastAPI", sym:"Fa", group:"Backend / Data"},
+    {n:28, name:"Pydantic", sym:"Pd", group:"Backend / Data"},
+    {n:29, name:"Node.js", sym:"Nd", group:"Backend / Data"},
+    {n:30, name:"Express", sym:"Ex", group:"Backend / Data"},
+    {n:31, name:"MongoDB", sym:"Mg", group:"Backend / Data"},
+    {n:32, name:"REST APIs", sym:"Ap", group:"Backend / Data"},
+    {n:33, name:"Git", sym:"Gt", group:"Tools / Systems"},
+    {n:34, name:"Linux", sym:"Lx", group:"Tools / Systems"},
+    {n:35, name:"OpenRouter API", sym:"Or", group:"Tools / Systems"}
+  ];
+
+  /* proficiency weights (1..5) keyed by name */
+  var WEIGHTS = {
+    "C":4,"Python":5,"TypeScript":5,"JavaScript":4,"SQL":3,"HTML":4,"CSS":4,"WGSL":3,
+    "PyTorch":4,"TensorFlow":3,"scikit-learn":4,"NumPy":4,"Pandas":4,"TransformerLens":4,
+    "LLM Evaluation":4,"RAG":4,"Failure Taxonomy":3,"Deep Learning":4,
+    "React":5,"Tailwind CSS":4,"Vite":4,"WebGPU":4,"PWA":4,"IndexedDB / Dexie.js":4,
+    "Canvas":3,"Web Workers":3,
+    "FastAPI":4,"Pydantic":3,"Node.js":4,"Express":3,"MongoDB":3,"REST APIs":4,
+    "Git":4,"Linux":4,"OpenRouter API":3
+  };
+
+  /* bonds graph (bidirectional already in data) */
+  var BONDS = {
+    "C":["WGSL","Linux","Git"],
+    "Python":["NumPy","Pandas","PyTorch","scikit-learn","FastAPI","TensorFlow"],
+    "TypeScript":["JavaScript","React","Vite","Node.js","WebGPU"],
+    "JavaScript":["TypeScript","React","Node.js","Canvas"],
+    "SQL":["MongoDB","Pandas","REST APIs"],
+    "HTML":["CSS","React","Canvas"],
+    "CSS":["HTML","Tailwind CSS","React"],
+    "WGSL":["WebGPU","Canvas","C"],
+    "PyTorch":["TensorFlow","NumPy","scikit-learn","Deep Learning","TransformerLens","Python"],
+    "TensorFlow":["PyTorch","NumPy","Deep Learning","Python"],
+    "scikit-learn":["NumPy","Pandas","Python","PyTorch"],
+    "NumPy":["Pandas","PyTorch","scikit-learn","Python"],
+    "Pandas":["NumPy","SQL","scikit-learn","Python"],
+    "TransformerLens":["PyTorch","Deep Learning","LLM Evaluation","RAG"],
+    "LLM Evaluation":["RAG","Failure Taxonomy","TransformerLens","OpenRouter API"],
+    "RAG":["LLM Evaluation","Failure Taxonomy","FastAPI","OpenRouter API"],
+    "Failure Taxonomy":["LLM Evaluation","RAG"],
+    "Deep Learning":["PyTorch","TensorFlow","TransformerLens","WebGPU"],
+    "React":["TypeScript","JavaScript","Tailwind CSS","Vite","Canvas"],
+    "Tailwind CSS":["CSS","React","HTML"],
+    "Vite":["React","TypeScript","WebGPU"],
+    "WebGPU":["WGSL","Deep Learning","Canvas","TypeScript"],
+    "PWA":["IndexedDB / Dexie.js","Web Workers","React"],
+    "IndexedDB / Dexie.js":["PWA","Web Workers","SQL","MongoDB"],
+    "Canvas":["WebGPU","WGSL","JavaScript","HTML"],
+    "Web Workers":["PWA","IndexedDB / Dexie.js","WebGPU"],
+    "FastAPI":["Pydantic","Python","REST APIs","RAG"],
+    "Pydantic":["FastAPI","Python"],
+    "Node.js":["Express","TypeScript","JavaScript","REST APIs"],
+    "Express":["Node.js","REST APIs","MongoDB"],
+    "MongoDB":["Express","SQL","IndexedDB / Dexie.js"],
+    "REST APIs":["FastAPI","Express","Node.js","OpenRouter API"],
+    "Git":["Linux","C"],
+    "Linux":["Git","C","Python"],
+    "OpenRouter API":["RAG","LLM Evaluation","REST APIs"]
+  };
+
+  /* domain order + per-block column counts (shape the regions like a real table) */
+  var GROUPS = [
+    { name:"Languages",      cols:4 },
+    { name:"ML / AI",        cols:5 },
+    { name:"Web / Frontend", cols:4 },
+    { name:"Backend / Data", cols:3 },
+    { name:"Tools / Systems",cols:3 }
+  ];
+
+  var REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ----------------------------------------------------------- DOM refs */
+  var tableEl   = document.getElementById("table");
+  var legendEl  = document.getElementById("legend");
+  var readoutEl = document.getElementById("readout-text");
+  var catBubble = document.getElementById("catBubble");
+
+  var elByName = {};   // name -> tile element
+  var allTiles = [];   // every tile element
+  var blockByGroup = {};
+
+  /* ----------------------------------------------------------- BUILD TABLE */
+  function weightPips(w){
+    var s = '<span class="wt" aria-hidden="true">';
+    for(var i=0;i<5;i++){ s += '<i class="'+(i<w?'on':'')+'"></i>'; }
+    return s + '</span>';
+  }
+
+  GROUPS.forEach(function(g, gi){
+    var items = ELEMENTS.filter(function(e){ return e.group === g.name; });
+
+    var block = document.createElement("section");
+    block.className = "block";
+    block.setAttribute("data-group", g.name);
+    block.style.setProperty("--cols", g.cols);   // drives block width calc
+
+    var head = document.createElement("div");
+    head.className = "block-head";
+    head.innerHTML =
+      '<span class="block-name">' + g.name + '</span>' +
+      '<span class="block-meta">' + items.length + ' EL</span>';
+    block.appendChild(head);
+
+    var grid = document.createElement("div");
+    grid.className = "block-grid";   // inherits --cols from the block
+
+    items.forEach(function(e){
+      var w = WEIGHTS[e.name] || 3;
+      var tile = document.createElement("div");
+      tile.className = "el";
+      tile.setAttribute("tabindex", "0");
+      tile.setAttribute("role", "button");
+      tile.setAttribute("aria-label", e.name + " — " + e.group + ", proficiency " + w + " of 5");
+      tile.setAttribute("data-name", e.name);
+      tile.setAttribute("data-group", e.group);
+      tile.setAttribute("data-sym", e.sym);
+      tile.innerHTML =
+        '<span class="n">' + e.n + '</span>' +
+        weightPips(w) +
+        '<span class="sym">' + e.sym + '</span>' +
+        '<span class="nm">' + e.name + '</span>';
+
+      grid.appendChild(tile);
+      elByName[e.name] = tile;
+      allTiles.push(tile);
+    });
+
+    block.appendChild(grid);
+    tableEl.appendChild(block);
+    blockByGroup[g.name] = block;
+  });
+
+  /* ----------------------------------------------------------- LEGEND KEYS */
+  var microLegend = legendEl.querySelector(".micro-legend");  // keep it last
+  GROUPS.forEach(function(g, gi){
+    var count = ELEMENTS.filter(function(e){ return e.group === g.name; }).length;
+    var key = document.createElement("button");
+    key.className = "key";
+    key.type = "button";
+    key.setAttribute("data-g", gi);
+    key.setAttribute("data-group", g.name);
+    key.innerHTML =
+      '<span class="swatch" aria-hidden="true"></span>' +
+      '<span>' + g.name + '</span>' +
+      '<span class="ct">' + count + '</span>';
+    legendEl.insertBefore(key, microLegend);
+
+    // hovering a legend key lights its whole block (no individual element)
+    key.addEventListener("mouseenter", function(){ litGroup(g.name); });
+    key.addEventListener("mouseleave", function(){ if(!pinned) clearState(); });
+    key.addEventListener("focus", function(){ litGroup(g.name); });
+    key.addEventListener("blur", function(){ if(!pinned) clearState(); });
+    // click = pin / unpin that group
+    key.addEventListener("click", function(){
+      if(pinned === ("grp:"+g.name)){ pinned=null; clearState(); }
+      else { pinned = "grp:"+g.name; litGroup(g.name); markKey(g.name); }
+    });
+  });
+  var legendKeys = Array.prototype.slice.call(legendEl.querySelectorAll(".key"));
+
+  /* ----------------------------------------------------------- DECODE-IN LABELS
+     Scramble the SYMBOL text through random mono glyphs, then settle.
+     Determinism: each tile's scramble is seeded by its index, so output is
+     stable per-tile rather than a per-frame global randomizer. Reduced-motion
+     skips the scramble entirely.                                              */
+  var GLYPHS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&@$*+=<>/\\";
+
+  // seeded PRNG (mulberry32) so a given seed always yields the same stream
+  function rng(seed){
+    var s = seed >>> 0;
+    return function(){
+      s |= 0; s = (s + 0x6D2B79F5) | 0;
+      var t = Math.imul(s ^ (s >>> 15), 1 | s);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function decodeTile(tile, idx, durMs){
+    var symEl = tile.querySelector(".sym");
+    var target = tile.getAttribute("data-sym");
+    if(REDUCED){ symEl.textContent = target; return; }
+
+    var rand = rng(idx * 2654435761 + 1);  // Knuth-ish seed per tile
+    var start = performance.now();
+    var len = target.length;
+    // each character resolves at a staggered point in the window
+    var lockAt = [];
+    for(var i=0;i<len;i++){ lockAt.push((i+1)/(len+1) * durMs * 0.8 + durMs*0.12); }
+
+    function frame(now){
+      var t = now - start;
+      var out = "";
+      var done = true;
+      for(var i=0;i<len;i++){
+        if(t >= lockAt[i]){
+          out += target[i];
+        } else {
+          done = false;
+          // pick a glyph from the seeded stream, advanced by frame count
+          var gi = Math.floor(rand() * GLYPHS.length);
+          out += GLYPHS[gi];
+        }
+      }
+      symEl.textContent = out;
+      if(!done && t < durMs + 60){ requestAnimationFrame(frame); }
+      else { symEl.textContent = target; }
+    }
+    symEl.textContent = "";
+    requestAnimationFrame(frame);
+  }
+
+  function runDecode(){
+    // stagger blocks left-to-right, tiles within in order
+    allTiles.forEach(function(tile, i){
+      var delay = REDUCED ? 0 : (i * 22);
+      setTimeout(function(){ decodeTile(tile, i, 420); }, delay);
+    });
+  }
+
+  /* ----------------------------------------------------------- HIGHLIGHT LOGIC */
+  function clearState(){
+    tableEl.classList.remove("has-hover");
+    allTiles.forEach(function(t){ t.classList.remove("hovered","bond"); });
+    GROUPS.forEach(function(g){
+      blockByGroup[g.name].classList.remove("lit","dim");
+    });
+    if(!pinned){
+      legendKeys.forEach(function(k){ k.classList.remove("is-active"); });
+      setReadoutIdle();
+    }
+  }
+
+  function markKey(groupName){
+    legendKeys.forEach(function(k){
+      k.classList.toggle("is-active", k.getAttribute("data-group") === groupName);
+    });
+  }
+
+  // light a whole domain block (used by legend hover/pin) — no single element accent
+  function litGroup(groupName){
+    tableEl.classList.add("has-hover");
+    allTiles.forEach(function(t){
+      t.classList.remove("hovered","bond");
+      // tiles in the group stay full-opacity; others dim via has-hover + not lit
+      if(t.getAttribute("data-group") === groupName){ t.classList.add("bond"); }
+    });
+    GROUPS.forEach(function(g){
+      var b = blockByGroup[g.name];
+      if(g.name === groupName){ b.classList.add("lit"); b.classList.remove("dim"); }
+      else { b.classList.add("dim"); b.classList.remove("lit"); }
+    });
+    markKey(groupName);
+    var count = ELEMENTS.filter(function(e){ return e.group===groupName; }).length;
+    setReadout(
+      '<span class="sep">GROUP</span> <span class="tag">'+groupName+'</span>' +
+      ' <span class="sep">&middot;</span> <span class="count">'+count+'</span> ELEMENTS LIT'
+    );
+  }
+
+  // hover a single element: lime accent on it, its group lit, its bonds inverted
+  function activate(name){
+    var tile = elByName[name];
+    if(!tile) return;
+    var group = tile.getAttribute("data-group");
+    var bonds = BONDS[name] || [];
+
+    tableEl.classList.add("has-hover");
+
+    // reset classes first
+    allTiles.forEach(function(t){ t.classList.remove("hovered","bond"); });
+
+    // group emphasis (the WHOLE domain block)
+    GROUPS.forEach(function(g){
+      var b = blockByGroup[g.name];
+      if(g.name === group){ b.classList.add("lit"); b.classList.remove("dim"); }
+      else { b.classList.add("dim"); b.classList.remove("lit"); }
+    });
+
+    // bonds invert
+    bonds.forEach(function(bn){
+      var bt = elByName[bn];
+      if(bt) bt.classList.add("bond");
+    });
+
+    // the element itself = lime (added last so it wins if also self-listed)
+    tile.classList.remove("bond");
+    tile.classList.add("hovered");
+
+    markKey(group);
+
+    setReadout(
+      '<span class="tag lime">'+name+'</span>' +
+      ' <span class="sep">&middot;</span> <span class="tag">'+group+'</span>' +
+      ' <span class="sep">&middot;</span> <span class="count">'+bonds.length+'</span> BOND'+(bonds.length===1?'':'S')
+    );
+    catReact(name, group, bonds.length);
+  }
+
+  /* ----------------------------------------------------------- READOUT */
+  function setReadout(html){ readoutEl.innerHTML = html; }
+  function setReadoutIdle(){ readoutEl.innerHTML = "IDLE &mdash; HOVER AN ELEMENT"; }
+
+  /* ----------------------------------------------------------- JUDGING CAT */
+  // dry, element-aware commentary. Keyed quips for a few signature picks,
+  // otherwise weight/group-based remarks. Deterministic per name (index seed).
+  var QUIPS = {
+    "C":"c? bold. close to the metal.",
+    "Python":"python. of course. everyone's first love.",
+    "TypeScript":"types. finally, some discipline.",
+    "JavaScript":"js again… brave.",
+    "React":"react. shocking. truly.",
+    "Rust":"no rust? interesting.",
+    "WGSL":"wgsl. show-off.",
+    "WebGPU":"gpu on the web. fancy.",
+    "PyTorch":"torch over tf. correct.",
+    "TensorFlow":"tensorflow. retro.",
+    "RAG":"retrieval. very 2024 of you.",
+    "Failure Taxonomy":"cataloguing failure. relatable.",
+    "Git":"git. you commit. respectable.",
+    "Linux":"linux. of course you do.",
+    "MongoDB":"mongo. living dangerously.",
+    "FastAPI":"fastapi. acceptable.",
+    "TransformerLens":"peeking inside the box. nosy.",
+    "OpenRouter API":"routing models. lazy. efficient."
+  };
+  var FILLER = [
+    "respectable.","mm. acceptable.","i've seen worse.","go on then.",
+    "noted. unimpressed.","a choice was made.","fine. i suppose.","purr-haps."
+  ];
+
+  function catReact(name, group, bondCount){
+    var line;
+    if(QUIPS[name]) line = QUIPS[name];
+    else {
+      var w = WEIGHTS[name] || 3;
+      if(w >= 5) line = name.toLowerCase()+"? show-off.";
+      else if(bondCount >= 5) line = name.toLowerCase()+" — well connected.";
+      else {
+        // deterministic filler from name hash (no per-frame randomness)
+        var h = 0; for(var i=0;i<name.length;i++){ h = (h*31 + name.charCodeAt(i))|0; }
+        line = FILLER[Math.abs(h) % FILLER.length];
+      }
+    }
+    setBubble(line);
+  }
+  function setBubble(text){
+    catBubble.textContent = text;
+    if(REDUCED) return;
+    catBubble.classList.remove("pop");
+    void catBubble.offsetWidth;       // restart the tiny pop
+    catBubble.classList.add("pop");
+  }
+
+  /* ----------------------------------------------------------- WIRING */
+  var pinned = null;   // null | name | "grp:<group>"
+
+  // restore whatever pinned state was active before a transient element hover
+  function restorePinned(){
+    if(!pinned){ clearState(); }
+    else if(pinned.indexOf("grp:")===0){ litGroup(pinned.slice(4)); }
+    else if(elByName[pinned]){ activate(pinned); }
+    else { clearState(); }
+  }
+
+  allTiles.forEach(function(tile){
+    var name = tile.getAttribute("data-name");
+
+    // hovering an element always lights it (+ bonds), temporarily overriding a
+    // pinned group; mouseleave restores the pinned state.
+    tile.addEventListener("mouseenter", function(){ activate(name); });
+    tile.addEventListener("mouseleave", restorePinned);
+    tile.addEventListener("focus", function(){ activate(name); });
+    tile.addEventListener("blur", restorePinned);
+    // click to PIN an element's state (so you can study its bonds)
+    tile.addEventListener("click", function(){
+      if(pinned === name){ pinned = null; clearState(); setBubble("fine. moving on."); }
+      else { pinned = name; activate(name); }
+    });
+    // keyboard: Enter / Space pins
+    tile.addEventListener("keydown", function(e){
+      if(e.key === "Enter" || e.key === " "){
+        e.preventDefault(); tile.click();
+      } else if(e.key === "Escape"){
+        pinned = null; clearState(); tile.blur();
+      }
+    });
+  });
+
+  // clicking empty page clears a pin
+  document.addEventListener("click", function(e){
+    if(!pinned) return;
+    if(e.target.closest(".el") || e.target.closest(".key")) return;
+    pinned = null; clearState();
+  });
+
+  /* ----------------------------------------------------------- BOOT */
+  function boot(){
+    setReadoutIdle();
+    runDecode();
+  }
+  if(document.fonts && document.fonts.ready){
+    document.fonts.ready.then(boot);
+    // safety net if fonts.ready stalls
+    setTimeout(function(){
+      if(allTiles[0] && allTiles[0].querySelector(".sym").textContent === allTiles[0].getAttribute("data-sym")) return;
+      boot();
+    }, 900);
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>

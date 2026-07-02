@@ -1,0 +1,775 @@
+---
+import { site } from '../data/site';
+
+// Orbital HUD nav — the Saturn monogram (the paper's crest) is the menu.
+// 01–06 are in-page sections (tracked + key-bound); RÉSUMÉ is an external action.
+// `page` is the desk's folio number, shown in the full-screen INDEX.
+const NAV = [
+  { id: 'top', n: '01', page: 'P.1', label: 'INTRO' },
+  { id: 'projects', n: '02', page: 'P.2', label: 'WORK' },
+  { id: 'experience', n: '03', page: 'P.3', label: 'EXPERIENCE' },
+  { id: 'education', n: '04', page: 'P.4', label: 'EDUCATION' },
+  { id: 'stack', n: '05', page: 'P.5', label: 'STACK' },
+  { id: 'contact', n: '06', page: 'P.6', label: 'CONTACT' },
+];
+const MOONS = [...NAV, { id: '__resume', n: '07', page: 'PDF', label: 'RÉSUMÉ', ext: '↗' }];
+const href = (m: { id: string; ext?: string }) => (m.ext ? site.resume : `/#${m.id}`);
+const spineText = Array(4).fill(NAV.map((s) => s.label).join('   ·   ')).join('   ·   ');
+---
+
+<nav class="onav" aria-label="Primary">
+  <!-- ░░ top progress rail + the cat that walks it (scroll = a completed orbit) ░░ -->
+  <div class="onav-rail" aria-hidden="true"><span class="onav-rail-fill" id="onavRailFill"></span></div>
+  <span class="onav-cat" id="onavCat" aria-hidden="true">
+    <svg viewBox="0 0 34 26" fill="currentColor">
+      <path d="M4 6 L7 1 L9 7 Z M16 7 L19 1 L21 8 Z"></path>
+      <path d="M3 9 q9 -4 18 0 q4 1 4 7 q0 6 -9 6 h-8 q-5 0 -5 -6 Z"></path>
+      <rect x="26" y="14" width="6" height="2.4" rx="1.2"></rect>
+      <rect class="onav-eye" x="7" y="13" width="3" height="1.6"></rect>
+      <rect class="onav-eye" x="14" y="13" width="3" height="1.6"></rect>
+    </svg>
+  </span>
+
+  <!-- ░░ HUD — collapsed, always-on instrument ░░ -->
+  <div class="onav-hud">
+    <!-- visual-only: the decode rewrites this every frame, which would spam a live
+         region with ciphertext; the toggle's aria-label carries the current section -->
+    <div class="onav-readout" id="onavReadout" aria-hidden="true">
+      <span class="onav-ro-mk">▸</span><span class="onav-ro-n" id="onavRoNum">01</span><span id="onavRoName">INTRO</span>
+    </div>
+    <button
+      class="onav-mono"
+      id="onavToggle"
+      type="button"
+      aria-haspopup="menu"
+      aria-expanded="false"
+      aria-controls="onavMoons"
+      aria-label="Open orbital menu"
+    >
+      <svg class="onav-mono-svg" id="onavMonoSvg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <!-- the canonical Saturn mark; the −26° ring fills with scroll progress -->
+        <ellipse class="onav-ring-bg" cx="12" cy="12" rx="10.6" ry="3.9" transform="rotate(-26 12 12)" stroke-width="1.7"></ellipse>
+        <ellipse class="onav-ring-fill" cx="12" cy="12" rx="10.6" ry="3.9" pathLength="100" transform="rotate(-26 12 12)" stroke-width="2.4"></ellipse>
+        <circle cx="12" cy="12" r="3" fill="currentColor"></circle>
+        <circle cx="3.7" cy="16.1" r="1.7" fill="currentColor"></circle>
+      </svg>
+    </button>
+  </div>
+
+  <!-- ░░ stderr's editorial wire — one note per desk, filed on first arrival ░░ -->
+  <div class="onav-wire" id="onavWire" aria-hidden="true">
+    <svg class="ow-cat" viewBox="0 0 26 20" fill="currentColor" aria-hidden="true">
+      <path d="M3 7 L6 1 L9 8 Z M14 8 L17 1 L19 8 Z"></path>
+      <path d="M2 9 q9 -4 18 0 q5 1 5 6 q0 4 -6 4 H7 q-5 0 -5 -5 Z"></path>
+      <rect class="ow-eye" x="6" y="13" width="3" height="1.8"></rect>
+      <rect class="ow-eye" x="13" y="13" width="3" height="1.8"></rect>
+    </svg>
+    <span class="ow-txt" id="onavWireTxt"></span>
+  </div>
+
+  <!-- ░░ ORBITAL OVERLAY — moons flung onto the tilted ring ░░ -->
+  <div class="onav-orbit-wrap" id="onavOrbitWrap">
+    <div class="onav-backdrop" id="onavBackdrop"></div>
+    <div class="onav-center" id="onavCenter">
+      <svg class="onav-ring" id="onavRing" aria-hidden="true"></svg>
+      <ul class="onav-moons" id="onavMoons" role="menu" aria-label="Sections">
+        {MOONS.map((m, i) => (
+          <li role="none">
+            <a
+              class="onav-moon"
+              data-id={m.id}
+              data-onav
+              style={`--i:${i}`}
+              role="menuitem"
+              href={href(m)}
+              target={m.ext ? '_blank' : undefined}
+              rel={m.ext ? 'noopener' : undefined}
+              aria-label={m.ext ? 'Open résumé (PDF)' : `Go to ${m.label}`}
+            >
+              <span class="onav-moon-cr"><span class="onav-moon-box">
+                <b class="onav-moon-n">{m.n}</b>
+                <span class="onav-moon-l" data-label={m.label}>{m.label}</span>
+                {m.ext && <span class="onav-moon-ext">{m.ext}</span>}
+              </span></span>
+            </a>
+          </li>
+        ))}
+      </ul>
+      <button class="onav-core" id="onavCore" type="button" aria-label="Stop the presses — open the index">
+        <svg class="onav-core-svg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <ellipse cx="12" cy="12" rx="10.6" ry="3.9" transform="rotate(-26 12 12)" stroke="currentColor" stroke-width="1.7"></ellipse>
+          <circle cx="12" cy="12" r="3" fill="currentColor"></circle>
+          <circle cx="3.7" cy="16.1" r="1.7" fill="currentColor"></circle>
+        </svg>
+      </button>
+      <span class="onav-hint" id="onavHint">TAP CORE — STOP THE PRESSES</span>
+    </div>
+  </div>
+
+  <!-- ░░ STOP THE PRESSES — the full-screen INDEX ░░ -->
+  <div class="onav-blast" id="onavBlast" role="dialog" aria-modal="true" aria-label="The index — all desks">
+    <div class="onav-blast-grid" aria-hidden="true"></div>
+    <div class="onav-blast-top">
+      <span class="onav-bt-k">// THE INDEX — ALL DESKS</span>
+      <button class="onav-blast-close" id="onavBlastClose" type="button">[ ESC ] CLOSE</button>
+    </div>
+    <ul class="onav-blast-list" id="onavBlastList" data-lenis-prevent>
+      {MOONS.map((m) => (
+        <li role="none">
+          <a
+            class="onav-blast-item"
+            data-id={m.id}
+            data-onav
+            href={href(m)}
+            target={m.ext ? '_blank' : undefined}
+            rel={m.ext ? 'noopener' : undefined}
+          >
+            <span class="onav-blast-n">{m.page}</span>
+            <span class="onav-blast-name" data-label={m.label}>{m.label}</span>
+            {m.ext && <span class="onav-blast-ext">OPENS {m.ext}</span>}
+          </a>
+        </li>
+      ))}
+    </ul>
+    <div class="onav-spine" aria-hidden="true"><div class="onav-spine-track" id="onavSpineTrack">{spineText}</div></div>
+    <div class="onav-blast-cat" aria-hidden="true">
+      <svg viewBox="0 0 120 78" fill="currentColor">
+        <path d="M6 60 q0 -16 22 -16 h54 q26 0 26 16 q0 12 -16 12 H20 q-14 0 -14 -12 Z"></path>
+        <path d="M14 46 l2 -12 l9 9 Z M28 45 l2 -12 l8 10 Z"></path>
+        <path d="M104 56 q14 -2 14 -16 q0 -6 -5 -8 q4 5 1 11 q-3 7 -10 9 Z"></path>
+        <rect x="20" y="51" width="6" height="2.6" rx="1.3" fill="#0a0a0a"></rect>
+        <rect x="33" y="51" width="6" height="2.6" rx="1.3" fill="#0a0a0a"></rect>
+      </svg>
+      <span class="onav-meow" id="onavMeow"></span>
+    </div>
+  </div>
+
+  <!-- ░░ COMMAND PALETTE ░░ -->
+  <div class="onav-cmd-wrap" id="onavCmdWrap">
+    <div class="onav-cmd-back" id="onavCmdBack"></div>
+    <div class="onav-cmd" role="dialog" aria-modal="true" aria-label="Command palette">
+      <div class="onav-cmd-row">
+        <span class="onav-cmd-prompt">&gt;</span>
+        <input class="onav-cmd-input" id="onavCmdInput" type="text" autocomplete="off" spellcheck="false" placeholder="jump to a section…" aria-label="Search sections" />
+        <span class="onav-cmd-esc">ESC</span>
+      </div>
+      <ul class="onav-cmd-list" id="onavCmdList" data-lenis-prevent>
+        {MOONS.map((m) => (
+          <li role="none">
+            <a
+              class="onav-cmd-item"
+              data-id={m.id}
+              data-label={m.label}
+              data-onav
+              href={href(m)}
+              target={m.ext ? '_blank' : undefined}
+              rel={m.ext ? 'noopener' : undefined}
+            >
+              <span class="onav-ci-n">{m.n}</span>
+              <span class="onav-ci-l">{m.label}</span>
+              <span class="onav-ci-tag">{m.ext ? 'open ↗' : 'jump ↵'}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<script>
+  import { decode as houseDecode } from '../scripts/decode';
+
+  (function () {
+    if ((window as any).__onavInit) return;
+    (window as any).__onavInit = true;
+
+    const REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const $ = (id: string) => document.getElementById(id);
+
+    const orbitWrap = $('onavOrbitWrap')!;
+    const orbitCenter = $('onavCenter')!;
+    const orbitRing = $('onavRing')!;
+    const orbitMoons = $('onavMoons')!;
+    const toggle = $('onavToggle')!;
+    const blast = $('onavBlast')!;
+    const cmdWrap = $('onavCmdWrap')!;
+    const cmdInput = $('onavCmdInput') as HTMLInputElement;
+    const cmdList = $('onavCmdList')!;
+    const railFill = $('onavRailFill')!;
+    const cat = $('onavCat')!;
+    const monoSvg = $('onavMonoSvg')!;
+    const spineTrack = $('onavSpineTrack')!;
+
+    const moonEls = Array.from(orbitMoons.querySelectorAll<HTMLElement>('.onav-moon'));
+    const moonCRs = Array.from(orbitMoons.querySelectorAll<HTMLElement>('.onav-moon-cr'));
+    const blastEls = Array.from(blast.querySelectorAll<HTMLElement>('.onav-blast-item'));
+    const cmdEls = Array.from(cmdList.querySelectorAll<HTMLElement>('.onav-cmd-item'));
+
+    const SECTION_IDS = moonEls.map((m) => m.dataset.id!).filter((id) => id !== '__resume');
+    const hasSections = SECTION_IDS.some((id) => document.getElementById(id));
+
+    /* ===================== decode (scramble → resolve) =====================
+       the shared house cipher (src/scripts/decode.ts) — same glyphs as the
+       background wake canvas */
+    const decode = (el: HTMLElement, text: string, dur = 460) => houseDecode(el, text, { dur });
+
+    /* ===================== ring + moon geometry (the −26° ellipse) ===================== */
+    let Rx = 320, Ry = 188;
+    function layout() {
+      const vw = window.innerWidth, vh = window.innerHeight;
+      const moonHalf = vw <= 600 ? 46 : 60;
+      Rx = Math.max(120, Math.min(vw * 0.5 - moonHalf - 14, 360));
+      Ry = Math.max(94, Math.min(Rx * 0.66, vh * 0.3));
+      const pad = 60, w = Rx * 2 + pad, h = Ry * 2 + pad;
+      orbitRing.setAttribute('width', String(w));
+      orbitRing.setAttribute('height', String(h));
+      orbitRing.setAttribute('viewBox', `0 0 ${w} ${h}`);
+      orbitRing.innerHTML =
+        `<ellipse class="onav-orbit-line onav-solid" cx="${w / 2}" cy="${h / 2}" rx="${Rx}" ry="${Ry}"></ellipse>` +
+        `<ellipse class="onav-orbit-line" cx="${w / 2}" cy="${h / 2}" rx="${Rx - 10}" ry="${Ry - 6}"></ellipse>`;
+      const N = moonEls.length;
+      moonEls.forEach((a, i) => {
+        const ang = ((-90 + (i * 360) / N) * Math.PI) / 180;
+        a.style.setProperty('--mx', (Rx * Math.cos(ang)).toFixed(1) + 'px');
+        a.style.setProperty('--my', (Ry * Math.sin(ang)).toFixed(1) + 'px');
+      });
+    }
+    layout();
+    addEventListener('resize', layout);
+
+    /* ===================== orbit slow-rotation (rAF only while open) ===================== */
+    let theta = -26, spinning = false, paused = false, lastT = 0;
+    function applyTheta() {
+      orbitRing.style.transform = `translate(-50%,-50%) rotate(${theta}deg)`;
+      orbitMoons.style.transform = `rotate(${theta}deg)`;
+      const inv = `rotate(${-theta}deg)`;
+      for (const cr of moonCRs) cr.style.transform = inv;
+    }
+    function spin(ts: number) {
+      if (!spinning) return;
+      if (!lastT) lastT = ts;
+      const dt = ts - lastT; lastT = ts;
+      if (!paused && !REDUCE) theta += dt * 0.005; // ~72s / revolution
+      applyTheta();
+      requestAnimationFrame(spin);
+    }
+    orbitCenter.addEventListener('pointerenter', () => { paused = true; });
+    orbitCenter.addEventListener('pointerleave', () => { paused = false; });
+
+    /* ===================== scroll lock for modals ===================== */
+    /* Lenis must be stopped too: it owns the wheel, so with only a body lock
+       it swallows wheel events over the overlay and nested lists go dead. */
+    let lockCount = 0, savedOverflow = '';
+    function lockScroll() {
+      if (lockCount++ === 0) {
+        savedOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        (window as any).__lenis?.stop?.();
+      }
+    }
+    function unlockScroll() {
+      if (lockCount > 0 && --lockCount === 0) {
+        document.body.style.overflow = savedOverflow;
+        (window as any).__lenis?.start?.();
+      }
+    }
+
+    /* ===================== overlays ===================== */
+    let lastFocus: HTMLElement | null = null;
+    function litMoon() { return moonEls.find((a) => a.dataset.id === active) || null; }
+    function litBlast() { return blastEls.find((b) => b.dataset.id === active) || null; }
+
+    function openOrbit() {
+      if (orbitWrap.classList.contains('onav-on')) return;
+      lastFocus = document.activeElement as HTMLElement;
+      lockScroll();
+      orbitWrap.classList.add('onav-on');
+      toggle.setAttribute('aria-expanded', 'true');
+      theta = -26; applyTheta();
+      requestAnimationFrame(() => orbitMoons.classList.add('onav-open'));
+      moonEls.forEach((a, i) => {
+        const lbl = a.querySelector<HTMLElement>('.onav-moon-l')!;
+        setTimeout(() => decode(lbl, lbl.dataset.label!, 380), REDUCE ? 0 : 180 + i * 60);
+      });
+      spinning = true; lastT = 0; if (!REDUCE) requestAnimationFrame(spin);
+      reflectActive();
+      setTimeout(() => (litMoon() || moonEls[0]).focus(), REDUCE ? 0 : 120);
+    }
+    function closeOrbit() {
+      if (!orbitWrap.classList.contains('onav-on')) return;
+      orbitWrap.classList.remove('onav-on');
+      orbitMoons.classList.remove('onav-open');
+      toggle.setAttribute('aria-expanded', 'false');
+      spinning = false;
+      unlockScroll();
+    }
+
+    function openBlast() {
+      closeOrbit(); closeCmd();
+      lastFocus = lastFocus || (document.activeElement as HTMLElement);
+      lockScroll();
+      blast.classList.add('onav-on');
+      blastEls.forEach((el, i) => {
+        const nm = el.querySelector<HTMLElement>('.onav-blast-name')!;
+        setTimeout(() => decode(nm, nm.dataset.label!, 460), REDUCE ? 0 : 80 + i * 90);
+      });
+      decode($('onavMeow')!, 'still not impressed', 700);
+      reflectActive();
+      startSpine();
+      setTimeout(() => (litBlast() || blastEls[0]).focus(), REDUCE ? 0 : 120);
+    }
+    function closeBlast() {
+      if (!blast.classList.contains('onav-on')) return;
+      blast.classList.remove('onav-on');
+      stopSpine();
+      unlockScroll();
+    }
+
+    /* marquee spine — rAF (not a CSS infinite animation that lingers in the timeline) */
+    let spineY = 0, spineH = 0, spineOn = false, spineLast = 0;
+    function spineLoop(ts: number) {
+      if (!spineOn) return;
+      if (!spineLast) spineLast = ts;
+      const dt = ts - spineLast; spineLast = ts;
+      spineY -= dt * 0.03;
+      if (spineH && spineY <= -spineH / 2) spineY += spineH / 2;
+      spineTrack.style.transform = `translateY(${spineY.toFixed(1)}px)`;
+      requestAnimationFrame(spineLoop);
+    }
+    function startSpine() { if (REDUCE) return; spineH = spineTrack.scrollHeight; spineOn = true; spineLast = 0; requestAnimationFrame(spineLoop); }
+    function stopSpine() { spineOn = false; }
+
+    function openCmd() {
+      closeOrbit();
+      lastFocus = document.activeElement as HTMLElement;
+      lockScroll();
+      cmdWrap.classList.add('onav-on');
+      cmdInput.value = ''; filterCmd(''); cmdActive = 0; paintCmd();
+      setTimeout(() => cmdInput.focus(), 30);
+    }
+    function closeCmd() {
+      if (!cmdWrap.classList.contains('onav-on')) return;
+      cmdWrap.classList.remove('onav-on');
+      unlockScroll();
+    }
+
+    function anyOpen() {
+      return orbitWrap.classList.contains('onav-on') || blast.classList.contains('onav-on') || cmdWrap.classList.contains('onav-on');
+    }
+    function closeAll(restoreFocus: boolean) {
+      closeOrbit(); closeBlast(); closeCmd();
+      if (restoreFocus && lastFocus && lastFocus.focus) { lastFocus.focus(); lastFocus = null; }
+    }
+
+    /* ===================== travel ===================== */
+    function travel(id: string) {
+      const el = document.getElementById(id);
+      if (el) {
+        closeAll(false);
+        const lenis = (window as any).__lenis;
+        if (lenis && !REDUCE) lenis.scrollTo(el, { offset: 0 });
+        else el.scrollIntoView({ behavior: REDUCE ? 'auto' : 'smooth', block: 'start' });
+        setActive(id, true);
+      } else {
+        closeAll(false);
+        window.location.href = '/#' + id;
+      }
+    }
+    // shared click handler for every section link (moon / blast row / palette item)
+    function onNavClick(e: Event) {
+      const a = e.currentTarget as HTMLElement;
+      const id = a.dataset.id!;
+      if (id === '__resume') { setTimeout(() => closeAll(false), 10); return; } // let <a target=_blank> open the PDF
+      if (document.getElementById(id)) { e.preventDefault(); travel(id); }
+      // else: let the default href "/#id" navigate to the home page anchor
+    }
+    [...moonEls, ...blastEls, ...cmdEls].forEach((a) => a.addEventListener('click', onNavClick));
+
+    /* ===================== stderr's editorial wire ===================== */
+    // one note per desk, filed the first time the reader reaches it; the tone
+    // climbs from dismissive to (grudging) impressed. Decoded in the cipher,
+    // auto-retracts. The cat carries its own note — no other cat is touched.
+    const wire = $('onavWire');
+    const wireTxt = $('onavWireTxt');
+    const WIRE: Record<string, string> = {
+      projects: '> the projects desk. it actually runs. fine.',
+      experience: '> the switchboard. he picked up. reluctantly.',
+      education: '> the permanent record. the grades are real. noted.',
+      stack: '> the night desk. still building at this hour. respect.',
+      contact: '> end of the edition. ...impressed. you can print it.',
+    };
+    const wireSeen: Record<string, boolean> = {};
+    let wireTimer = 0;
+    function fileNote(id: string) {
+      const line = WIRE[id];
+      if (!wire || !wireTxt || !line || wireSeen[id]) return;
+      wireSeen[id] = true;
+      wire.classList.add('onav-wire-on');
+      if (REDUCE) wireTxt.textContent = line; else decode(wireTxt, line, 520);
+      window.clearTimeout(wireTimer);
+      wireTimer = window.setTimeout(() => wire.classList.remove('onav-wire-on'), 4600);
+    }
+
+    /* ===================== ACTIVE section — the live instrument ===================== */
+    let active = hasSections ? SECTION_IDS[0] : '';
+    function setActive(id: string, force: boolean) {
+      if (!force && id === active) return;
+      active = id;
+      fileNote(id); // no-op for ids without a note (e.g. the intro)
+      reflectActive();
+    }
+    function reflectActive() {
+      const moon = moonEls.find((m) => m.dataset.id === active);
+      const label = moon ? moon.querySelector<HTMLElement>('.onav-moon-l')!.dataset.label! : 'MENU';
+      const num = moon ? moon.querySelector<HTMLElement>('.onav-moon-n')!.textContent! : '◐';
+      $('onavRoNum')!.textContent = num;
+      const roName = $('onavRoName')!;
+      if (roName.textContent !== label) decode(roName, label, 300);
+      toggle.setAttribute('aria-label', active ? `Open orbital menu — current section ${label}` : 'Open orbital menu');
+      moonEls.forEach((a) => {
+        const on = a.dataset.id === active;
+        a.classList.toggle('onav-lit', on);
+        if (on) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current');
+      });
+      blastEls.forEach((b) => {
+        const on = b.dataset.id === active;
+        b.classList.toggle('onav-lit', on);
+        if (on) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
+      });
+      cmdEls.forEach((c) => c.classList.toggle('onav-here', c.dataset.id === active));
+    }
+
+    // the section currently under the viewport's mid-line (defaults to the first when above them all)
+    function currentSection() {
+      const mid = window.innerHeight * 0.5;
+      let cur = SECTION_IDS[0];
+      for (const id of SECTION_IDS) {
+        const el = document.getElementById(id);
+        if (el && el.getBoundingClientRect().top <= mid) cur = id;
+      }
+      return cur;
+    }
+
+    /* ===================== scroll progress → ring fill + walking cat ===================== */
+    let catTimer: number | undefined;
+    function onScroll() {
+      const doc = document.documentElement;
+      const max = doc.scrollHeight - doc.clientHeight;
+      const p = max > 0 ? Math.min(1, Math.max(0, doc.scrollTop / max)) : 0;
+      const pct = (p * 100).toFixed(2);
+      railFill.style.width = pct + '%';
+      monoSvg.style.setProperty('--onav-pp', pct);
+      cat.style.setProperty('--px', (p * (window.innerWidth - 8)).toFixed(1) + 'px');
+      sampleCatBg(p);
+      if (hasSections) setActive(currentSection(), false);
+    }
+
+    // flip the cat to contrast with whatever section it's currently riding over
+    let lastBgP = -1;
+    function sampleCatBg(p: number) {
+      if (Math.abs(p - lastBgP) < 0.005) return;
+      lastBgP = p;
+      const x = Math.min(window.innerWidth - 10, Math.max(10, p * (window.innerWidth - 8)));
+      let el: Element | null = document.elementFromPoint(x, 8); // y=8 is below the 3px rail
+      let lum = 0.36, guard = 0;
+      while (el && guard++ < 12) {
+        const m = getComputedStyle(el).backgroundColor.match(/rgba?\(([^)]+)\)/);
+        if (m) {
+          const c = m[1].split(',').map((s) => parseFloat(s));
+          const a = c[3] === undefined ? 1 : c[3];
+          if (a > 0.1) { lum = (0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]) / 255; break; }
+        }
+        el = el.parentElement;
+      }
+      cat.classList.toggle('onav-cat-dark', lum > 0.55);
+      if (!REDUCE) {
+        cat.classList.add('onav-walking');
+        clearTimeout(catTimer);
+        catTimer = window.setTimeout(() => cat.classList.remove('onav-walking'), 160);
+      }
+    }
+    addEventListener('scroll', onScroll, { passive: true });
+    addEventListener('resize', onScroll);
+    onScroll();
+
+    /* ===================== command palette filter ===================== */
+    let cmdActive = 0;
+    function visibleCmds() { return cmdEls.filter((c) => !c.classList.contains('onav-hide')); }
+    function filterCmd(q: string) {
+      q = q.trim().toLowerCase();
+      cmdEls.forEach((c) => {
+        const hit = !q || c.dataset.label!.toLowerCase().indexOf(q) >= 0 || c.querySelector('.onav-ci-n')!.textContent!.indexOf(q) >= 0;
+        c.classList.toggle('onav-hide', !hit);
+      });
+      const vis = visibleCmds();
+      if (cmdActive >= vis.length) cmdActive = 0;
+      paintCmd();
+    }
+    function paintCmd() {
+      const vis = visibleCmds();
+      cmdEls.forEach((c) => c.classList.remove('onav-active'));
+      if (vis[cmdActive]) vis[cmdActive].classList.add('onav-active');
+    }
+    cmdInput.addEventListener('input', () => { cmdActive = 0; filterCmd(cmdInput.value); });
+
+    /* ===================== wiring ===================== */
+    toggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (orbitWrap.classList.contains('onav-on')) closeAll(true); else openOrbit();
+    });
+    $('onavBackdrop')!.addEventListener('click', () => closeAll(true));
+    $('onavCore')!.addEventListener('click', (e) => { e.stopPropagation(); openBlast(); });
+    $('onavBlastClose')!.addEventListener('click', () => closeAll(true));
+    $('onavCmdBack')!.addEventListener('click', () => closeAll(true));
+
+    /* ===================== keyboard ===================== */
+    /* Tab stays inside whichever overlay is open (the page behind is scroll-locked
+       but was still reachable by keyboard). Only the edges are intercepted —
+       mid-list Tab keeps native behavior. */
+    function trapTab(e: KeyboardEvent) {
+      let root: HTMLElement | null = null;
+      if (cmdWrap.classList.contains('onav-on')) root = cmdWrap;
+      else if (blast.classList.contains('onav-on')) root = blast;
+      else if (orbitWrap.classList.contains('onav-on')) root = orbitCenter;
+      if (!root) return;
+      const focusables = Array.from(
+        root.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input, [tabindex]:not([tabindex="-1"])')
+      ).filter((el) => el.offsetParent !== null);
+      if (!focusables.length) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      const inside = !!active && root.contains(active);
+      if (e.shiftKey && (!inside || active === first)) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && (!inside || active === last)) { e.preventDefault(); first.focus(); }
+    }
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Tab' && anyOpen()) { trapTab(e); return; }
+      if ((e.key === 'k' || e.key === 'K') && (e.metaKey || e.ctrlKey)) { e.preventDefault(); openCmd(); return; }
+      // the "/" shortcut is casual sugar — fire it only when focus rests on the
+      // page body, never when it would hijack a focused control (the footer
+      // slider, a contact tile, a dial-pad key) or a modal that has trapped focus.
+      // Power users still get Cmd/Ctrl-K from anywhere.
+      const onBody = !document.activeElement || document.activeElement === document.body || document.activeElement === document.documentElement;
+      if (e.key === '/' && onBody && !cmdWrap.classList.contains('onav-on')) { e.preventDefault(); openCmd(); return; }
+
+      if (cmdWrap.classList.contains('onav-on')) {
+        const vis = visibleCmds();
+        if (e.key === 'ArrowDown') { e.preventDefault(); cmdActive = Math.min(vis.length - 1, cmdActive + 1); paintCmd(); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); cmdActive = Math.max(0, cmdActive - 1); paintCmd(); }
+        else if (e.key === 'Enter') { e.preventDefault(); const c = visibleCmds()[cmdActive]; if (c) c.click(); }
+        else if (e.key === 'Escape') { e.preventDefault(); closeAll(true); }
+        return;
+      }
+
+      if (e.key === 'Escape' && anyOpen()) { e.preventDefault(); closeAll(true); return; }
+
+      if (!typingInField() && e.key >= '1' && e.key <= '9') {
+        const idx = parseInt(e.key, 10) - 1;
+        const moon = idx < SECTION_IDS.length ? moonEls.find((m) => m.dataset.id === SECTION_IDS[idx]) : null;
+        if (moon) { e.preventDefault(); moon.click(); }
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (orbitWrap.classList.contains('onav-on') && !orbitCenter.contains(e.target as Node) && !toggle.contains(e.target as Node)) closeAll(true);
+    });
+
+    /* ===================== boot ===================== */
+    if (!hasSections) active = '';
+    reflectActive();
+  })();
+</script>
+
+<style is:global>
+  /* ============================================================
+     Orbital HUD nav — all selectors namespaced `onav-` (the site
+     already uses .readout / .moon / .rail / .tag elsewhere), and
+     global so JS-positioned elements are styled too.
+     ============================================================ */
+  .onav {
+    --oink: #141414;
+    --oblack: #0a0a0a;
+    --opaper: #f7f5f1;
+    --opaper-2: #efece4;
+    --ored: #ff5247; /* brighter than the page red → reads on #ed1c24 + the dark hero */
+    --olime: #b4ff2e; /* matches the hero's neon-lime; reserved for PROGRESS + position */
+    --ogray: #928b80;
+    --ofd: var(--font-display, 'Anton', sans-serif);
+    --ofm: var(--font-mono, 'JetBrains Mono', monospace);
+    --oease: cubic-bezier(0.2, 0.9, 0.2, 1);
+    --opop: cubic-bezier(0.16, 1, 0.3, 1);
+    --ospring: cubic-bezier(0.2, 1.25, 0.3, 1);
+  }
+  @property --onav-k { syntax: '<number>'; inherits: true; initial-value: 0; }
+
+  /* ---- top progress rail + walking cat ---- */
+  .onav-rail { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 1200; background: rgba(10, 10, 10, 0.14); }
+  .onav-rail-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--olime); border-right: 2px solid var(--oink); }
+  .onav-cat { position: fixed; top: 5px; left: 0; z-index: 1201; width: 32px; height: 24px; pointer-events: none; color: var(--opaper); transform: translateX(calc(var(--px, 0px) - 16px)); transition: color 0.25s ease; }
+  .onav-cat svg { display: block; width: 100%; height: 100%; }
+  .onav-cat .onav-eye { fill: var(--oink); }
+  /* auto-contrast: over a light section the cat flips to ink (eyes flip with it) */
+  .onav-cat.onav-cat-dark { color: var(--oink); }
+  .onav-cat.onav-cat-dark .onav-eye { fill: var(--opaper); }
+  .onav-cat.onav-walking { animation: onav-bob 0.26s steps(2) infinite; }
+  @keyframes onav-bob { 50% { transform: translateX(calc(var(--px, 0px) - 16px)) translateY(-1.5px); } }
+
+  /* ---- stderr's editorial wire (top-left, clear of the top-right HUD) ---- */
+  .onav-wire {
+    position: fixed; top: clamp(34px, 5vw, 46px); left: clamp(12px, 2vw, 20px); z-index: 1250;
+    display: flex; align-items: center; gap: 9px; max-width: min(78vw, 360px);
+    padding: 7px 12px 7px 9px;
+    background: var(--oink); color: var(--opaper);
+    border: 2px solid var(--oink); box-shadow: 4px 4px 0 var(--oblack);
+    font-family: var(--ofm); font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+    pointer-events: none;
+    opacity: 0; transform: translateX(-12px);
+    transition: opacity 0.28s var(--oease), transform 0.32s var(--ospring);
+  }
+  .onav-wire-on { opacity: 1; transform: none; }
+  .onav-wire .ow-cat { flex: none; width: 26px; height: 20px; color: var(--opaper); }
+  .onav-wire .ow-eye { fill: var(--olime); }
+  .onav-wire .ow-txt { line-height: 1.3; }
+  @media (prefers-reduced-motion: reduce) {
+    .onav-wire { transition: opacity 0.2s linear; transform: none; }
+  }
+
+  /* ---- HUD ---- */
+  .onav-hud { position: fixed; top: clamp(14px, 2vw, 22px); right: clamp(14px, 2vw, 22px); z-index: 1300; display: flex; align-items: stretch; }
+  .onav-readout {
+    display: flex; align-items: center; gap: 8px; height: 52px; padding: 0 14px;
+    background: var(--oink); color: var(--opaper); border: 3px solid var(--oink); border-right: none;
+    box-shadow: 5px 5px 0 rgba(10, 10, 10, 0.4);
+    font-family: var(--ofm); font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; white-space: nowrap;
+  }
+  .onav-ro-mk { color: var(--ored); }
+  .onav-ro-n { color: var(--olime); }
+  @media (max-width: 560px) { .onav-readout { display: none; } }
+
+  .onav-mono {
+    position: relative; flex: none; width: 52px; height: 52px; display: grid; place-items: center;
+    background: var(--ored); color: var(--oink); border: 3px solid var(--oink);
+    box-shadow: 5px 5px 0 rgba(10, 10, 10, 0.4); cursor: pointer;
+    transition: transform 0.12s var(--oease), box-shadow 0.12s var(--oease);
+  }
+  .onav-mono:hover { transform: translate(2px, 2px); box-shadow: 3px 3px 0 rgba(10, 10, 10, 0.4); }
+  .onav-mono:focus-visible { outline: 2px solid var(--opaper); outline-offset: -5px; }
+  .onav-mono-svg { width: 30px; height: 30px; overflow: visible; }
+  .onav-ring-bg { stroke: rgba(20, 20, 20, 0.32); }
+  .onav-ring-fill { stroke: var(--olime); stroke-linecap: round; stroke-dasharray: 100; stroke-dashoffset: calc(100 - var(--onav-pp, 0)); }
+  .onav-mono:hover .onav-mono-svg { animation: onav-spin 0.8s var(--opop); }
+  @keyframes onav-spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+
+  /* ---- orbital overlay ---- */
+  .onav-orbit-wrap { position: fixed; inset: 0; z-index: 1500; display: none; }
+  .onav-orbit-wrap.onav-on { display: block; }
+  .onav-backdrop { position: absolute; inset: 0; background: rgba(8, 8, 8, 0.62); backdrop-filter: blur(2px); opacity: 0; transition: opacity 0.3s ease; }
+  .onav-orbit-wrap.onav-on .onav-backdrop { opacity: 1; }
+  .onav-center { position: absolute; left: 50%; top: 48%; width: 0; height: 0; }
+
+  .onav-ring { position: absolute; left: 0; top: 0; transform: translate(-50%, -50%) rotate(-26deg); overflow: visible; pointer-events: none; }
+  .onav-orbit-line { fill: none; stroke: var(--opaper); stroke-width: 2; stroke-dasharray: 2 7; opacity: 0.4; }
+  .onav-orbit-line.onav-solid { stroke-dasharray: none; stroke-width: 2.5; opacity: 0.8; }
+
+  .onav-moons { position: absolute; left: 0; top: 0; width: 0; height: 0; list-style: none; margin: 0; padding: 0; transform: rotate(-26deg); }
+  .onav-moon {
+    position: absolute; left: 0; top: 0; --onav-k: 0;
+    transform: translate(-50%, -50%) translate(calc(var(--mx, 0px) * var(--onav-k)), calc(var(--my, 0px) * var(--onav-k)));
+    opacity: var(--onav-k); pointer-events: none;
+    transition: --onav-k 0.55s var(--ospring), opacity 0.35s ease; transition-delay: calc(var(--i, 0) * 0.05s);
+  }
+  .onav-moons.onav-open .onav-moon { --onav-k: 1; pointer-events: auto; }
+  .onav-moon-cr { display: block; transform: rotate(26deg); transform-origin: center; }
+  .onav-moon-box {
+    display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 96px; padding: 10px 12px;
+    background: var(--opaper); color: var(--oink); border: 2.5px solid var(--oink); box-shadow: 3px 3px 0 var(--oblack);
+    font-family: var(--ofm); transition: transform 0.16s var(--ospring), background 0.14s, color 0.14s, box-shadow 0.14s;
+  }
+  .onav-moon-n { font-size: 9px; font-weight: 700; letter-spacing: 0.2em; color: var(--ored); }
+  .onav-moon-l { font-size: 12.5px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; }
+  .onav-moon-ext { font-size: 9px; letter-spacing: 0.12em; color: var(--ogray); }
+  .onav-moon:hover .onav-moon-box, .onav-moon:focus-visible .onav-moon-box { transform: scale(1.16); background: var(--ored); color: var(--opaper); box-shadow: 6px 6px 0 var(--oblack); }
+  .onav-moon:hover .onav-moon-n, .onav-moon:focus-visible .onav-moon-n { color: var(--opaper); }
+  .onav-moon:focus-visible { outline: none; }
+  .onav-moon.onav-lit .onav-moon-box { background: var(--ored); color: var(--opaper); box-shadow: 4px 4px 0 var(--oblack), 0 0 0 3px var(--olime); }
+  .onav-moon.onav-lit .onav-moon-n { color: var(--olime); }
+  .onav-moon.onav-lit:hover .onav-moon-box, .onav-moon.onav-lit:focus-visible .onav-moon-box { background: var(--oink); color: var(--olime); }
+  .onav-moon.onav-lit:hover .onav-moon-n { color: var(--olime); }
+
+  .onav-core {
+    position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); width: 96px; height: 96px; display: grid; place-items: center;
+    background: var(--ored); color: var(--oink); border: 3px solid var(--oink); border-radius: 50%; box-shadow: 6px 6px 0 var(--oblack); cursor: pointer;
+    transition: transform 0.25s var(--ospring), box-shadow 0.2s;
+  }
+  .onav-core:hover, .onav-core:focus-visible { outline: none; box-shadow: 0 0 0 4px var(--olime), 6px 6px 0 var(--oblack); }
+  .onav-core-svg { width: 54px; height: 54px; overflow: visible; }
+  .onav-orbit-wrap.onav-on .onav-core-svg { animation: onav-spin 0.95s var(--opop); }
+  .onav-hint {
+    position: absolute; left: 50%; top: calc(50% + 66px); transform: translateX(-50%); white-space: nowrap;
+    font-family: var(--ofm); font-size: 9px; font-weight: 700; letter-spacing: 0.18em; color: var(--opaper); opacity: 0; transition: opacity 0.2s; pointer-events: none;
+  }
+  .onav-orbit-wrap.onav-on .onav-hint { opacity: 0.6; transition-delay: 0.5s; }
+  .onav-center:hover .onav-hint { opacity: 1; color: var(--olime); }
+
+  /* ---- detonate (full-screen) ---- */
+  .onav-blast { position: fixed; inset: 0; z-index: 1700; background: var(--oblack); color: var(--opaper); display: none; overflow: hidden; }
+  .onav-blast.onav-on { display: block; }
+  .onav-blast-grid {
+    position: absolute; inset: 0; pointer-events: none;
+    background-image: linear-gradient(rgba(247, 245, 241, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(247, 245, 241, 0.05) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+  .onav-blast-top { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: clamp(18px, 3vw, 34px) clamp(20px, 5vw, 70px); border-bottom: 2px solid rgba(247, 245, 241, 0.18); }
+  .onav-bt-k { font-family: var(--ofm); font-size: 11px; font-weight: 700; letter-spacing: 0.2em; color: var(--olime); }
+  .onav-blast-close { font-family: var(--ofm); font-size: 11px; font-weight: 700; letter-spacing: 0.14em; border: 2px solid var(--opaper); color: var(--opaper); background: none; padding: 8px 12px; cursor: pointer; transition: background 0.14s, color 0.14s; }
+  .onav-blast-close:hover { background: var(--ored); color: var(--opaper); border-color: var(--ored); }
+  .onav-blast-list { position: relative; list-style: none; padding: clamp(6px, 2vh, 30px) 0; margin: 0; height: calc(100% - 70px); display: flex; flex-direction: column; justify-content: center; overflow-y: auto; }
+  .onav-blast-item { position: relative; display: flex; align-items: center; gap: clamp(14px, 2.5vw, 34px); padding: clamp(2px, 1vh, 14px) clamp(20px, 7vw, 120px); cursor: pointer; overflow: hidden; }
+  .onav-blast-item::before { content: ''; position: absolute; inset: 0; background: var(--ored); transform: translateX(-101%); transition: transform 0.28s var(--opop); z-index: 0; }
+  .onav-blast-item:hover::before, .onav-blast-item:focus-visible::before { transform: translateX(0); }
+  .onav-blast-item > * { position: relative; z-index: 1; }
+  .onav-blast-n { font-family: var(--ofm); font-size: clamp(0.9rem, 1.4vw, 1.1rem); font-weight: 700; letter-spacing: 0.1em; color: var(--olime); min-width: 3ch; }
+  .onav-blast-name { font-family: var(--ofd); font-weight: 700; font-size: clamp(1.7rem, min(8.5vw, 10vh), 7rem); line-height: 0.86; text-transform: uppercase; color: var(--opaper); transition: color 0.2s, transform 0.2s var(--opop); }
+  .onav-blast-item:hover .onav-blast-name, .onav-blast-item:focus-visible .onav-blast-name { transform: translateX(10px); }
+  .onav-blast-ext { font-family: var(--ofm); font-size: 11px; letter-spacing: 0.16em; color: rgba(247, 245, 241, 0.5); align-self: center; }
+  .onav-blast-item.onav-lit .onav-blast-name { color: var(--olime); }
+  .onav-blast-item.onav-lit .onav-blast-n::after { content: ' ◂ HERE'; color: var(--opaper); font-size: 0.7em; letter-spacing: 0.1em; }
+  .onav-blast-item:focus-visible { outline: none; }
+  .onav-spine { position: absolute; top: 0; right: 0; bottom: 0; width: 54px; border-left: 2px solid rgba(247, 245, 241, 0.18); overflow: hidden; display: grid; place-items: center; }
+  .onav-spine-track { writing-mode: vertical-rl; white-space: nowrap; font-family: var(--ofd); font-size: 1.5rem; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(247, 245, 241, 0.42); will-change: transform; }
+  .onav-blast-cat { position: absolute; left: clamp(16px, 4vw, 54px); bottom: clamp(14px, 3vh, 40px); display: flex; align-items: flex-start; gap: 10px; }
+  .onav-blast-cat svg { width: 120px; height: 78px; color: var(--opaper); opacity: 0.9; }
+  .onav-meow { margin-top: 8px; font-family: var(--ofm); font-size: 10px; letter-spacing: 0.14em; color: var(--olime); white-space: nowrap; }
+  .onav-meow:not(:empty)::before { content: '“ '; }
+  .onav-meow:not(:empty)::after { content: ' ”'; }
+  @media (max-width: 560px) { .onav-spine { display: none; } .onav-blast-cat { display: none; } }
+
+  /* ---- command palette ---- */
+  .onav-cmd-wrap { position: fixed; inset: 0; z-index: 1900; display: none; }
+  .onav-cmd-wrap.onav-on { display: block; }
+  .onav-cmd-back { position: absolute; inset: 0; background: rgba(8, 8, 8, 0.55); opacity: 0; transition: opacity 0.2s; }
+  .onav-cmd-wrap.onav-on .onav-cmd-back { opacity: 1; }
+  .onav-cmd { position: absolute; left: 50%; top: 84px; transform: translate(-50%, -18px); width: min(92vw, 560px); background: var(--oink); border: 3px solid var(--oink); box-shadow: 10px 10px 0 rgba(8, 8, 8, 0.5); opacity: 0; transition: transform 0.22s var(--opop), opacity 0.2s ease; }
+  .onav-cmd-wrap.onav-on .onav-cmd { transform: translate(-50%, 0); opacity: 1; }
+  .onav-cmd-row { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 2px solid rgba(247, 245, 241, 0.16); }
+  .onav-cmd-prompt { color: var(--olime); font-family: var(--ofm); font-weight: 700; }
+  .onav-cmd-input { flex: 1; background: none; border: none; outline: none; color: var(--opaper); font-family: var(--ofm); font-size: 15px; letter-spacing: 0.04em; caret-color: var(--olime); }
+  .onav-cmd-input::placeholder { color: rgba(247, 245, 241, 0.4); }
+  .onav-cmd-esc { font-family: var(--ofm); font-size: 9px; font-weight: 700; letter-spacing: 0.12em; color: rgba(247, 245, 241, 0.45); border: 1.5px solid rgba(247, 245, 241, 0.3); padding: 4px 7px; }
+  .onav-cmd-list { list-style: none; margin: 0; padding: 6px; max-height: 50vh; overflow: auto; }
+  .onav-cmd-item { display: flex; align-items: center; gap: 12px; padding: 11px 12px; color: var(--opaper); }
+  .onav-cmd-item.onav-hide { display: none; }
+  .onav-ci-n { font-family: var(--ofm); font-size: 11px; font-weight: 700; letter-spacing: 0.12em; color: var(--olime); min-width: 2.4ch; }
+  .onav-ci-l { font-family: var(--ofm); font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+  .onav-ci-tag { margin-left: auto; font-family: var(--ofm); font-size: 10px; letter-spacing: 0.12em; color: rgba(247, 245, 241, 0.45); }
+  .onav-cmd-item.onav-here .onav-ci-tag { color: var(--olime); }
+  .onav-cmd-item.onav-active { background: var(--ored); }
+  .onav-cmd-item.onav-active .onav-ci-n, .onav-cmd-item.onav-active .onav-ci-tag { color: var(--opaper); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .onav-cat.onav-walking, .onav-mono:hover .onav-mono-svg, .onav-orbit-wrap.onav-on .onav-core-svg { animation: none; }
+    .onav-moon { transition: opacity 0.2s linear; }
+    .onav-blast-item::before { transition: none; }
+  }
+</style>

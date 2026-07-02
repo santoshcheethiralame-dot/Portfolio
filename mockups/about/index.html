@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ABOUT — SEVEN EDITORIAL TREATMENTS · MOCKUPS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --red:#ed1c24; --ink:#ffffff; --black:#0a0a0a; --lime:#b4ff2e;
+    --font-display:"Anton",sans-serif; --font-mono:"JetBrains Mono",monospace; --font-serif:"Instrument Serif",serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{ -webkit-font-smoothing:antialiased; }
+  body{ background:var(--red); color:var(--ink); font-family:var(--font-mono); min-height:100vh;
+    padding:clamp(28px,6vw,80px); overflow-x:hidden; }
+  ::selection{ background:#0a0a0a; color:var(--lime); }
+  .kicker{ font-size:12px; letter-spacing:.06em; color:rgba(255,255,255,.72); }
+  .kicker::before{ content:"// "; color:#fff; }
+  h1{ font-family:var(--font-display); font-weight:400; text-transform:uppercase; line-height:.82; letter-spacing:.01em;
+    font-size:clamp(2.6rem,11vw,9rem); margin:14px 0 0; }
+  .sub{ max-width:70ch; margin-top:22px; font-size:13px; line-height:1.6; color:rgba(255,255,255,.86); }
+  .sub b{ color:#fff; font-weight:700; }
+  .sub .lime{ color:var(--lime); font-weight:700; }
+  .rule{ height:2px; background:var(--ink); margin:34px 0 40px; }
+  .grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:clamp(18px,2.4vw,28px); }
+  @media (max-width:820px){ .grid{ grid-template-columns:1fr; } }
+  .card{ position:relative; display:flex; flex-direction:column; gap:16px; background:var(--red); border:2px solid var(--ink);
+    box-shadow:8px 8px 0 var(--black); padding:clamp(22px,2.6vw,34px); color:var(--ink); text-decoration:none; min-height:240px;
+    transition:transform .12s cubic-bezier(.2,.9,.2,1), box-shadow .12s cubic-bezier(.2,.9,.2,1), background .12s, color .12s; }
+  .card:hover,.card:focus-visible{ transform:translate(-4px,-4px); box-shadow:14px 14px 0 var(--black); outline:none; }
+  .card:active{ transform:translate(2px,2px); box-shadow:4px 4px 0 var(--black); }
+  .card-top{ display:flex; align-items:baseline; justify-content:space-between; gap:16px; }
+  .num{ font-family:var(--font-display); font-size:clamp(2.4rem,5vw,3.8rem); line-height:.8; }
+  .open{ font-size:11px; letter-spacing:.16em; font-weight:700; border:2px solid var(--ink); padding:8px 12px; white-space:nowrap;
+    transition:background .12s,color .12s; }
+  .card:hover .open{ background:var(--ink); color:var(--red); }
+  .name{ font-family:var(--font-display); font-size:clamp(1.5rem,2.6vw,2.2rem); text-transform:uppercase; letter-spacing:.01em; line-height:.95; }
+  .blurb{ font-size:12.5px; line-height:1.6; color:rgba(255,255,255,.9); max-width:54ch; }
+  .tags{ display:flex; flex-wrap:wrap; gap:8px; margin-top:auto; }
+  .tag{ font-size:10px; letter-spacing:.12em; text-transform:uppercase; border:1.5px solid var(--ink); border-radius:100px; padding:5px 11px; color:#fff; }
+  .tag.lime{ border-color:var(--lime); color:var(--lime); }
+
+  /* ── FEATURE CARD (the showstopper, spans the grid) ── */
+  .card.feature{ grid-column:1 / -1; flex-direction:row; gap:clamp(20px,3vw,44px); align-items:stretch; min-height:280px; }
+  .card.feature .feat-body{ display:flex; flex-direction:column; gap:16px; flex:1; min-width:0; }
+  .card.feature .feat-mast{ flex:none; width:min(38%,360px); border-left:2px solid rgba(255,255,255,.5);
+    padding-left:clamp(18px,2.4vw,32px); display:flex; flex-direction:column; justify-content:center; gap:10px; }
+  .card.feature .feat-mast .masthead{ font-family:var(--font-display); text-transform:uppercase; line-height:.86;
+    font-size:clamp(1.4rem,2.8vw,2.4rem); }
+  .card.feature .feat-mast .deck{ font-family:var(--font-serif); font-size:clamp(1.05rem,1.7vw,1.5rem); line-height:1.15;
+    color:rgba(255,255,255,.92); }
+  .card.feature .feat-mast .stamp{ align-self:flex-start; margin-top:4px; font-size:9px; font-weight:700; letter-spacing:.16em;
+    text-transform:uppercase; background:var(--lime); color:var(--black); border:2px solid var(--black); padding:4px 8px; transform:rotate(-3deg); }
+  @media (max-width:820px){ .card.feature{ flex-direction:column; } .card.feature .feat-mast{ width:100%; border-left:none;
+    border-top:2px solid rgba(255,255,255,.5); padding-left:0; padding-top:18px; } }
+
+  .foot{ margin-top:48px; display:flex; flex-wrap:wrap; gap:10px 22px; font-size:11px; letter-spacing:.08em; color:rgba(255,255,255,.7); }
+  .foot b{ color:#fff; font-weight:700; }
+  .legacy{ margin-top:14px; font-size:11px; letter-spacing:.06em; color:rgba(255,255,255,.55); }
+  .legacy a{ color:rgba(255,255,255,.8); text-decoration:underline; text-underline-offset:3px; }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">about · seven editorial treatments · mockups</p>
+    <h1>Not A<br />Card Grid</h1>
+    <p class="sub">
+      Seven ways to do the <b>about page</b> as <b>print</b>, not a wall of cards — each in the live
+      neo-brutalist language (<b>paper, ink, red</b>, with <span class="lime">lime reserved for position</span>).
+      Same dossier every time: <b>local-first software</b>, <b>black-box ML turned to glass</b>, four shipped
+      projects, and one deadpan cat. Editorial register, columns by construction. Each is a single
+      self-contained HTML file — <b>pick a treatment</b>.
+    </p>
+  </header>
+
+  <div class="rule"></div>
+
+  <main class="grid">
+
+    <!-- 01 — THE BROADSHEET (feature / showstopper) -->
+    <a class="card feature" href="01-broadsheet.html">
+      <div class="feat-body">
+        <div class="card-top">
+          <span class="num">01</span>
+          <span class="open">OPEN →</span>
+        </div>
+        <div class="name">The Broadsheet</div>
+        <p class="blurb">
+          A newspaper front page. Masthead, the thesis as the lead headline, the bio set in real
+          multi-column body, the cat as the front-page photo with a deadpan caption, a <b>By The Numbers</b>
+          sidebar, and <b>classifieds</b> for contact. Editorial register sits maximally far from a card grid,
+          and columns kill the void by construction. The visual showstopper.
+        </p>
+        <div class="tags">
+          <span class="tag">masthead</span>
+          <span class="tag">multi-column body</span>
+          <span class="tag">front-page cat</span>
+          <span class="tag">by the numbers</span>
+          <span class="tag">classifieds</span>
+        </div>
+      </div>
+      <div class="feat-mast" aria-hidden="true">
+        <div class="masthead">The Daily<br />Cheethirala</div>
+        <div class="deck">“Local-first developer turns black-box ML into glass.”</div>
+        <span class="stamp">Late Edition</span>
+      </div>
+    </a>
+
+    <!-- 02 — INTERVIEW TRANSCRIPT -->
+    <a class="card" href="02-interview.html">
+      <div class="card-top">
+        <span class="num">02</span>
+        <span class="open">OPEN →</span>
+      </div>
+      <div class="name">Interview Transcript</div>
+      <p class="blurb">
+        A printed Q&amp;A in his actual voice — <i>“Why rebuild git?”</i>, <i>“Why interpretability?”</i>,
+        <i>“What breaks a debugging spiral?”</i> — with the cat interjecting from the margin. Dialogue is dense,
+        and it does the one thing a project grid physically cannot: show how he <b>thinks and talks</b>.
+        The personality play.
+      </p>
+      <div class="tags">
+        <span class="tag">Q&amp;A</span>
+        <span class="tag">timestamps</span>
+        <span class="tag">cat margin</span>
+        <span class="tag">[redacted]</span>
+      </div>
+    </a>
+
+    <!-- 03 — ANNOTATED ESSAY -->
+    <a class="card" href="03-essay.html">
+      <div class="card-top">
+        <span class="num">03</span>
+        <span class="open">OPEN →</span>
+      </div>
+      <div class="name">Annotated Essay</div>
+      <p class="blurb">
+        One genuinely well-written personal essay, with the right margin turned into a <b>live annotation
+        rail</b> — citations, the cat's dry asides, and <b>▸ pull-tabs</b> that expand the evidence. The
+        usually-dead right column becomes the feature. Most human, most writerly — a clean contrast to anything
+        visual.
+      </p>
+      <div class="tags">
+        <span class="tag">essay</span>
+        <span class="tag">annotation rail</span>
+        <span class="tag">pull-tabs</span>
+        <span class="tag">citations</span>
+      </div>
+    </a>
+
+    <!-- 04 — DATASHEET -->
+    <a class="card" href="04-datasheet.html">
+      <div class="card-top">
+        <span class="num">04</span>
+        <span class="open">OPEN →</span>
+      </div>
+      <div class="name">Datasheet</div>
+      <p class="blurb">
+        A component datasheet for a person. Part No. <b>PES1UG24CS127</b> — features, absolute maximum
+        ratings, a real <b>pinout</b>, electrical characteristics, typical applications, and a
+        characteristic curve. Tables and mono, dry and funny, systems-flavored — dense technical
+        documentation reads nothing like a glossy showcase.
+      </p>
+      <div class="tags">
+        <span class="tag">pinout</span>
+        <span class="tag">ratings table</span>
+        <span class="tag">characteristic curve</span>
+        <span class="tag">mono</span>
+      </div>
+    </a>
+
+    <!-- 05 — ANNOTATED SPECIMEN -->
+    <a class="card" href="05-specimen.html">
+      <div class="card-top">
+        <span class="num">05</span>
+        <span class="open">OPEN →</span>
+      </div>
+      <div class="name">Annotated Specimen</div>
+      <p class="blurb">
+        The cat portrait pinned large and central with hard call-out lines labeling him —
+        <i>“← incoming @ PESU Labs”</i>, <i>“rebuilt git for fun”</i>, <i>“runs on filter coffee”</i>,
+        <i>“ships local-first”</i>. One illustrative figure vs. many cards is a strong contrast, and the
+        portrait carries the whole composition — no empty half.
+      </p>
+      <div class="tags">
+        <span class="tag">specimen plate</span>
+        <span class="tag">leader lines</span>
+        <span class="tag">one figure</span>
+        <span class="tag lime">you-are-here</span>
+      </div>
+    </a>
+
+    <!-- 06 — TRANSIT MAP -->
+    <a class="card" href="06-transit.html">
+      <div class="card-top">
+        <span class="num">06</span>
+        <span class="open">OPEN →</span>
+      </div>
+      <div class="name">Transit Map</div>
+      <p class="blurb">
+        His path as a subway line — stations (<b>PES → first ship → pes-vcs → PESU Labs → HERE</b>), with
+        interchanges branching off to the side quests (Roblox, the noodle bar, the air rifle). Graphic, dense,
+        brutalist — and a diagram is unmistakably different from a card wall.
+      </p>
+      <div class="tags">
+        <span class="tag">metro map</span>
+        <span class="tag">stations</span>
+        <span class="tag">interchanges</span>
+        <span class="tag lime">you-are-here</span>
+      </div>
+    </a>
+
+    <!-- 07 — MAN PAGE / README (lightning) -->
+    <a class="card" href="07-readme.html">
+      <div class="card-top">
+        <span class="num">07</span>
+        <span class="open">OPEN →</span>
+      </div>
+      <div class="name">Man Page · README</div>
+      <p class="blurb">
+        <b>Lightning round.</b> <code style="font-family:var(--font-mono)">santosh(1)</code> rendered as a Unix
+        man page in a terminal — NAME, SYNOPSIS, OPTIONS, EXAMPLES, BUGS, SEE ALSO. The solid, safe pick: still
+        about the <b>person</b>, not a project list. The one dark sibling.
+      </p>
+      <div class="tags">
+        <span class="tag">man page</span>
+        <span class="tag">terminal</span>
+        <span class="tag lime">lime cursor</span>
+        <span class="tag">safe pick</span>
+      </div>
+    </a>
+
+  </main>
+
+  <p class="legacy">Earlier transition study (kept for reference, superseded): <a href="01-crack-probe.html">crack-the-box → probe ledger ↗</a></p>
+
+  <div class="foot">
+    <span><b>palette</b> #F7F5F1 · #141414 · #ED1C24 · <span style="color:var(--lime)">#B4FF2E</span></span>
+    <span><b>type</b> Anton · Instrument Serif · JetBrains Mono</span>
+    <span><b>style</b> neo-brutalist editorial</span>
+    <span><b>section</b> about</span>
+  </div>
+</body>
+</html>

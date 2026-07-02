@@ -1,0 +1,32 @@
+---
+import Base from '../layouts/Base.astro';
+import MobileNotice from '../components/MobileNotice.astro';
+import Nav from '../components/Nav.astro';
+import Hero from '../components/Hero.astro';
+import Intro from '../components/Intro.astro';
+import Experience from '../components/Experience.astro';
+import Projects from '../components/Projects.astro';
+import Skills from '../components/Skills.astro';
+import Education from '../components/Education.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<!--
+  No <Divider> between acts: the cover-stack (each act's lay-on top edge leads as
+  it covers the one below) owns the seam now, and each act's own masthead already
+  announces its page. Standalone dividers sat in the -100vh overlap, ran an
+  occluded draw/decode timeline, and flashed a red slug on cold load.
+-->
+<Base>
+  <MobileNotice />
+  <Nav />
+  <div class="flow-wrap" data-flow-wrap>
+    <Hero />
+    <Intro />
+  </div>
+  <Projects />
+  <Experience />
+  <Education />
+  <Skills />
+  <Footer />
+</Base>

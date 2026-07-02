@@ -1,0 +1,698 @@
+---
+import { site } from '../data/site';
+import Folio from './Folio.astro';
+const year = '2026';
+// Derive display handles from the canonical URLs in site.ts
+const ghUser = site.socials.github.replace(/^https?:\/\/github\.com\//, '').replace(/\/+$/, '');
+const liPath = site.socials.linkedin.replace(/^https?:\/\/(www\.)?linkedin\.com/, '').replace(/\/+$/, '');
+---
+
+<footer class="lt-contact section" id="contact" data-email={site.email} data-gh-user={ghUser}>
+  <Folio page="P.6" desk="CLASSIFIEDS · THE CLOSER" tone="ink" />
+  <p class="lt-kicker">contact · the closer</p>
+
+  <div class="band">
+    <div class="band-cols">
+      <h2 class="huge">
+        <span class="row lets" data-decode="LET'S">LET'S</span>
+        <span class="row talk" id="lt-talk">TALK</span>
+      </h2>
+
+      <div class="band-bottom">
+        <span class="clock-line" id="lt-clock">
+          <span class="cl-dot"></span>
+          <span class="cl-t" id="lt-clock-time">--:--</span>
+          <span class="cl-msg" id="lt-clock-msg">syncing&hellip;</span>
+        </span>
+
+        <div class="slidewrap">
+          <div class="slide-lab"><span>slide to send</span><span class="pct" id="lt-pct">0%</span></div>
+          <div class="slide" id="lt-slide">
+            <div class="slide-fill" id="lt-fill"></div>
+            <div class="slide-text" id="lt-slide-text">drag <span class="chev">&raquo;</span> to dial santosh</div>
+            <div
+              class="slide-knob"
+              id="lt-knob"
+              role="slider"
+              tabindex="0"
+              aria-label="Slide to send a message to Santosh"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow="0">&rarr;</div>
+          </div>
+          <div class="slide-hint">
+            grab the <b>&rarr;</b> and shove it to the wall — like sliding to unlock. or
+            <button class="tap-alt" id="lt-tap" type="button">tap to dial instead</button>
+          </div>
+        </div>
+      </div>
+
+      <aside class="rack" aria-label="Direct contact lines">
+        <div class="rack-lab">// direct lines &middot; the other ways to reach me</div>
+
+        <div class="rack-pinned">
+          <a class="tile pin" id="lt-gh" href={site.socials.github} target="_blank" rel="noopener noreferrer">
+            <span class="tile-star" aria-hidden="true">&#9733;</span>
+            <span class="tile-head">
+              <span class="tile-ico" aria-hidden="true"
+                ><svg viewBox="0 0 16 16"
+                  ><path
+                    d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.65 7.65 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"
+                  ></path></svg
+                ></span
+              >
+              <span class="tile-num">01</span>
+              <span class="tile-ext" aria-hidden="true">&#8599;</span>
+            </span>
+            <span class="tile-label" data-decode="GITHUB">GITHUB</span>
+            <span class="tile-sub">/{ghUser}</span>
+            <span class="tile-live"><i class="dot"></i><span id="lt-gh-stat">ONLINE</span></span>
+          </a>
+
+          <a class="tile pin" href={site.socials.linkedin} target="_blank" rel="noopener noreferrer">
+            <span class="tile-star" aria-hidden="true">&#9733;</span>
+            <span class="tile-head">
+              <span class="tile-ico" aria-hidden="true"
+                ><svg viewBox="0 0 24 24"
+                  ><path
+                    d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0z"
+                  ></path></svg
+                ></span
+              >
+              <span class="tile-num">02</span>
+              <span class="tile-ext" aria-hidden="true">&#8599;</span>
+            </span>
+            <span class="tile-label" data-decode="LINKEDIN">LINKEDIN</span>
+            <span class="tile-sub">{liPath}</span>
+            <span class="tile-live"><i class="dot"></i><span>ONLINE</span></span>
+          </a>
+        </div>
+
+        <div class="rack-rest">
+          <button class="tile sm" id="lt-email" type="button" aria-label="Copy email address">
+            <span class="tile-head">
+              <span class="tile-ico" aria-hidden="true"
+                ><svg viewBox="0 0 24 24"
+                  ><path
+                    d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0l-8 5-8-5h16zm0 12H4V8l8 5 8-5v10z"
+                  ></path></svg
+                ></span
+              >
+              <span class="tile-num">03</span>
+            </span>
+            <span class="tile-label" data-decode="EMAIL">EMAIL</span>
+            <span class="tile-sub" id="lt-email-sub">{site.email}</span>
+          </button>
+
+          <a class="tile sm" href={site.resume} target="_blank" rel="noopener noreferrer">
+            <span class="tile-head">
+              <span class="tile-ico" aria-hidden="true"
+                ><svg viewBox="0 0 24 24"
+                  ><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"
+                  ></path></svg
+                ></span
+              >
+              <span class="tile-num">04</span>
+              <span class="tile-ext" aria-hidden="true">&#8599;</span>
+            </span>
+            <span class="tile-label" data-decode="RÉSUMÉ">RÉSUMÉ</span>
+            <span class="tile-sub">1 page <span class="tag-pdf">PDF</span></span>
+          </a>
+        </div>
+      </aside>
+    </div>
+    <!-- /band-cols -->
+  </div>
+  <!-- /band -->
+
+  <div class="catzone">
+    <div class="catpix" id="lt-cat" aria-label="A small pixel cat, asleep">
+      <div class="zzz" aria-hidden="true"><span>z</span><span>z</span><span>z</span></div>
+      <svg viewBox="0 0 120 110" shape-rendering="crispEdges" role="img" aria-hidden="true">
+        <!-- ASLEEP: a curled loaf, gently breathing -->
+        <g class="cat-asleep-part cat-breathe">
+          <rect x="24" y="70" width="84" height="30" fill="#141414"></rect>
+          <rect x="34" y="62" width="66" height="10" fill="#141414"></rect>
+          <rect x="48" y="56" width="40" height="8" fill="#141414"></rect>
+          <rect x="14" y="66" width="30" height="34" fill="#141414"></rect>
+          <polygon points="16,66 22,54 30,66" fill="#141414"></polygon>
+          <polygon points="30,66 38,54 46,66" fill="#141414"></polygon>
+          <polygon points="21,64 24,57 28,64" fill="#ed1c24"></polygon>
+          <polygon points="35,64 38,57 42,64" fill="#ed1c24"></polygon>
+          <rect x="20" y="79" width="12" height="3" fill="#f7f5f1"></rect>
+          <rect x="10" y="83" width="5" height="4" fill="#ed1c24"></rect>
+          <rect x="88" y="90" width="24" height="8" fill="#141414"></rect>
+          <rect x="104" y="76" width="8" height="18" fill="#141414"></rect>
+          <rect x="40" y="94" width="16" height="6" fill="#0a0a0a"></rect>
+        </g>
+
+        <!-- AWAKE: a sitting cat, ears up -->
+        <g class="cat-awake-part">
+          <g class="cat-tail">
+            <rect x="86" y="78" width="12" height="26" fill="#141414"></rect>
+            <rect x="86" y="70" width="22" height="12" fill="#141414"></rect>
+            <rect x="98" y="62" width="10" height="12" fill="#141414"></rect>
+          </g>
+          <polygon points="40,66 80,66 92,104 28,104" fill="#141414"></polygon>
+          <rect x="38" y="92" width="15" height="12" fill="#0a0a0a"></rect>
+          <rect x="67" y="92" width="15" height="12" fill="#0a0a0a"></rect>
+          <rect x="28" y="28" width="64" height="42" fill="#141414"></rect>
+          <polygon points="28,30 30,6 52,30" fill="#141414"></polygon>
+          <polygon points="68,30 90,6 92,30" fill="#141414"></polygon>
+          <polygon points="34,28 36,14 48,28" fill="#ed1c24"></polygon>
+          <polygon points="72,28 84,14 86,28" fill="#ed1c24"></polygon>
+          <rect x="40" y="42" width="11" height="13" fill="#f7f5f1"></rect>
+          <rect x="69" y="42" width="11" height="13" fill="#f7f5f1"></rect>
+          <rect x="44" y="46" width="4" height="6" fill="#141414"></rect>
+          <rect x="73" y="46" width="4" height="6" fill="#141414"></rect>
+          <rect x="55" y="58" width="10" height="6" fill="#ed1c24"></rect>
+        </g>
+      </svg>
+      <span class="cat-tag" id="lt-cat-tag">// shhh — he's asleep</span>
+    </div>
+  </div>
+
+  <!-- the journalist's end-of-copy mark: nothing follows — 30 — -->
+  <div class="thirty" aria-hidden="true">&mdash;&nbsp;30&nbsp;&mdash;</div>
+
+  <div class="eof">
+    <div class="eof-stamp">END OF <b>LINE</b><br />// EOF</div>
+    <div class="eof-right">
+      <div class="eof-copy">
+        <div>&copy; {year} <b>{site.name.first}</b></div>
+        <div>built on the red grid</div>
+        <div>no soft edges</div>
+      </div>
+      <button class="saturn" id="lt-saturn" type="button" aria-label="End of transmission"><span class="sat">&#9796;</span></button>
+    </div>
+  </div>
+
+  <!-- call overlay — child of .lt-contact so the JS-built screens inherit the namespaced CSS -->
+  <div class="call" id="lt-call" hidden>
+    <div class="call-scrim" id="lt-scrim"></div>
+    <div class="call-stage" id="lt-stage" data-lenis-prevent></div>
+  </div>
+</footer>
+
+<script>
+  // "Let's Talk" contact closer — slide-to-send → dial-out → voicemail, speed-dial rack, cat, Saturn.
+  import { decode } from '../scripts/decode';
+
+  const root = document.getElementById('contact');
+  if (root) {
+    const PRM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const $ = (s: string) => root.querySelector(s) as HTMLElement | null;
+    const EMAIL = root.dataset.email || '';
+    const GH_USER = root.dataset.ghUser || '';
+    const FORMSPREE = ''; // set to a Formspree endpoint for a live inbox; empty = mailto
+
+    /* ---------- decode-in labels (the shared house cipher) ---------- */
+    window.addEventListener('load', () =>
+      window.setTimeout(
+        () =>
+          root.querySelectorAll<HTMLElement>('[data-decode]').forEach((el) => decode(el, null, { dur: 560 })),
+        180
+      )
+    );
+
+    /* ---------- time-aware clock (IST) ---------- */
+    const clockLine = $('#lt-clock');
+    const clockT = $('#lt-clock-time');
+    const clockMsg = $('#lt-clock-msg');
+    const pad2 = (n: number) => (n < 10 ? '0' : '') + n;
+    const istNow = () => {
+      const n = new Date();
+      return new Date(n.getTime() + n.getTimezoneOffset() * 60000 + 5.5 * 3600000);
+    };
+    const tickClock = () => {
+      const d = istNow();
+      const h = d.getHours();
+      const m = d.getMinutes();
+      const s = d.getSeconds();
+      const ap = h < 12 ? 'am' : 'pm';
+      const h12 = ((h + 11) % 12) + 1;
+      if (clockT) clockT.textContent = `${h12}:${pad2(m)}:${pad2(s)} ${ap}`;
+      if (clockLine) clockLine.classList.toggle('asleep', h >= 1 && h < 8);
+      let msg: string;
+      if (h >= 1 && h < 8) msg = `it's ${h12}${ap} in bengaluru — i'm asleep. slide anyway, i'll get it at dawn.`;
+      else if (h >= 8 && h < 12) msg = 'morning here — slide it over, quick reply likely.';
+      else if (h >= 12 && h < 17) msg = 'afternoon my time — at the desk.';
+      else if (h >= 17 && h < 22) msg = 'evening in bengaluru — online and around.';
+      else msg = 'late here — winding down, but i’ll see it tonight.';
+      if (clockMsg) clockMsg.textContent = msg;
+    };
+    tickClock();
+    window.setInterval(tickClock, 1000);
+
+    /* ---------- the cat ---------- */
+    const catpix = $('#lt-cat');
+    const catTag = $('#lt-cat-tag');
+    let catTimer = 0;
+    let awake = false;
+    const sleepCat = () => {
+      awake = false;
+      catpix?.classList.remove('is-awake');
+      catpix?.setAttribute('aria-label', 'A small pixel cat, asleep');
+      if (catTag) catTag.textContent = "// shhh — he's asleep";
+    };
+    const wakeCat = () => {
+      if (awake || !catpix) return;
+      awake = true;
+      catpix.classList.add('is-awake');
+      catpix.setAttribute('aria-label', 'A small pixel cat, awake');
+      if (catTag) catTag.textContent = "// he's up — hi";
+      window.clearTimeout(catTimer);
+      catTimer = window.setTimeout(sleepCat, 4200);
+    };
+    catpix?.addEventListener('pointerenter', wakeCat);
+
+    /* ---------- Saturn sign-off ---------- */
+    const saturn = $('#lt-saturn');
+    if (saturn) {
+      saturn.addEventListener('click', () => {
+        saturn.classList.remove('spin-once');
+        void saturn.offsetWidth;
+        saturn.classList.add('spin-once');
+      });
+      if ('IntersectionObserver' in window && !PRM) {
+        const io = new IntersectionObserver(
+          (es) =>
+            es.forEach((en) => {
+              if (en.isIntersecting) {
+                saturn.classList.add('spin-once');
+                io.disconnect();
+              }
+            }),
+          { threshold: 0.6 }
+        );
+        io.observe(saturn);
+      }
+    }
+
+    /* ---------- rack: email copy ---------- */
+    const emailTile = $('#lt-email');
+    const emailSub = $('#lt-email-sub');
+    if (emailTile && emailSub) {
+      const orig = emailSub.textContent;
+      const done = () => {
+        emailTile.classList.add('copied');
+        emailSub.textContent = 'copied ✓';
+        window.setTimeout(() => {
+          emailTile.classList.remove('copied');
+          emailSub.textContent = orig;
+        }, 1400);
+      };
+      const fallbackCopy = () => {
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = EMAIL;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+        } catch {
+          /* ignore */
+        }
+        done();
+      };
+      emailTile.addEventListener('click', () => {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(EMAIL).then(done, fallbackCopy);
+        } else fallbackCopy();
+      });
+    }
+
+    /* ---------- rack: live GitHub stat (graceful: stays "ONLINE" on any failure;
+       cached per-session + aborted after 4s so a rate-limited API can't hang it
+       or burn the 60/hr budget on every reload) ---------- */
+    const ghStat = $('#lt-gh-stat');
+    if (ghStat && GH_USER) {
+      const rel = (iso: string) => {
+        const diff = Date.now() - new Date(iso).getTime();
+        if (diff < 3600000) return `${Math.max(1, Math.round(diff / 60000))}m ago`;
+        if (diff < 86400000) return `${Math.max(1, Math.round(diff / 3600000))}h ago`;
+        const d = Math.round(diff / 86400000);
+        return `${d <= 1 ? '1d' : d + 'd'} ago`;
+      };
+      const CK = 'lt-gh:' + GH_USER;
+      let cached: string | null = null;
+      try { cached = sessionStorage.getItem(CK); } catch { /* ignore */ }
+      const show = (txt: string) => {
+        ghStat.textContent = txt;
+        try { sessionStorage.setItem(CK, txt); } catch { /* ignore */ }
+      };
+      if (cached) {
+        ghStat.textContent = cached;
+      } else {
+        const ctrl = new AbortController();
+        const to = window.setTimeout(() => ctrl.abort(), 4000);
+        fetch(`https://api.github.com/users/${GH_USER}`, { headers: { Accept: 'application/vnd.github+json' }, signal: ctrl.signal })
+          .then((r) => (r.ok ? r.json() : null))
+          .then((u) => {
+            if (!u || typeof u.public_repos !== 'number') return;
+            const repos = u.public_repos;
+            return fetch(`https://api.github.com/users/${GH_USER}/repos?sort=pushed&direction=desc&per_page=1`, { signal: ctrl.signal })
+              .then((r) => (r.ok ? r.json() : null))
+              .then(
+                (a) => {
+                  const p = a && a[0] && a[0].pushed_at ? ` · last push ${rel(a[0].pushed_at)}` : '';
+                  show(`${repos} repo${repos === 1 ? '' : 's'}${p}`);
+                },
+                () => show(`${repos} repos`)
+              );
+          })
+          .catch(() => {})
+          .finally(() => window.clearTimeout(to));
+      }
+    }
+
+    /* ---------- slide to send ---------- */
+    const slide = $('#lt-slide');
+    const knob = $('#lt-knob');
+    const fill = $('#lt-fill');
+    const pct = $('#lt-pct');
+    const slideText = $('#lt-slide-text');
+    const talkWord = $('#lt-talk');
+    const tapAlt = $('#lt-tap');
+
+    if (slide && knob && fill && pct && slideText && talkWord) {
+      let dragging = false;
+      let startX = 0;
+      let startVal = 0;
+      let val = 0;
+      let maxX = 0;
+      let fired = false;
+      let fireTimer = 0;
+      let activePointer: number | null = null;
+      const knobW = () => knob.getBoundingClientRect().width;
+      const measure = () => {
+        maxX = Math.max(1, slide.clientWidth - knobW());
+      };
+      const setVal = (v: number) => {
+        val = Math.max(0, Math.min(maxX, v));
+        knob.style.transform = `translateX(${val}px)`;
+        fill.style.width = `${val + knobW()}px`;
+        const p = Math.round((val / maxX) * 100);
+        pct.textContent = `${p}%`;
+        knob.setAttribute('aria-valuenow', String(p));
+        knob.setAttribute('aria-valuetext', `${p}% — ${p >= 92 ? 'release to dial Santosh' : 'slide to dial Santosh'}`);
+        slide.classList.toggle('armed', p >= 92);
+        talkWord.classList.toggle('filled', p >= 50);
+      };
+      const resetSlide = () => {
+        fired = false;
+        slide.classList.remove('fired', 'armed');
+        talkWord.classList.remove('filled');
+        slide.classList.add('snap');
+        setVal(0);
+        slideText.innerHTML = 'drag <span class="chev">&raquo;</span> to dial santosh';
+        window.setTimeout(() => slide.classList.remove('snap'), 340);
+      };
+      const fire = () => {
+        if (fired) return;
+        fired = true;
+        slide.classList.add('fired');
+        setVal(maxX);
+        slideText.textContent = 'connecting…';
+        wakeCat();
+        placeCall(knob);
+        if (fireTimer) window.clearTimeout(fireTimer);
+        fireTimer = window.setTimeout(() => {
+          fireTimer = 0;
+          resetSlide();
+        }, 1600);
+      };
+      const release = () => {
+        if (!dragging) return;
+        dragging = false;
+        slide.classList.remove('dragging');
+        slide.classList.add('snap');
+        try {
+          if (activePointer !== null) knob.releasePointerCapture(activePointer);
+        } catch {
+          /* ignore */
+        }
+        activePointer = null;
+        if (val / maxX >= 0.92 && !fired) fire();
+        else setVal(0);
+        window.setTimeout(() => slide.classList.remove('snap'), 340);
+      };
+      knob.addEventListener('pointerdown', (e) => {
+        if (fired) return;
+        measure();
+        dragging = true;
+        activePointer = e.pointerId;
+        startX = e.clientX;
+        startVal = val;
+        slide.classList.remove('snap');
+        slide.classList.add('dragging');
+        try {
+          knob.setPointerCapture(e.pointerId);
+        } catch {
+          /* ignore */
+        }
+        e.preventDefault();
+      });
+      window.addEventListener('pointermove', (e) => {
+        if (!dragging || e.pointerId !== activePointer) return;
+        setVal(startVal + (e.clientX - startX));
+      });
+      window.addEventListener('pointerup', (e) => {
+        if (!dragging || e.pointerId !== activePointer) return;
+        release();
+      });
+      window.addEventListener('pointercancel', (e) => {
+        if (!dragging || e.pointerId !== activePointer) return;
+        release();
+      });
+      knob.addEventListener('keydown', (e) => {
+        measure();
+        const key = e.key;
+        if (key === 'ArrowRight' || key === 'ArrowUp') {
+          e.preventDefault();
+          slide.classList.add('snap');
+          setVal(val + maxX * 0.12);
+          window.setTimeout(() => slide.classList.remove('snap'), 200);
+          if (val / maxX >= 0.92 && !fired) fire();
+        } else if (key === 'ArrowLeft' || key === 'ArrowDown') {
+          e.preventDefault();
+          slide.classList.add('snap');
+          setVal(val - maxX * 0.12);
+          window.setTimeout(() => slide.classList.remove('snap'), 200);
+        } else if (key === 'PageUp') {
+          e.preventDefault();
+          slide.classList.add('snap');
+          setVal(val + maxX * 0.25);
+          window.setTimeout(() => slide.classList.remove('snap'), 200);
+          if (val / maxX >= 0.92 && !fired) fire();
+        } else if (key === 'PageDown') {
+          e.preventDefault();
+          slide.classList.add('snap');
+          setVal(val - maxX * 0.25);
+          window.setTimeout(() => slide.classList.remove('snap'), 200);
+        } else if (key === 'Enter' || key === ' ') {
+          e.preventDefault();
+          if (!fired) fire();
+        } else if (key === 'Home') {
+          e.preventDefault();
+          setVal(0);
+        } else if (key === 'End') {
+          e.preventDefault();
+          if (!fired) fire();
+        }
+      });
+      tapAlt?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!fired) fire();
+      });
+      window.addEventListener('resize', () => {
+        measure();
+        if (!dragging && !fired) setVal(val);
+      });
+      measure();
+      setVal(0);
+
+      /* ---------- call overlay → voicemail ---------- */
+      const call = $('#lt-call');
+      const callStage = $('#lt-stage');
+      const callScrim = $('#lt-scrim');
+      const callTimers: number[] = [];
+      let vmInt = 0;
+      let lastTrigger: HTMLElement | null = null;
+      const later = (fn: () => void, ms: number) => {
+        const t = window.setTimeout(fn, ms);
+        callTimers.push(t);
+        return t;
+      };
+      const clearTimers = () => {
+        callTimers.splice(0).forEach((t) => window.clearTimeout(t));
+        if (vmInt) {
+          window.clearInterval(vmInt);
+          vmInt = 0;
+        }
+      };
+      const escText = (s: string) =>
+        String(s).replace(/[<>&]/g, (c) => (c === '<' ? '&lt;' : c === '>' ? '&gt;' : '&amp;'));
+      const dialogFocusables = () =>
+        callStage
+          ? Array.from(
+              callStage.querySelectorAll<HTMLElement>(
+                'a[href],button:not([disabled]),input,textarea,select,[tabindex]:not([tabindex="-1"])'
+              )
+            )
+          : [];
+      const wireHang = () =>
+        callStage?.querySelectorAll('[data-act="hang"]').forEach((b) => b.addEventListener('click', closeCall));
+      const focusInDialog = () => {
+        const f = dialogFocusables()[0];
+        if (f) try { f.focus(); } catch { /* ignore */ }
+      };
+      const bars = '<i></i>'.repeat(16);
+
+      const dialingScreen = () =>
+        '<section class="screen" role="dialog" aria-modal="true" aria-label="Dialing Santosh">' +
+        '<span class="screen-tag"><span class="gl">&#8599;</span> Dialing out</span>' +
+        '<div class="screen-mono pulse ringing"><span class="wave w1"></span><span class="wave w2"></span>S</div>' +
+        '<div class="screen-name">Santosh</div>' +
+        '<div class="screen-sub">SWE · AI / ML — open to internships</div>' +
+        `<div class="screen-handle">${EMAIL}</div>` +
+        '<div class="screen-status" id="lt-conn" role="status" aria-live="polite">DIALING<span class="dots"></span></div>' +
+        '<div class="vm-foot" style="justify-content:center;margin-top:22px"><button class="call-btn call-btn--hang" type="button" data-act="hang"><span class="gl">&#9742;</span>Cancel</button></div>' +
+        '</section>';
+
+      const vmScreen = () =>
+        '<section class="screen vm" role="dialog" aria-modal="true" aria-label="Leave a voicemail">' +
+        '<div class="vm-top"><span class="screen-tag"><span class="gl">&#9679;</span> Connected</span><span class="vm-timer" id="lt-vmtimer"><span class="rec"></span>00:00</span></div>' +
+        '<h2 class="vm-headline">Leave a <em>voicemail</em></h2>' +
+        '<p class="vm-blurb">You got the machine. Talk after the tone — it lands in my inbox.</p>' +
+        `<div class="vm-wave" id="lt-vmwave">${bars}</div>` +
+        '<form id="lt-vmform"><div class="vm-fields">' +
+        '<div class="vm-field"><label for="lt-vmname">who&#39;s calling</label><input id="lt-vmname" placeholder="your name" maxlength="60" required /></div>' +
+        '<div class="vm-field"><label for="lt-vmemail">call you back at</label><input id="lt-vmemail" type="email" placeholder="you@email.com" maxlength="120" required /></div>' +
+        '<div class="vm-field full"><label for="lt-vmmsg">your message</label><textarea id="lt-vmmsg" placeholder="leave your message after the tone…" maxlength="1200" required></textarea></div>' +
+        '</div><div class="vm-foot">' +
+        `<span class="vm-note">${FORMSPREE ? 'sends straight to my inbox' : 'opens your mail app, pre-filled'}</span>` +
+        '<button class="call-btn call-btn--hang" type="button" data-act="hang"><span class="gl">&#9742;</span>Hang up</button>' +
+        '<button class="call-btn call-btn--send" type="submit"><span class="gl">&#9658;</span>Send it</button>' +
+        '</div></form></section>';
+
+      const sentScreen = (name: string) =>
+        '<section class="screen" role="dialog" aria-modal="true" aria-label="Message sent"><div class="vm-sent">' +
+        '<div class="check">&#10003;</div><div class="big">Voicemail <em>left</em></div>' +
+        `<div class="sm">Thanks${name ? ', ' + escText(name) : ''}. I&#39;ll call you back. Until then — <span style="color:var(--lt-red)">EOF.</span></div>` +
+        '<div class="vm-foot" style="justify-content:center;margin-top:22px"><button class="call-btn call-btn--hang" type="button" data-act="hang">Back to the page</button></div></div></section>';
+
+      function closeCall() {
+        clearTimers();
+        call?.classList.remove('is-open');
+        document.body.style.overflow = '';
+        (window as unknown as { __lenis?: { start?: () => void } }).__lenis?.start?.();
+        later(() => {
+          if (call) call.hidden = true;
+          if (callStage) callStage.innerHTML = '';
+          if (lastTrigger) try { lastTrigger.focus(); } catch { /* ignore */ }
+        }, PRM ? 0 : 280);
+      }
+
+      const startVmTimer = () => {
+        const el = $('#lt-vmtimer');
+        if (!el) return;
+        let s = 0;
+        vmInt = window.setInterval(() => {
+          s++;
+          el.innerHTML = `<span class="rec"></span>${pad2(Math.floor(s / 60))}:${pad2(s % 60)}`;
+        }, 1000);
+      };
+
+      const sendVoicemail = (nm: string, em: string, mg: string) => {
+        const finish = () => {
+          clearTimers();
+          if (callStage) callStage.innerHTML = sentScreen(nm);
+          wireHang();
+        };
+        const mailtoFallback = () => {
+          window.location.href =
+            `mailto:${EMAIL}?subject=${encodeURIComponent('Voicemail via portfolio — ' + nm)}` +
+            `&body=${encodeURIComponent(mg + '\n\n— ' + nm + '\nreach me at: ' + em)}`;
+          finish();
+        };
+        if (FORMSPREE) {
+          fetch(FORMSPREE, {
+            method: 'POST',
+            headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: nm, email: em, message: mg }),
+          })
+            .then((r) => {
+              if (!r.ok) throw new Error('bad status');
+              finish();
+            }, mailtoFallback)
+            .catch(mailtoFallback);
+        } else mailtoFallback();
+      };
+
+      const goVoicemail = () => {
+        if (!callStage) return;
+        callStage.innerHTML = vmScreen();
+        startVmTimer();
+        const form = $('#lt-vmform') as HTMLFormElement | null;
+        const wave = $('#lt-vmwave');
+        const msg = $('#lt-vmmsg') as HTMLTextAreaElement | null;
+        const name = $('#lt-vmname') as HTMLInputElement | null;
+        if (name) try { name.focus(); } catch { /* ignore */ }
+        if (msg && wave) msg.addEventListener('input', () => wave.classList.toggle('live', msg.value.length > 0));
+        wireHang();
+        form?.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const nm = ($('#lt-vmname') as HTMLInputElement).value.trim();
+          const em = ($('#lt-vmemail') as HTMLInputElement).value.trim();
+          const mg = ($('#lt-vmmsg') as HTMLTextAreaElement).value.trim();
+          if (!nm || !em || !mg) return;
+          sendVoicemail(nm, em, mg);
+        });
+      };
+
+      function placeCall(trigger: HTMLElement | null) {
+        if (!call || !callStage) return;
+        lastTrigger = trigger;
+        clearTimers();
+        call.hidden = false;
+        document.body.style.overflow = 'hidden';
+        (window as unknown as { __lenis?: { stop?: () => void } }).__lenis?.stop?.();
+        callStage.innerHTML = dialingScreen();
+        wireHang();
+        focusInDialog();
+        requestAnimationFrame(() => call.classList.add('is-open'));
+        const st = $('#lt-conn');
+        later(() => {
+          if (st && st.firstChild) st.firstChild.textContent = 'CONNECTING';
+        }, PRM ? 20 : 1100);
+        later(goVoicemail, PRM ? 40 : 2300);
+      }
+
+      callScrim?.addEventListener('click', closeCall);
+      document.addEventListener('keydown', (e) => {
+        if (!call || call.hidden) return;
+        if (e.key === 'Escape') {
+          closeCall();
+          return;
+        }
+        if (e.key === 'Tab') {
+          const f = dialogFocusables();
+          if (!f.length) return;
+          const first = f[0];
+          const last = f[f.length - 1];
+          const active = document.activeElement;
+          if (e.shiftKey && active === first) {
+            e.preventDefault();
+            last.focus();
+          } else if (!e.shiftKey && (active === last || !callStage?.contains(active))) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      });
+    }
+  }
+</script>

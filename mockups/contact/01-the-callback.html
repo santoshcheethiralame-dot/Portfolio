@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CONTACT / 01 — THE CALLBACK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --red:#ed1c24;
+    --red-deep:#b3001b;
+    --ink:#141414;
+    --cream:#f7f5f1;
+    --cream-2:#fffdf9;
+    --muted:#a39a90;
+    --black:#0a0a0a;
+    --line:rgba(255,255,255,0.24);
+    --font-display:"Anton",sans-serif;
+    --font-mono:"JetBrains Mono",monospace;
+    --font-intro:system-ui,-apple-system,"Segoe UI",sans-serif;
+    --ease:cubic-bezier(.2,.9,.2,1);
+    --pop:cubic-bezier(.16,1,.3,1);
+    --thunk:cubic-bezier(.18,1.5,.3,1);
+    --bar-h:64px;
+    --cell:54px;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ min-height:100%; }
+  html{ scroll-behavior:smooth; }
+
+  body{
+    background:var(--red);
+    color:var(--cream);
+    font-family:var(--font-mono);
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    overflow-x:hidden;
+    position:relative;
+  }
+  ::selection{ background:var(--cream); color:var(--red); }
+
+  /* ---------------------------------------------------------------- REACTIVE GRID */
+  /* a real grid of cells behind everything; the nearest ones light up under the cursor */
+  .grid{
+    position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden;
+    display:grid;
+    grid-auto-rows:var(--cell);
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:var(--cell) var(--cell);
+    background-position:-1px -1px;
+  }
+  .cell{ position:relative; }
+  .cell::after{
+    content:''; position:absolute; inset:2px;
+    background:var(--cream); opacity:0; transform:scale(.55);
+    transition:opacity .45s var(--ease), transform .45s var(--ease);
+  }
+  .cell.lit::after{ opacity:calc(var(--g) * .9); transform:scale(1); }
+  .cell.lit.hot::after{ background:var(--cream-2); }
+
+  .stage{ position:relative; z-index:2; }
+
+  /* ---------------------------------------------------------------- TOP BAR */
+  .topbar{
+    position:fixed; top:0; left:0; right:0; height:var(--bar-h);
+    z-index:200;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 clamp(14px,4vw,40px);
+    background:var(--red);
+    border-bottom:2px solid var(--cream);
+  }
+  .index-btn{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--font-mono); font-weight:700;
+    font-size:12px; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--cream); text-decoration:none;
+    padding:9px 16px;
+    border:2px solid var(--cream);
+    background:transparent;
+    box-shadow:4px 4px 0 var(--black);
+    transition:transform 120ms var(--ease), box-shadow 120ms var(--ease),
+               background 120ms steps(1,end), color 120ms steps(1,end);
+  }
+  .index-btn:hover,.index-btn:focus-visible{
+    background:var(--cream); color:var(--red);
+    transform:translate(2px,2px);
+    box-shadow:2px 2px 0 var(--black);
+    outline:none;
+  }
+  .bar-tools{ display:flex; align-items:center; gap:10px; }
+  .bar-tool{
+    display:inline-flex; align-items:center; gap:7px;
+    font-family:var(--font-mono); font-size:.62rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--cream); background:transparent; border:2px solid var(--cream); padding:8px 11px; cursor:pointer;
+    box-shadow:3px 3px 0 var(--black);
+    transition:transform .12s var(--ease), box-shadow .12s var(--ease), background .12s, color .12s;
+  }
+  .bar-tool:hover,.bar-tool:focus-visible{ background:var(--cream); color:var(--red); outline:none; transform:translate(1px,1px); box-shadow:2px 2px 0 var(--black); }
+  .bar-tool.is-on{ background:var(--red); border-color:var(--red); color:var(--cream); }
+  .caption{ text-align:right; line-height:1.35; }
+  .caption .c-style{ font-weight:700; font-size:12px; letter-spacing:.12em; text-transform:uppercase; }
+  .caption .c-hint{ font-weight:400; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:rgba(255,255,255,.72); }
+
+  /* ---------------------------------------------------------------- SECTION SHELL */
+  .section{
+    padding:calc(var(--bar-h) + clamp(20px,4vw,40px)) clamp(16px,5vw,80px) clamp(40px,6vw,80px);
+    max-width:1320px; margin:0 auto;
+  }
+  .kicker{
+    font-size:13px; font-weight:500; letter-spacing:.18em;
+    color:rgba(255,255,255,.82); margin-bottom:14px; text-transform:lowercase;
+  }
+  .kicker::before{ content:"// "; color:#fff; }
+
+  /* ---------------------------------------------------------------- HERO / THE CALL */
+  .hero{ position:relative; }
+  .hero-eyebrow{
+    display:flex; flex-wrap:wrap; gap:10px 18px; align-items:center;
+    font-size:11px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:rgba(255,255,255,.78);
+    margin-bottom:10px;
+  }
+  .hero-eyebrow .pill{ background:var(--ink); color:var(--cream); padding:4px 9px; border:2px solid var(--cream); }
+
+  /* the giant trigger — LET'S TALK is the button that places the call */
+  .lt-call{
+    display:block; width:100%; text-align:left; cursor:pointer;
+    background:transparent; border:none; padding:0; margin:6px 0 0; color:var(--cream);
+    font-family:var(--font-display); text-transform:uppercase; line-height:.8; letter-spacing:.004em;
+  }
+  .lt-line{ display:flex; align-items:flex-start; gap:clamp(10px,2.5vw,34px); flex-wrap:wrap; }
+  .lt-word{ font-size:clamp(3.4rem,17vw,13rem); display:inline-block; transition:transform .2s var(--pop); }
+  .lt-word.hollow{ color:transparent; -webkit-text-stroke:2px var(--cream); }
+  .lt-arrow-wrap{
+    display:inline-flex; align-items:center; justify-content:center; align-self:center;
+    width:clamp(64px,11vw,128px); height:clamp(64px,11vw,128px); flex:none;
+    border:5px solid var(--cream); background:var(--ink); color:var(--cream);
+    box-shadow:10px 10px 0 var(--black);
+    font-size:clamp(2.4rem,6vw,4.6rem); line-height:1;
+    transition:transform .14s var(--thunk), box-shadow .14s var(--ease), background .14s, color .14s;
+  }
+  .lt-call:hover .lt-arrow-wrap{ transform:translate(8px,0); background:var(--cream); color:var(--ink); }
+  .lt-call:active .lt-arrow-wrap{ transform:translate(4px,4px); box-shadow:4px 4px 0 var(--black); }
+  .lt-call:hover .lt-word:first-child{ transform:translateX(6px); }
+  .lt-call:focus-visible{ outline:none; }
+  .lt-call:focus-visible .lt-arrow-wrap{ outline:3px solid var(--cream); outline-offset:5px; }
+  .lt-arrow{ display:block; }
+  .lt-call.dialing .lt-arrow{ animation:arrow-go .5s var(--ease); }
+  @keyframes arrow-go{ 0%{ transform:translateX(0); } 60%{ transform:translateX(40px); opacity:0; } 61%{ transform:translateX(-40px); } 100%{ transform:translateX(0); opacity:1; } }
+
+  .lt-meta{
+    margin-top:clamp(18px,3vw,30px);
+    display:flex; flex-wrap:wrap; align-items:center; gap:14px 26px;
+  }
+  .lt-sub{ font-size:12.5px; letter-spacing:.04em; line-height:1.7; color:rgba(255,255,255,.86); max-width:48ch; }
+  .lt-sub b{ color:#fff; font-weight:700; }
+
+  /* time-aware status line driven by the live clock */
+  .clock-line{
+    display:inline-flex; align-items:center; gap:10px;
+    font-size:11.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--cream); background:var(--ink); border:2px solid var(--cream); padding:8px 12px;
+    box-shadow:4px 4px 0 var(--black);
+  }
+  .clock-line .dot{ width:9px; height:9px; border-radius:50%; background:#7fd14a; box-shadow:0 0 0 2px var(--ink); }
+  .clock-line.asleep .dot{ background:var(--muted); }
+  .clock-line .t{ font-variant-numeric:tabular-nums; color:var(--cream); }
+  .clock-line .msg{ color:rgba(247,245,241,.82); font-weight:500; text-transform:none; letter-spacing:.02em; }
+
+  /* ---------------------------------------------------------------- EMAIL ROW */
+  .reach{
+    margin-top:clamp(28px,5vw,52px);
+    display:grid; grid-template-columns:1fr; gap:clamp(18px,3vw,30px);
+  }
+  .reach-lab{ font-size:.62rem; font-weight:700; letter-spacing:.22em; text-transform:uppercase; color:rgba(255,255,255,.6); margin-bottom:12px; }
+
+  .mailrow{ display:flex; flex-wrap:wrap; align-items:stretch; gap:14px; }
+  .mailchip{
+    position:relative; display:inline-flex; align-items:center; gap:14px; cursor:pointer;
+    background:var(--cream); color:var(--ink); border:4px solid var(--ink);
+    box-shadow:8px 8px 0 var(--black); padding:14px clamp(16px,2.4vw,24px);
+    font-family:var(--font-display); text-transform:lowercase; letter-spacing:.01em;
+    font-size:clamp(1.3rem,3.4vw,2.4rem); line-height:1;
+    transition:transform .12s var(--ease), box-shadow .12s var(--ease), background .12s, color .12s;
+  }
+  .mailchip:hover,.mailchip:focus-visible{ transform:translate(-2px,-2px); box-shadow:11px 11px 0 var(--black); outline:none; }
+  .mailchip .at{ color:var(--red); }
+  .mailchip .copy-ico{ font-family:var(--font-mono); font-size:.7rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); border-left:3px solid var(--ink); padding-left:14px; }
+  .mailchip.flash{ background:var(--red); color:var(--cream); }
+  .mailchip.flash .at{ color:var(--cream); }
+  .mailchip.flash .copy-ico{ color:var(--cream); border-left-color:var(--cream); }
+  /* COPIED stamp punches over the chip */
+  .stamp-copied{
+    position:absolute; right:10px; top:-14px; z-index:3;
+    font-family:var(--font-display); font-size:1.1rem; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--cream); background:var(--ink); border:3px solid var(--cream); box-shadow:4px 4px 0 var(--black);
+    padding:4px 9px; transform:rotate(-7deg) scale(.4); opacity:0; pointer-events:none;
+  }
+  .stamp-copied.punch{ animation:punchIn .42s var(--thunk) forwards; }
+  @keyframes punchIn{ 0%{ opacity:0; transform:rotate(-7deg) scale(1.8); } 55%{ opacity:1; } 100%{ opacity:1; transform:rotate(-7deg) scale(1); } }
+
+  /* ---------------------------------------------------------------- SPEED DIAL (socials) */
+  .speed{ }
+  .speed-grid{ display:flex; flex-wrap:wrap; gap:clamp(14px,2.4vw,26px); }
+  .dial{
+    position:relative; width:clamp(92px,13vw,122px); display:flex; flex-direction:column; align-items:center; gap:10px;
+    text-decoration:none; color:var(--cream); cursor:pointer; will-change:transform;
+  }
+  .dial-disc{
+    position:relative; width:clamp(72px,9vw,96px); height:clamp(72px,9vw,96px);
+    display:grid; place-items:center; border-radius:50%;
+    background:var(--ink); color:var(--cream); border:3px solid var(--cream);
+    box-shadow:6px 6px 0 var(--black);
+    font-family:var(--font-display); font-size:clamp(1.7rem,2.6vw,2.4rem); line-height:1;
+    transition:background .14s, color .14s, box-shadow .14s var(--ease), transform .14s var(--ease);
+  }
+  .dial-disc .glyph{ display:block; transition:transform .5s var(--pop); }
+  .dial:hover .dial-disc,.dial:focus-visible .dial-disc{ background:var(--cream); color:var(--ink); }
+  .dial:focus-visible{ outline:none; }
+  .dial:focus-visible .dial-disc{ outline:3px solid var(--cream); outline-offset:4px; }
+  /* spin the glyph like the Saturn monogram on hover */
+  .dial:hover .dial-disc .glyph{ transform:rotate(360deg); }
+  /* faint ring-pulse — you're a phone now */
+  .dial-disc::after{
+    content:''; position:absolute; inset:-3px; border-radius:50%; border:3px solid var(--cream); opacity:0;
+  }
+  .dial:hover .dial-disc::after{ animation:ring-pulse 1.6s ease-out infinite; }
+  @keyframes ring-pulse{ 0%{ transform:scale(1); opacity:.7; } 70%,100%{ transform:scale(1.45); opacity:0; } }
+  .dial-num{ font-size:.5rem; font-weight:700; letter-spacing:.16em; color:rgba(247,245,241,.6); }
+  .dial-name{ font-size:.62rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; text-align:center; }
+
+  /* ---------------------------------------------------------------- GUESTBOOK / SIGN THE WALL */
+  .wall{ margin-top:clamp(30px,5vw,56px); }
+  .wall-head{ display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:14px; }
+  .wall-title{ font-family:var(--font-display); font-size:clamp(1.4rem,4vw,2.4rem); text-transform:uppercase; line-height:.9; }
+  .wall-title em{ font-style:normal; color:transparent; -webkit-text-stroke:1.6px var(--cream); }
+  .wall-count{ font-size:.6rem; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:rgba(247,245,241,.65); }
+
+  .wall-form{ display:flex; flex-wrap:wrap; gap:10px; margin-bottom:18px; }
+  .wall-input{
+    font-family:var(--font-mono); font-size:.82rem; font-weight:600; color:var(--ink);
+    background:var(--cream); border:3px solid var(--ink); box-shadow:4px 4px 0 var(--black); padding:11px 13px; outline:none;
+  }
+  .wall-input::placeholder{ color:var(--muted); text-transform:uppercase; letter-spacing:.1em; font-size:.7rem; }
+  .wall-input:focus{ box-shadow:4px 4px 0 var(--ink); outline:2px solid var(--ink); outline-offset:2px; }
+  .wall-input.who{ width:clamp(120px,18vw,180px); }
+  .wall-input.mark{ flex:1; min-width:200px; }
+  .wall-stamp-btn{
+    font-family:var(--font-mono); font-size:.72rem; font-weight:700; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--cream); background:var(--ink); border:3px solid var(--ink); box-shadow:4px 4px 0 var(--black);
+    padding:11px 18px; cursor:pointer; transition:transform .12s var(--ease), box-shadow .12s var(--ease), background .12s, color .12s;
+  }
+  .wall-stamp-btn:hover{ background:var(--cream); color:var(--ink); transform:translate(1px,1px); box-shadow:3px 3px 0 var(--black); }
+
+  .wall-board{
+    display:flex; flex-wrap:wrap; gap:10px; align-content:flex-start;
+    border:3px dashed rgba(247,245,241,.4); padding:clamp(12px,2vw,18px); min-height:84px;
+  }
+  .wall-empty{ font-size:.72rem; letter-spacing:.12em; text-transform:uppercase; color:rgba(247,245,241,.6); align-self:center; }
+  .wall-mark{
+    display:inline-flex; flex-direction:column; gap:3px;
+    background:var(--cream); color:var(--ink); border:2px solid var(--ink); box-shadow:3px 3px 0 var(--black);
+    padding:8px 11px; max-width:280px;
+    transform:rotate(var(--rot,0deg));
+  }
+  .wall-mark .m-txt{ font-family:var(--font-intro); font-weight:600; font-size:.82rem; line-height:1.3; overflow-wrap:anywhere; }
+  .wall-mark .m-by{ font-size:.54rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--red); }
+  .wall-mark.mine{ background:var(--ink); color:var(--cream); }
+  .wall-mark.mine .m-by{ color:var(--cream); }
+  .wall-mark.pop{ animation:markPop .34s var(--thunk); }
+  @keyframes markPop{ 0%{ transform:rotate(var(--rot,0deg)) scale(.3); opacity:0; } 70%{ transform:rotate(var(--rot,0deg)) scale(1.06); } 100%{ transform:rotate(var(--rot,0deg)) scale(1); opacity:1; } }
+
+  /* ---------------------------------------------------------------- THE CAT (closer / bookend) */
+  .catzone{
+    margin-top:clamp(40px,7vw,90px); position:relative;
+    min-height:clamp(150px,22vw,230px);
+    display:flex; align-items:flex-end;
+  }
+  .catpix{ position:relative; width:clamp(150px,20vw,210px); height:auto; cursor:default; }
+  .catpix svg{ display:block; width:100%; height:auto; image-rendering:pixelated; }
+  /* default = asleep; .is-awake swaps the parts */
+  .cat-awake-part{ display:none; }
+  .catpix.is-awake .cat-asleep-part{ display:none; }
+  .catpix.is-awake .cat-awake-part{ display:block; }
+  .cat-breathe{ transform-box:fill-box; transform-origin:center bottom; animation:breathe 3.4s ease-in-out infinite; }
+  .catpix.is-awake .cat-breathe{ animation:none; }
+  @keyframes breathe{ 0%,100%{ transform:scaleY(1); } 50%{ transform:scaleY(1.04); } }
+  .cat-tail{ transform-box:fill-box; transform-origin:left center; }
+  .catpix.is-awake .cat-tail{ animation:tailflick 1.4s ease-in-out infinite; }
+  @keyframes tailflick{ 0%,100%{ transform:rotate(0deg); } 50%{ transform:rotate(-9deg); } }
+
+  .zzz{ position:absolute; left:62%; top:-6%; pointer-events:none; }
+  .zzz span{
+    position:absolute; font-family:var(--font-display); color:var(--cream); opacity:0;
+    text-shadow:2px 2px 0 var(--black);
+  }
+  .zzz span:nth-child(1){ font-size:.9rem; left:0;  animation:floatz 3s ease-in-out infinite; }
+  .zzz span:nth-child(2){ font-size:1.2rem; left:14px; animation:floatz 3s ease-in-out .9s infinite; }
+  .zzz span:nth-child(3){ font-size:1.6rem; left:32px; animation:floatz 3s ease-in-out 1.8s infinite; }
+  @keyframes floatz{ 0%{ opacity:0; transform:translateY(8px); } 30%{ opacity:.95; } 100%{ opacity:0; transform:translateY(-26px); } }
+  .catpix.is-awake .zzz{ display:none; }
+  .cat-bang{
+    position:absolute; left:60%; top:-14%; font-family:var(--font-display); font-size:1.8rem; color:var(--cream);
+    text-shadow:2px 2px 0 var(--black); opacity:0;
+  }
+  .catpix.is-awake .cat-bang{ animation:bang .5s var(--thunk); }
+  @keyframes bang{ 0%{ opacity:0; transform:scale(.2) translateY(8px); } 50%{ opacity:1; transform:scale(1.1) translateY(0); } 100%{ opacity:0; transform:scale(1) translateY(-4px); } }
+  .cat-tag{
+    position:absolute; left:0; bottom:-26px;
+    font-size:.56rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:rgba(247,245,241,.7);
+  }
+
+  /* ---------------------------------------------------------------- EOF / SIGN-OFF */
+  .eof{
+    margin-top:clamp(40px,7vw,90px); border-top:3px solid var(--cream); padding-top:22px;
+    display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:18px;
+  }
+  .eof-stamp{
+    font-family:var(--font-display); font-size:clamp(1.8rem,6vw,3.4rem); text-transform:uppercase; line-height:.85;
+    color:transparent; -webkit-text-stroke:2px var(--cream);
+  }
+  .eof-stamp b{ -webkit-text-stroke:0; color:var(--cream); }
+  .eof-right{ display:flex; align-items:center; gap:16px; }
+  .eof-copy{ font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:rgba(247,245,241,.78); text-align:right; line-height:1.6; }
+  .eof-copy b{ color:#fff; }
+  .saturn{
+    width:clamp(58px,8vw,82px); height:clamp(58px,8vw,82px); flex:none;
+    display:grid; place-items:center; cursor:pointer;
+    background:var(--cream); color:var(--ink); border:3px solid var(--ink); border-radius:50%;
+    box-shadow:5px 5px 0 var(--black); font-size:clamp(1.6rem,2.4vw,2.4rem);
+  }
+  .saturn .sat{ display:block; animation:spin 18s linear infinite; }
+  .saturn:hover{ background:var(--red); color:var(--cream); border-color:var(--cream); }
+  .saturn:hover .sat{ animation-duration:4s; }
+  .saturn.spin-once .sat{ animation:spin 1.1s var(--pop); }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  /* legend */
+  .legend{ margin-top:38px; display:flex; flex-wrap:wrap; gap:10px 24px; font-size:11px; letter-spacing:.06em; color:rgba(255,255,255,.78); }
+  .legend b{ color:#fff; font-weight:700; }
+  .legend .grp{ display:inline-flex; gap:8px; align-items:center; }
+
+  /* ================================================================ CALL OVERLAY */
+  .call{ position:fixed; inset:0; z-index:1100; display:flex; align-items:flex-start; justify-content:center; overflow:auto; padding:clamp(12px,3vw,40px); }
+  .call[hidden]{ display:none; }
+  .call-scrim{ position:fixed; inset:0; background:rgba(10,7,7,.62); -webkit-backdrop-filter:blur(13px) saturate(.9); backdrop-filter:blur(13px) saturate(.9); opacity:0; transition:opacity .3s ease; }
+  .call.is-open .call-scrim{ opacity:1; }
+  .call-stage{ position:relative; z-index:1; width:100%; max-width:760px; margin:auto 0; }
+
+  .screen{
+    background:var(--ink); color:var(--cream); border:5px solid var(--cream); box-shadow:16px 16px 0 var(--black);
+    padding:clamp(26px,5vw,52px) clamp(20px,4vw,44px); text-align:center; position:relative; overflow:hidden;
+    opacity:0; transform:scale(.92); transition:opacity .28s ease, transform .42s var(--pop);
+  }
+  .call.is-open .screen{ opacity:1; transform:scale(1); }
+  .screen::before{ content:''; position:absolute; inset:0; background:repeating-linear-gradient(45deg, transparent 0 11px, rgba(255,255,255,.04) 11px 13px); pointer-events:none; }
+  .screen-tag{ font-size:.7rem; font-weight:700; letter-spacing:.34em; text-transform:uppercase; color:var(--red); display:inline-flex; align-items:center; gap:10px; }
+  .screen-tag .gl{ font-size:1rem; }
+  .screen-mono{
+    width:clamp(118px,26vw,168px); height:clamp(118px,26vw,168px); margin:clamp(22px,4vw,34px) auto;
+    background:var(--red); color:var(--cream); border:5px solid var(--cream); box-shadow:10px 10px 0 var(--black);
+    display:grid; place-items:center; font-family:var(--font-display); font-size:clamp(4rem,11vw,7rem); line-height:1; position:relative;
+  }
+  .screen-mono.pulse{ animation:mono-pulse 1.1s ease-in-out infinite; }
+  @keyframes mono-pulse{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.05); } }
+  .screen-mono .wave{ position:absolute; inset:-5px; border:4px solid var(--red); opacity:0; }
+  .screen-mono.ringing .wave{ animation:ring-out 1.2s ease-out infinite; }
+  .screen-mono.ringing .wave.w2{ animation-delay:.4s; }
+  @keyframes ring-out{ 0%{ transform:scale(1); opacity:.8; } 100%{ transform:scale(1.55); opacity:0; } }
+  .screen-name{ font-family:var(--font-display); font-size:clamp(2.2rem,6vw,3.6rem); line-height:.92; text-transform:uppercase; }
+  .screen-sub{ font-family:var(--font-intro); font-weight:600; font-size:.95rem; margin-top:8px; color:rgba(247,245,241,.86); }
+  .screen-handle{ font-size:.62rem; letter-spacing:.16em; color:var(--red); margin-top:8px; }
+  .screen-status{ margin-top:14px; font-size:.72rem; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:rgba(247,245,241,.72); min-height:1.2em; }
+  .screen-status .dots::after{ content:''; animation:ellipsis 1.2s steps(4,end) infinite; }
+  @keyframes ellipsis{ 0%{ content:''; } 25%{ content:'·'; } 50%{ content:'··'; } 75%,100%{ content:'···'; } }
+
+  /* ---- voicemail composer ---- */
+  .vm{ text-align:left; }
+  .vm-top{ display:flex; align-items:center; gap:14px; margin-bottom:6px; }
+  .vm-top .screen-tag{ color:#7fd14a; }
+  .vm-timer{ margin-left:auto; font-size:.92rem; font-weight:700; font-variant-numeric:tabular-nums; color:var(--cream); }
+  .vm-timer .rec{ display:inline-block; width:9px; height:9px; border-radius:50%; background:var(--red); margin-right:7px; vertical-align:middle; animation:blip 1.1s steps(1,end) infinite; }
+  @keyframes blip{ 0%,55%{ opacity:1; } 56%,100%{ opacity:.18; } }
+  .vm-headline{ font-family:var(--font-display); font-size:clamp(1.7rem,5vw,3rem); text-transform:uppercase; line-height:.9; margin:6px 0 2px; }
+  .vm-headline em{ font-style:normal; color:var(--red); }
+  .vm-blurb{ font-size:.78rem; letter-spacing:.02em; color:rgba(247,245,241,.7); margin-bottom:18px; }
+
+  .vm-wave{ display:flex; align-items:flex-end; gap:3px; height:30px; margin-bottom:16px; }
+  .vm-wave i{ width:5px; background:rgba(247,245,241,.4); height:18%; }
+  .vm-wave.live i{ animation:wv .9s ease-in-out infinite; background:var(--red); }
+  .vm-wave i:nth-child(2n){ animation-delay:.1s; } .vm-wave i:nth-child(3n){ animation-delay:.2s; } .vm-wave i:nth-child(4n){ animation-delay:.3s; } .vm-wave i:nth-child(5n){ animation-delay:.15s; }
+  @keyframes wv{ 0%,100%{ height:16%; } 50%{ height:100%; } }
+
+  .vm-fields{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px; }
+  .vm-field{ display:flex; flex-direction:column; gap:6px; }
+  .vm-field.full{ grid-column:1 / -1; }
+  .vm-field label{ font-size:.56rem; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); }
+  .vm-field input,.vm-field textarea{
+    font-family:var(--font-mono); font-size:.86rem; font-weight:500; color:var(--cream);
+    background:#0d0d0d; border:3px solid var(--cream); padding:11px 12px; outline:none; resize:vertical;
+  }
+  .vm-field input::placeholder,.vm-field textarea::placeholder{ color:rgba(247,245,241,.4); }
+  .vm-field input:focus,.vm-field textarea:focus{ outline:2px solid var(--red); outline-offset:2px; }
+  .vm-field textarea{ min-height:110px; line-height:1.5; }
+
+  .vm-foot{ display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:6px; }
+  .vm-note{ font-size:.6rem; letter-spacing:.08em; color:rgba(247,245,241,.5); flex:1; min-width:160px; }
+  .call-btn{
+    display:inline-flex; align-items:center; gap:10px;
+    font-family:var(--font-mono); font-size:.72rem; font-weight:700; letter-spacing:.18em; text-transform:uppercase;
+    padding:14px clamp(18px,4vw,30px); border:4px solid var(--cream); cursor:pointer; color:var(--cream); background:transparent;
+    box-shadow:6px 6px 0 var(--black); transition:transform .12s var(--ease), box-shadow .12s var(--ease), background .12s, color .12s;
+  }
+  .call-btn .gl{ font-size:1.2rem; }
+  .call-btn:hover{ transform:translate(2px,2px); box-shadow:3px 3px 0 var(--black); }
+  .call-btn--send{ background:var(--red); border-color:var(--red); }
+  .call-btn--send:hover{ background:#ff3b42; }
+  .call-btn--hang:hover{ background:var(--cream); color:var(--ink); }
+
+  /* sent confirmation */
+  .vm-sent{ text-align:center; padding:clamp(10px,3vw,26px) 0; }
+  .vm-sent .big{ font-family:var(--font-display); font-size:clamp(2.4rem,8vw,4.4rem); text-transform:uppercase; line-height:.86; }
+  .vm-sent .big em{ font-style:normal; color:var(--red); }
+  .vm-sent .sm{ font-size:.74rem; letter-spacing:.06em; color:rgba(247,245,241,.78); margin-top:14px; }
+  .vm-sent .check{
+    width:84px; height:84px; margin:0 auto 18px; display:grid; place-items:center; border-radius:50%;
+    background:var(--red); color:var(--cream); border:5px solid var(--cream); box-shadow:8px 8px 0 var(--black);
+    font-family:var(--font-display); font-size:3rem;
+  }
+
+  /* ---------------------------------------------------------------- RESPONSIVE */
+  @media (max-width:760px){
+    .lt-word{ font-size:clamp(3rem,21vw,7rem); }
+    .vm-fields{ grid-template-columns:1fr; }
+    .reach{ gap:24px; }
+    .mailchip{ width:100%; }
+  }
+
+  /* keep the reactive-grid node count sane on big displays */
+  @media (min-width:1600px){ :root{ --cell:72px; } }
+  @media (min-width:2560px){ :root{ --cell:96px; } }
+
+  /* ---------------------------------------------------------------- REDUCED MOTION */
+  @media (prefers-reduced-motion:reduce){
+    *{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; }
+    html{ scroll-behavior:auto; }
+    .cell::after{ transition:none; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- reactive grid lives behind everything -->
+  <div class="grid" id="grid" aria-hidden="true"></div>
+
+  <div class="topbar">
+    <a class="index-btn" href="index.html">&larr; Index</a>
+    <div class="bar-tools">
+      <button class="bar-tool" id="soundBtn" type="button" aria-pressed="false">
+        <span id="soundIco">&#128263;</span><span id="soundTxt">Sound off</span>
+      </button>
+    </div>
+    <div class="caption">
+      <div class="c-style">Contact / 01 — The Callback</div>
+      <div class="c-hint">click LET'S TALK to dial · click the email to copy · sign the wall</div>
+    </div>
+  </div>
+
+  <main class="section stage">
+    <p class="kicker">contact · the closer</p>
+
+    <!-- ============ HERO / THE CALL ============ -->
+    <section class="hero">
+      <div class="hero-eyebrow">
+        <span class="pill">end of line</span>
+        <span>you reached the bottom — now reach me</span>
+      </div>
+
+      <button class="lt-call" id="ltCall" type="button" aria-label="Let's talk — place a call to Santosh">
+        <span class="lt-line">
+          <span class="lt-word" data-decode="LET'S">LET'S</span>
+          <span class="lt-word hollow" data-decode="TALK">TALK</span>
+          <span class="lt-arrow-wrap" aria-hidden="true"><span class="lt-arrow">&rarr;</span></span>
+        </span>
+      </button>
+
+      <div class="lt-meta">
+        <span class="clock-line" id="clockLine">
+          <span class="dot"></span>
+          <span class="t" id="clockT">--:--</span>
+          <span class="msg" id="clockMsg">syncing&hellip;</span>
+        </span>
+        <span class="lt-sub">The roster up top was a <b>phone</b>. So is this. Press <b>LET'S TALK</b> and it dials out — pick up the other end of the line.</span>
+      </div>
+    </section>
+
+    <!-- ============ REACH ============ -->
+    <section class="reach">
+      <div class="speed">
+        <div class="reach-lab">// direct line</div>
+        <div class="mailrow">
+          <button class="mailchip" id="mailChip" type="button" aria-label="Copy email address">
+            <span class="mail-addr" data-decode="hello@santoshcheethirala.me">hello<span class="at">@</span>santoshcheethirala.me</span>
+            <span class="copy-ico">tap&nbsp;to&nbsp;copy</span>
+            <span class="stamp-copied" id="copiedStamp">Copied &#10003;</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="speed">
+        <div class="reach-lab">// speed dial</div>
+        <div class="speed-grid" id="speedGrid"><!-- dials injected --></div>
+      </div>
+    </section>
+
+    <!-- ============ GUESTBOOK ============ -->
+    <section class="wall">
+      <div class="wall-head">
+        <h2 class="wall-title">Sign the <em>wall</em></h2>
+        <span class="wall-count" id="wallCount">0 marks</span>
+      </div>
+      <form class="wall-form" id="wallForm" autocomplete="off">
+        <input class="wall-input who" id="wallWho" maxlength="24" placeholder="your name" aria-label="Your name" />
+        <input class="wall-input mark" id="wallMark" maxlength="120" placeholder="leave a mark&hellip;" aria-label="Your message" />
+        <button class="wall-stamp-btn" type="submit">Stamp it</button>
+      </form>
+      <div class="wall-board" id="wallBoard" aria-live="polite"></div>
+    </section>
+
+    <!-- ============ THE CAT ============ -->
+    <section class="catzone">
+      <div class="catpix" id="catpix" aria-label="A small pixel cat, asleep">
+        <div class="zzz" aria-hidden="true"><span>z</span><span>z</span><span>z</span></div>
+        <div class="cat-bang" aria-hidden="true">!</div>
+        <svg viewBox="0 0 120 84" shape-rendering="crispEdges" role="img">
+          <!-- shared body / loaf -->
+          <g class="cat-breathe">
+            <rect x="20" y="44" width="78" height="34" fill="#141414"/>
+            <rect x="20" y="40" width="20" height="8" fill="#141414"/>
+            <!-- red stripes -->
+            <rect x="42" y="50" width="6" height="22" fill="#ed1c24"/>
+            <rect x="58" y="50" width="6" height="26" fill="#ed1c24"/>
+            <rect x="74" y="52" width="6" height="24" fill="#ed1c24"/>
+            <!-- paws -->
+            <rect x="24" y="74" width="14" height="4" fill="#0a0a0a"/>
+            <rect x="48" y="74" width="14" height="4" fill="#0a0a0a"/>
+          </g>
+
+          <!-- ASLEEP: head down on paws, ears low, closed eyes -->
+          <g class="cat-asleep-part">
+            <rect x="6" y="50" width="30" height="26" fill="#141414"/>
+            <!-- low ears -->
+            <rect x="8" y="46" width="8" height="6" fill="#141414"/>
+            <rect x="24" y="46" width="8" height="6" fill="#141414"/>
+            <!-- closed eyes (dashes) -->
+            <rect x="12" y="60" width="7" height="2" fill="#f7f5f1"/>
+            <rect x="24" y="60" width="7" height="2" fill="#f7f5f1"/>
+            <!-- nose -->
+            <rect x="4" y="64" width="4" height="4" fill="#ed1c24"/>
+            <!-- tail curled to the front -->
+            <rect x="86" y="70" width="26" height="6" fill="#141414"/>
+            <rect x="104" y="58" width="8" height="14" fill="#141414"/>
+          </g>
+
+          <!-- AWAKE: head up, ears perked, open eyes -->
+          <g class="cat-awake-part">
+            <rect x="8" y="30" width="30" height="30" fill="#141414"/>
+            <!-- perked ears -->
+            <polygon points="10,30 16,14 22,30" fill="#141414"/>
+            <polygon points="24,30 30,14 36,30" fill="#141414"/>
+            <polygon points="13,28 16,20 19,28" fill="#ed1c24"/>
+            <polygon points="27,28 30,20 33,28" fill="#ed1c24"/>
+            <!-- open eyes -->
+            <rect x="13" y="40" width="6" height="7" fill="#f7f5f1"/>
+            <rect x="26" y="40" width="6" height="7" fill="#f7f5f1"/>
+            <rect x="15" y="42" width="2" height="3" fill="#141414"/>
+            <rect x="28" y="42" width="2" height="3" fill="#141414"/>
+            <!-- nose + whiskers -->
+            <rect x="20" y="50" width="5" height="4" fill="#ed1c24"/>
+            <!-- alert tail up -->
+            <g class="cat-tail">
+              <rect x="94" y="30" width="8" height="40" fill="#141414"/>
+              <rect x="94" y="26" width="14" height="8" fill="#141414"/>
+            </g>
+          </g>
+        </svg>
+        <span class="cat-tag" id="catTag">// shhh — he's asleep</span>
+      </div>
+    </section>
+
+    <!-- ============ EOF ============ -->
+    <footer class="eof">
+      <div class="eof-stamp">END OF <b>LINE</b><br />// EOF</div>
+      <div class="eof-right">
+        <div class="eof-copy">
+          <div>&copy; 2026 <b>SANTOSH</b></div>
+          <div>built on the red grid</div>
+          <div>no soft edges</div>
+        </div>
+        <button class="saturn" id="saturn" type="button" aria-label="End of transmission"><span class="sat">&#9796;</span></button>
+      </div>
+    </footer>
+
+    <div class="legend">
+      <span class="grp"><b>palette</b> #ED1C24 · #F7F5F1 · #141414</span>
+      <span class="grp"><b>type</b> Anton + JetBrains Mono</span>
+      <span class="grp"><b>motion</b> dial-out · decode-in · copy-stamp · magnetic dials · reactive grid</span>
+      <span class="grp"><b>note</b> email + social handles are placeholders — swap before ship</span>
+    </div>
+  </main>
+
+  <!-- ============ CALL OVERLAY ============ -->
+  <div class="call" id="call" hidden>
+    <div class="call-scrim" id="callScrim"></div>
+    <div class="call-stage" id="callStage"></div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+  var PRM = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var $ = function(s,r){ return (r||document).querySelector(s); };
+
+  /* ---- swap these for the real thing before shipping ---- */
+  var EMAIL = "hello@santoshcheethirala.me";
+  var FORMSPREE_ENDPOINT = ""; // e.g. "https://formspree.io/f/xxxxxxx" — empty = mailto fallback
+  var SOCIALS = [
+    { n:"01", name:"Email",    glyph:"@",  href:"copy" },
+    { n:"02", name:"GitHub",   glyph:"■", href:"https://github.com/" },
+    { n:"03", name:"LinkedIn", glyph:"in", href:"https://www.linkedin.com/in/" },
+    { n:"04", name:"X",        glyph:"✕", href:"https://x.com/" },
+    { n:"05", name:"Résumé",   glyph:"☰", href:"https://santoshcheethirala.me/Santosh_Cheethirala_Resume.pdf" }
+  ];
+
+  /* ============================================================ AUDIO (synth bleeps, off by default) */
+  var AC=null, soundOn=false;
+  function ac(){ if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ AC=null; } } return AC; }
+  function tone(freq,dur,type,vol,when){
+    if(!soundOn) return; var c=ac(); if(!c) return;
+    var t=(when||0)+c.currentTime;
+    var o=c.createOscillator(), g=c.createGain();
+    o.type=type||"square"; o.frequency.value=freq;
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.linearRampToValueAtTime(vol||0.1,t+0.006);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.connect(g).connect(c.destination); o.start(t); o.stop(t+dur+0.03);
+  }
+  function clack(){ tone(170+Math.random()*40,0.045,"square",0.09); tone(80,0.05,"triangle",0.05); }
+  function dtmf(){ tone(770,0.10,"sine",0.07); tone(1209,0.10,"sine",0.05); }
+  function ringBurst(when){ tone(440,0.4,"sine",0.08,when); tone(480,0.4,"sine",0.06,when); tone(440,0.4,"sine",0.08,(when||0)+0.55); tone(480,0.4,"sine",0.06,(when||0)+0.55); }
+  function connectBlip(){ tone(660,0.07,"sine",0.12); tone(990,0.09,"sine",0.09,0.07); tone(1320,0.1,"sine",0.07,0.15); }
+  function declineTone(){ tone(180,0.16,"sawtooth",0.11); tone(120,0.22,"sawtooth",0.09,0.05); }
+  function sentChime(){ tone(660,0.1,"sine",0.1); tone(880,0.12,"sine",0.09,0.09); tone(1320,0.18,"sine",0.08,0.2); }
+
+  var soundBtn=$("#soundBtn");
+  soundBtn.addEventListener("click", function(){
+    soundOn=!soundOn; ac(); if(soundOn && AC && AC.state==="suspended") AC.resume();
+    soundBtn.classList.toggle("is-on",soundOn);
+    soundBtn.setAttribute("aria-pressed",soundOn?"true":"false");
+    $("#soundIco").innerHTML = soundOn ? "&#128266;" : "&#128263;";
+    $("#soundTxt").textContent = soundOn ? "Sound on" : "Sound off";
+    if(soundOn) dtmf();
+  });
+
+  /* ============================================================ DECODE-IN */
+  var GLYPHS="ABCDEFGHIJKLMNOPQRSTUVWXYZ@#/.0123456789".split("");
+  function decode(el){
+    var finalText = el.getAttribute("data-decode") || el.textContent;
+    if(PRM){ return; }
+    var len=finalText.length, start=performance.now(), dur=380+len*22;
+    function frame(now){
+      var k=Math.min(1,(now-start)/dur), reveal=Math.floor(k*len), out="";
+      for(var i=0;i<len;i++){
+        var ch=finalText[i];
+        if(i<reveal || ch===" " || ch==="'"){ out+=ch; }
+        else { out += GLYPHS[(Math.random()*GLYPHS.length)|0]; }
+      }
+      el.textContent=out;
+      if(k<1) requestAnimationFrame(frame); else el.textContent=finalText;
+    }
+    requestAnimationFrame(frame);
+  }
+  function decodeAll(){
+    // the email keeps its red @, so rebuild it after decode finishes
+    document.querySelectorAll("[data-decode]").forEach(function(el){
+      if(el.classList.contains("mail-addr")){
+        var done=el.getAttribute("data-decode");
+        if(PRM) return;
+        var len=done.length, start=performance.now(), dur=560;
+        function frame(now){
+          var k=Math.min(1,(now-start)/dur), reveal=Math.floor(k*len), out="";
+          for(var i=0;i<len;i++){ var ch=done[i]; out += (i<reveal? ch : GLYPHS[(Math.random()*GLYPHS.length)|0]); }
+          el.textContent=out;
+          if(k<1) requestAnimationFrame(frame);
+          else el.innerHTML = done.replace("@",'<span class="at">@</span>');
+        }
+        requestAnimationFrame(frame);
+      } else { decode(el); }
+    });
+  }
+  window.addEventListener("load", function(){ setTimeout(decodeAll, 220); });
+
+  /* ============================================================ LIVE CLOCK / TIME-AWARE LINE (IST) */
+  var clockLine=$("#clockLine"), clockT=$("#clockT"), clockMsg=$("#clockMsg");
+  function istNow(){
+    var now=new Date();
+    var utc=now.getTime()+now.getTimezoneOffset()*60000;
+    return new Date(utc + 5.5*3600000);
+  }
+  function pad2(n){ return (n<10?"0":"")+n; }
+  function tickClock(){
+    var d=istNow(), h=d.getHours(), m=d.getMinutes(), s=d.getSeconds();
+    var ap=h<12?"am":"pm", h12=((h+11)%12)+1;
+    clockT.textContent = h12+":"+pad2(m)+":"+pad2(s)+" "+ap;
+    var asleep = (h>=1 && h<8);
+    clockLine.classList.toggle("asleep", asleep);
+    var msg;
+    if(h>=1 && h<8) msg = "it's "+h12+(ap)+" in bengaluru — i'm asleep. leave a voicemail, i'll call back.";
+    else if(h>=8 && h<12) msg = "morning here — coffee's on, i'll reply soon.";
+    else if(h>=12 && h<17) msg = "mid-afternoon my time — probably at the desk. quick reply likely.";
+    else if(h>=17 && h<22) msg = "evening in bengaluru — online and around.";
+    else msg = "late here — winding down, but i'll see it tonight.";
+    clockMsg.textContent = msg;
+  }
+  tickClock(); setInterval(tickClock, 1000);
+
+  /* ============================================================ REACTIVE GRID */
+  var grid=$("#grid"), cells=[], cols=0, rows=0, cellPx=54, lit=[];
+  function readCellPx(){
+    var v=getComputedStyle(document.documentElement).getPropertyValue("--cell");
+    var n=parseInt(v,10); return isNaN(n)?54:n;
+  }
+  function vpW(){ return window.innerWidth || document.documentElement.clientWidth || 1280; }
+  function vpH(){ return window.innerHeight || document.documentElement.clientHeight || 800; }
+  function buildGrid(){
+    cellPx=readCellPx();
+    cols=Math.ceil(vpW()/cellPx)+1;
+    rows=Math.ceil(vpH()/cellPx)+1;
+    grid.style.gridTemplateColumns="repeat("+cols+","+cellPx+"px)";
+    var frag=document.createDocumentFragment();
+    cells=[];
+    for(var i=0;i<cols*rows;i++){
+      var c=document.createElement("div"); c.className="cell"; frag.appendChild(c); cells.push(c);
+    }
+    grid.innerHTML=""; grid.appendChild(frag);
+  }
+  function clearLit(){ for(var i=0;i<lit.length;i++){ lit[i].classList.remove("lit","hot"); } lit=[]; }
+  function lightGrid(px,py){
+    if(PRM || !cells.length) return;
+    clearLit();
+    var cx=Math.floor(px/cellPx), cy=Math.floor(py/cellPx), R=2;
+    for(var dy=-R; dy<=R; dy++){
+      for(var dx=-R; dx<=R; dx++){
+        var x=cx+dx, y=cy+dy;
+        if(x<0||y<0||x>=cols||y>=rows) continue;
+        var idx=y*cols+x, cell=cells[idx]; if(!cell) continue;
+        var ccx=x*cellPx+cellPx/2, ccy=y*cellPx+cellPx/2;
+        var dist=Math.hypot(ccx-px, ccy-py), maxd=R*cellPx;
+        var g=Math.max(0, 1-dist/maxd);
+        if(g<=0.04) continue;
+        cell.style.setProperty("--g", g.toFixed(3));
+        cell.classList.add("lit"); if(g>0.7) cell.classList.add("hot");
+        lit.push(cell);
+      }
+    }
+  }
+  buildGrid();
+  window.addEventListener("load", buildGrid); // re-measure once layout has real dimensions
+  var resizeT;
+  window.addEventListener("resize", function(){ clearTimeout(resizeT); resizeT=setTimeout(buildGrid,180); });
+
+  /* ============================================================ POINTER DISPATCH (grid + magnetic + cat proximity) */
+  var pointer={x:-9999,y:-9999,active:false}, rafQueued=false;
+  function onPointer(e){
+    pointer.x=e.clientX; pointer.y=e.clientY; pointer.active=true;
+    if(!rafQueued){ rafQueued=true; requestAnimationFrame(flushPointer); }
+  }
+  function flushPointer(){
+    rafQueued=false;
+    lightGrid(pointer.x, pointer.y);
+    magnetize(pointer.x, pointer.y);
+    catProximity(pointer.x, pointer.y);
+  }
+  window.addEventListener("pointermove", onPointer, {passive:true});
+  window.addEventListener("pointerleave", function(){ pointer.active=false; clearLit(); resetMagnets(); });
+
+  /* ============================================================ SPEED DIAL (socials) */
+  var speedGrid=$("#speedGrid");
+  SOCIALS.forEach(function(s){
+    var a=document.createElement(s.href==="copy"||s.href==="#" ? "button" : "a");
+    a.className="dial";
+    if(a.tagName==="A"){ a.href=s.href; a.target="_blank"; a.rel="noopener noreferrer"; }
+    else { a.type="button"; }
+    a.setAttribute("aria-label", s.name);
+    a.dataset.action = s.href;
+    a.innerHTML =
+      '<span class="dial-disc"><span class="glyph">'+s.glyph+'</span></span>'+
+      '<span class="dial-num">'+s.n+'</span>'+
+      '<span class="dial-name">'+s.name+'</span>';
+    if(s.href==="copy"){ a.addEventListener("click", function(e){ e.preventDefault(); copyEmail(); }); }
+    a.addEventListener("pointerenter", function(){ if(soundOn) dtmf(); });
+    speedGrid.appendChild(a);
+  });
+  var magnets = Array.prototype.slice.call(document.querySelectorAll(".dial"));
+  function magnetize(px,py){
+    if(PRM) return;
+    var R=130;
+    for(var i=0;i<magnets.length;i++){
+      var m=magnets[i], r=m.getBoundingClientRect();
+      var mx=r.left+r.width/2, my=r.top+r.height/2;
+      var dx=px-mx, dy=py-my, dist=Math.hypot(dx,dy);
+      if(dist<R){
+        var pull=(1-dist/R)*16;
+        m.style.transform="translate("+(dx/dist*pull||0).toFixed(1)+"px,"+(dy/dist*pull||0).toFixed(1)+"px)";
+      } else { m.style.transform=""; }
+    }
+  }
+  function resetMagnets(){ magnets.forEach(function(m){ m.style.transform=""; }); }
+
+  /* ============================================================ EMAIL COPY + STAMP */
+  var mailChip=$("#mailChip"), copiedStamp=$("#copiedStamp");
+  function copyEmail(){
+    var done=function(){
+      clack();
+      mailChip.classList.add("flash");
+      copiedStamp.classList.remove("punch"); void copiedStamp.offsetWidth; copiedStamp.classList.add("punch");
+      setTimeout(function(){ mailChip.classList.remove("flash"); }, 420);
+    };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(EMAIL).then(done, fallbackCopy);
+    } else { fallbackCopy(); }
+    function fallbackCopy(){
+      try{
+        var ta=document.createElement("textarea"); ta.value=EMAIL;
+        ta.style.position="fixed"; ta.style.opacity="0"; document.body.appendChild(ta);
+        ta.select(); document.execCommand("copy"); document.body.removeChild(ta);
+      }catch(e){}
+      done();
+    }
+  }
+  mailChip.addEventListener("click", copyEmail);
+
+  /* ============================================================ THE CAT */
+  var catpix=$("#catpix"), catTag=$("#catTag"), catTimer=0, awake=false;
+  function wakeCat(){
+    if(awake) return; awake=true;
+    catpix.classList.add("is-awake");
+    catpix.setAttribute("aria-label","A small pixel cat, awake and alert");
+    catTag.textContent="// he's up — hi";
+    if(soundOn){ tone(520,0.06,"square",0.06); tone(680,0.08,"sine",0.05,0.06); }
+    clearTimeout(catTimer);
+    catTimer=setTimeout(sleepCat, 4200);
+  }
+  function sleepCat(){
+    awake=false; catpix.classList.remove("is-awake");
+    catpix.setAttribute("aria-label","A small pixel cat, asleep");
+    catTag.textContent="// shhh — he's asleep";
+  }
+  function catProximity(px,py){
+    var r=catpix.getBoundingClientRect();
+    var cx=r.left+r.width/2, cy=r.top+r.height/2;
+    if(Math.hypot(px-cx,py-cy) < r.width*1.1){ wakeCat(); }
+  }
+  catpix.addEventListener("pointerenter", wakeCat);
+
+  /* ============================================================ GUESTBOOK */
+  var KEY="lt_guestbook_v1";
+  var wallBoard=$("#wallBoard"), wallCount=$("#wallCount"), wallForm=$("#wallForm"), wallWho=$("#wallWho"), wallMark=$("#wallMark");
+  function loadWall(){ try{ return JSON.parse(localStorage.getItem(KEY)||"[]"); }catch(e){ return []; } }
+  function saveWall(a){ try{ localStorage.setItem(KEY, JSON.stringify(a.slice(-60))); }catch(e){} }
+  var SEED=[ {who:"the night shift", mark:"first one to sign. the grid is humming.", mine:false},
+             {who:"a passing visitor", mark:"left a mark on the way out ✷", mine:false} ];
+  function rot(i){ return ((i*37)%9 - 4); }
+  function escText(s){ return String(s).replace(/[<>&]/g,function(c){ return c==="<"?"&lt;":c===">"?"&gt;":"&amp;"; }); }
+  function renderWall(popLast){
+    var data=loadWall(); if(!data.length) data=SEED.slice();
+    wallBoard.innerHTML="";
+    if(!data.length){ wallBoard.innerHTML='<span class="wall-empty">be the first to sign &rarr;</span>'; }
+    data.forEach(function(e,i){
+      var el=document.createElement("div");
+      el.className="wall-mark"+(e.mine?" mine":"")+(popLast && i===data.length-1?" pop":"");
+      el.style.setProperty("--rot", rot(i)+"deg");
+      el.innerHTML='<span class="m-txt">'+escText(e.mark)+'</span><span class="m-by">— '+escText(e.who||"anon")+'</span>';
+      wallBoard.appendChild(el);
+    });
+    var stored=loadWall().length;
+    wallCount.textContent = (stored||data.length)+" mark"+((stored||data.length)===1?"":"s");
+  }
+  if(!loadWall().length){ saveWall(SEED); } // persist the seed marks so the count stays stable
+  wallForm.addEventListener("submit", function(e){
+    e.preventDefault();
+    var mark=wallMark.value.trim(); if(!mark) return;
+    var who=wallWho.value.trim()||"anon";
+    var data=loadWall(); data.push({ who:who, mark:mark, mine:true }); saveWall(data);
+    wallMark.value=""; clack(); renderWall(true);
+    wallBoard.lastChild && wallBoard.lastChild.scrollIntoView({block:"nearest", behavior: PRM?"auto":"smooth"});
+  });
+  renderWall(false);
+
+  /* ============================================================ EOF SATURN */
+  var saturn=$("#saturn");
+  saturn.addEventListener("click", function(){
+    saturn.classList.remove("spin-once"); void saturn.offsetWidth; saturn.classList.add("spin-once");
+    if(soundOn) connectBlip();
+  });
+  if("IntersectionObserver" in window && !PRM){
+    var io=new IntersectionObserver(function(es){
+      es.forEach(function(en){ if(en.isIntersecting){ saturn.classList.add("spin-once"); io.disconnect(); } });
+    }, {threshold:.6});
+    io.observe(saturn);
+  }
+
+  /* ============================================================ CALL FLOW */
+  var call=$("#call"), callStage=$("#callStage"), callScrim=$("#callScrim");
+  var callTimers=[], vmInt=0, openState=null;
+  function later(fn,ms){ var t=setTimeout(fn,ms); callTimers.push(t); return t; }
+  function clearTimers(){ callTimers.forEach(clearTimeout); callTimers=[]; if(vmInt){ clearInterval(vmInt); vmInt=0; } }
+
+  // keep the rest of the page out of the tab order while the call is up
+  var bgEls=[document.querySelector(".topbar"), document.querySelector("main.stage")];
+  function setBgInert(on){ bgEls.forEach(function(el){ if(!el) return; if(on){ el.setAttribute("inert",""); el.setAttribute("aria-hidden","true"); } else { el.removeAttribute("inert"); el.removeAttribute("aria-hidden"); } }); }
+  function dialogFocusables(){ return callStage.querySelectorAll('a[href],button:not([disabled]),input,textarea,select,[tabindex]:not([tabindex="-1"])'); }
+  function wireHang(){ callStage.querySelectorAll('[data-act="hang"]').forEach(function(b){ b.addEventListener("click", closeCall); }); }
+  function focusInDialog(){ var f=dialogFocusables()[0]; if(f) try{ f.focus(); }catch(e){} }
+
+  function dialingScreen(){
+    return '<section class="screen" role="dialog" aria-modal="true" aria-label="Dialing Santosh">'+
+      '<span class="screen-tag"><span class="gl">&#8599;</span> Dialing out</span>'+
+      '<div class="screen-mono pulse ringing"><span class="wave w1"></span><span class="wave w2"></span>S</div>'+
+      '<div class="screen-name">Santosh</div>'+
+      '<div class="screen-sub">SWE · AI / ML — open to Summer 2026</div>'+
+      '<div class="screen-handle">'+EMAIL+'</div>'+
+      '<div class="screen-status" id="connStatus" role="status" aria-live="polite">DIALING<span class="dots"></span></div>'+
+      '<div class="vm-foot" style="justify-content:center;margin-top:22px">'+
+        '<button class="call-btn call-btn--hang" type="button" data-act="hang"><span class="gl">&#9742;</span>Cancel</button>'+
+      '</div>'+
+    '</section>';
+  }
+  function vmScreen(){
+    return '<section class="screen vm" role="dialog" aria-modal="true" aria-label="Leave a voicemail">'+
+      '<div class="vm-top">'+
+        '<span class="screen-tag"><span class="gl">&#9679;</span> Connected</span>'+
+        '<span class="vm-timer" id="vmTimer"><span class="rec"></span>00:00</span>'+
+      '</div>'+
+      '<h2 class="vm-headline">Leave a <em>voicemail</em></h2>'+
+      '<p class="vm-blurb">You got the machine. Talk after the tone — it lands in my inbox.</p>'+
+      '<div class="vm-wave" id="vmWave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
+      '<form id="vmForm">'+
+        '<div class="vm-fields">'+
+          '<div class="vm-field"><label for="vmName">who&#39;s calling</label><input id="vmName" name="name" placeholder="your name" maxlength="60" required /></div>'+
+          '<div class="vm-field"><label for="vmEmail">call you back at</label><input id="vmEmail" name="email" type="email" placeholder="you@email.com" maxlength="120" required /></div>'+
+          '<div class="vm-field full"><label for="vmMsg">your message</label><textarea id="vmMsg" name="message" placeholder="leave your message after the tone&hellip;" maxlength="1200" required></textarea></div>'+
+        '</div>'+
+        '<div class="vm-foot">'+
+          '<span class="vm-note">'+(FORMSPREE_ENDPOINT?"sends straight to my inbox":"opens your mail app, pre-filled")+'</span>'+
+          '<button class="call-btn call-btn--hang" type="button" data-act="hang"><span class="gl">&#9742;</span>Hang up</button>'+
+          '<button class="call-btn call-btn--send" type="submit"><span class="gl">&#9658;</span>Send it</button>'+
+        '</div>'+
+      '</form>'+
+    '</section>';
+  }
+  function sentScreen(name){
+    return '<section class="screen" role="dialog" aria-modal="true" aria-label="Message sent">'+
+      '<div class="vm-sent">'+
+        '<div class="check">&#10003;</div>'+
+        '<div class="big">Voicemail <em>left</em></div>'+
+        '<div class="sm">Thanks'+(name?", "+escText(name):"")+'. I&#39;ll call you back. Until then — '+
+          '<span style="color:var(--red)">EOF.</span></div>'+
+        '<div class="vm-foot" style="justify-content:center;margin-top:22px">'+
+          '<button class="call-btn call-btn--hang" type="button" data-act="hang">Back to the grid</button>'+
+        '</div>'+
+      '</div>'+
+    '</section>';
+  }
+
+  function closeCall(){
+    clearTimers(); call.classList.remove("is-open"); setBgInert(false);
+    if(soundOn) declineTone();
+    later(function(){ call.hidden=true; callStage.innerHTML=""; openState=null; if(lastTrigger) try{ lastTrigger.focus(); }catch(e){} }, PRM?0:280);
+  }
+
+  function startVmTimer(){
+    var el=$("#vmTimer"); if(!el) return; var s=0;
+    vmInt=setInterval(function(){ s++; el.innerHTML='<span class="rec"></span>'+pad2(Math.floor(s/60))+":"+pad2(s%60); },1000);
+  }
+
+  function goVoicemail(){
+    openState="vm";
+    callStage.innerHTML=vmScreen();
+    requestAnimationFrame(function(){ call.classList.add("is-open"); });
+    if(soundOn) connectBlip();
+    startVmTimer();
+    var form=$("#vmForm"), wave=$("#vmWave"), msg=$("#vmMsg"), name=$("#vmName");
+    if(name) try{ name.focus(); }catch(e){}
+    if(msg){
+      msg.addEventListener("input", function(){
+        wave.classList.toggle("live", msg.value.length>0);
+      });
+    }
+    callStage.querySelectorAll('[data-act="hang"]').forEach(function(b){ b.addEventListener("click", closeCall); });
+    form.addEventListener("submit", function(e){
+      e.preventDefault();
+      var nm=$("#vmName").value.trim(), em=$("#vmEmail").value.trim(), mg=$("#vmMsg").value.trim();
+      if(!nm||!em||!mg) return;
+      sendVoicemail(nm,em,mg);
+    });
+  }
+
+  function sendVoicemail(nm,em,mg){
+    var finish=function(){
+      clearTimers();
+      openState="sent";
+      callStage.innerHTML=sentScreen(nm);
+      callStage.querySelectorAll('[data-act="hang"]').forEach(function(b){ b.addEventListener("click", closeCall); });
+      if(soundOn) sentChime();
+      // drop a mark on the wall too
+      try{ var d=loadWall(); d.push({who:nm, mark:"left a voicemail ☎", mine:true}); saveWall(d); renderWall(false); }catch(e){}
+    };
+    if(FORMSPREE_ENDPOINT){
+      fetch(FORMSPREE_ENDPOINT, {
+        method:"POST",
+        headers:{ "Accept":"application/json", "Content-Type":"application/json" },
+        body:JSON.stringify({ name:nm, email:em, message:mg })
+      }).then(function(r){ if(!r.ok) throw new Error("bad status"); finish(); }, mailtoFallback).catch(mailtoFallback);
+    } else { mailtoFallback(); }
+    function mailtoFallback(){
+      var subject=encodeURIComponent("Voicemail via portfolio — "+nm);
+      var body=encodeURIComponent(mg+"\n\n— "+nm+"\nreach me at: "+em);
+      window.location.href="mailto:"+EMAIL+"?subject="+subject+"&body="+body;
+      finish();
+    }
+  }
+
+  var lastTrigger=null;
+  function placeCall(trigger){
+    lastTrigger=trigger||null;
+    clearTimers(); openState="dialing"; call.hidden=false;
+    ac(); if(soundOn && AC && AC.state==="suspended") AC.resume();
+    callStage.innerHTML=dialingScreen();
+    setBgInert(true); wireHang(); focusInDialog();
+    requestAnimationFrame(function(){ call.classList.add("is-open"); });
+    if(soundOn){ dtmf(); ringBurst(0.3); ringBurst(1.5); }
+    var st=$("#connStatus");
+    later(function(){ if(st) st.firstChild.textContent="CONNECTING"; }, PRM?20:1100);
+    later(goVoicemail, PRM?40:2300);
+  }
+
+  var ltCall=$("#ltCall");
+  ltCall.addEventListener("click", function(){
+    if(!PRM) ltCall.classList.add("dialing");
+    setTimeout(function(){ ltCall.classList.remove("dialing"); }, 520);
+    wakeCat();
+    placeCall(ltCall);
+  });
+  // hovering the trigger also wakes the cat
+  ltCall.addEventListener("pointerenter", wakeCat);
+
+  callScrim.addEventListener("click", closeCall);
+  document.addEventListener("keydown", function(e){
+    if(call.hidden) return;
+    if(e.key==="Escape"){ closeCall(); return; }
+    if(e.key==="Tab"){
+      var f=dialogFocusables(); if(!f.length) return;
+      var first=f[0], last=f[f.length-1];
+      if(e.shiftKey && document.activeElement===first){ e.preventDefault(); last.focus(); }
+      else if(!e.shiftKey && (document.activeElement===last || !callStage.contains(document.activeElement))){ e.preventDefault(); first.focus(); }
+    }
+  });
+
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+---
+import '../styles/global.css';
+import { site } from '../data/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+const {
+  title = `${site.fullName} — SWE / ML`,
+  description = site.tagline,
+} = Astro.props;
+
+const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
+const ogImage = Astro.site ? new URL('/og.png', Astro.site).href : '/og.png';
+const personLD = JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: site.fullName,
+  alternateName: site.name.first + ' ' + site.name.last,
+  url: Astro.site?.href,
+  sameAs: [site.socials.github, site.socials.linkedin],
+  jobTitle: 'Computer Science Undergraduate — SWE / ML',
+  affiliation: { '@type': 'CollegeOrUniversity', name: 'PES University' },
+  address: { '@type': 'PostalAddress', addressLocality: 'Bengaluru', addressCountry: 'IN' },
+});
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {canonical && <link rel="canonical" href={canonical} />}
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="The Daily Cheethirala" />
+    {canonical && <meta property="og:url" content={canonical} />}
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="The Daily Cheethirala — Santosh Cheethirala, SWE / ML portfolio" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={ogImage} />
+    <meta name="theme-color" content="#ed1c24" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <script type="application/ld+json" set:html={personLD} />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Anton&family=Hanken+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <script is:inline>
+      // THE LOAD GLITCH: the cover-stack (acts overlapped by -100vh, pinned by
+      // ScrollTrigger) only collapses once main.ts runs build(). Until then the page
+      // is uncollapsed and ~850k px tall, so a restored scroll position lands deep in
+      // the bare red background — the "red → boom" flash. Two pre-paint guards:
+      //   1) always open at the top (don't restore scroll into the uncollapsed page),
+      //   2) hold the page hidden until build() collapses the stack and reveals it,
+      //      with a hard timeout so it can never get stuck hidden.
+      try { history.scrollRestoration = 'manual'; } catch (e) {}
+      try {
+        if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          document.documentElement.classList.add('staging');
+          setTimeout(function () { document.documentElement.classList.remove('staging'); }, 3000);
+        }
+      } catch (e) {}
+    </script>
+    <div id="reactive-grid" aria-hidden="true"></div>
+    <slot />
+    <script>
+      import { initAnimations } from '../scripts/main';
+      initAnimations();
+    </script>
+  </body>
+</html>
