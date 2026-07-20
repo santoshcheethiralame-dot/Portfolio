@@ -494,36 +494,8 @@ export function initAnimations() {
       });
     });
 
-    // Experience phonebook — "container scroll" 3D tilt entrance:
-    // the panel lies steeply back, then stands up flat only once it is fully in view.
-    const expPhone = document.querySelector<HTMLElement>('#experience .phone');
-    // the steep 3D tilt-in is decorative; under reduced-motion skip it entirely so
-    // the panel simply renders flat (its resting state) — GSAP was running regardless
-    if (expPhone && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      // softer tilt-in on phones: scale 1.08 projected ~27px past a 390px screen
-      // (clipped, no scroll) — drop the scale and ease the angle on narrow viewports
-      const narrow = window.innerWidth <= 760;
-      gsap.set(expPhone, { transformPerspective: 1000, transformOrigin: '50% 50%' });
-      gsap.fromTo(
-        expPhone,
-        { rotationX: narrow ? 24 : 40, scale: narrow ? 1 : 1.08, y: narrow ? 28 : 40 },
-        {
-          rotationX: 0,
-          scale: 1,
-          y: 0,
-          ease: 'none',
-          scrollTrigger: {
-            // anchor to the Switchboard's own reveal (it rises through the
-            // viewport as it covers Projects) so the panel stands up AS the desk
-            // appears — not a viewport early under the -100vh pull
-            trigger: '#experience',
-            start: 'top 80%',
-            end: 'top 30%',
-            scrub: 0.5,
-          },
-        }
-      );
-    }
+    // (the Switchboard's 3D tilt-in went with it — the Research desk is a flat
+    //  sheet like the about edition, and its console is event-driven, not scrubbed)
 
     // ── cover-stack: each act pins at its tail (its bottom reaches the viewport
     //    bottom) while the next act — pulled up -100vh and painted above (CSS,
@@ -536,7 +508,7 @@ export function initAnimations() {
     //    the next pin (and the seats) measure position. end:'+=100%' is viewport
     //    -relative and refresh-safe, staying locked to the -100vh cover pull.
     document.documentElement.classList.add('cover-on');
-    const PINS = ['[data-flow-wrap]', '#projects', '#experience', '#education', '#stack'];
+    const PINS = ['[data-flow-wrap]', '#projects', '#research', '#education', '#stack'];
     PINS.forEach((sel, i) => {
       const el = document.querySelector<HTMLElement>(sel);
       if (!el) return;
@@ -568,12 +540,12 @@ export function initAnimations() {
     // Scrub-tied, so the overshoot is the reader's to control.
     const SEAT_EASE: Record<string, string> = {
       projects: 'back.out(2.4)', // The Black Proof — black slams onto white
-      experience: 'power3.out', // Alarm Raise — a clean warming glide
+      research: 'power3.out', // Alarm Raise — a clean warming glide
       education: 'back.out(1.1)', // The Staple — a short hard bite
       stack: 'power1.inOut', // Lights Out — a slow dim
       contact: 'back.out(2.8)', // The Run Finishes — the heaviest landing
     };
-    ['projects', 'experience', 'education', 'stack', 'contact'].forEach((id) => {
+    ['projects', 'research', 'education', 'stack', 'contact'].forEach((id) => {
       const act = document.getElementById(id);
       if (!act) return;
       gsap.fromTo(

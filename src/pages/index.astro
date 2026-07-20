@@ -1,10 +1,11 @@
 ---
 import Base from '../layouts/Base.astro';
 import MobileNotice from '../components/MobileNotice.astro';
+import BrowserNotice from '../components/BrowserNotice.astro';
 import Nav from '../components/Nav.astro';
 import Hero from '../components/Hero.astro';
 import Intro from '../components/Intro.astro';
-import Experience from '../components/Experience.astro';
+import Research from '../components/Research.astro';
 import Projects from '../components/Projects.astro';
 import Skills from '../components/Skills.astro';
 import Education from '../components/Education.astro';
@@ -19,13 +20,14 @@ import Footer from '../components/Footer.astro';
 -->
 <Base>
   <MobileNotice />
+  <BrowserNotice />
   <Nav />
   <div class="flow-wrap" data-flow-wrap>
     <Hero />
     <Intro />
   </div>
   <Projects />
-  <Experience />
+  <Research />
   <Education />
   <Skills />
   <Footer />

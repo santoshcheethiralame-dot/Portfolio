@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en" data-mock="research-desk">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>THE DAILY CHEETHIRALA — The Research Desk (A)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --ink:#141414; --cream:#f7f5f1; --cream2:#efece4; --red:#ed1c24; --red-hot:#ff5247;
+  --lime:#b4ff2e; --black:#0a0a0a; --gray:#928b80;
+  --fd:"Anton",sans-serif; --fm:"JetBrains Mono",monospace; --fi:"Instrument Serif",serif;
+}
+*{ box-sizing:border-box; margin:0; padding:0; }
+html{ -webkit-font-smoothing:antialiased; }
+body{
+  background:var(--cream); color:var(--ink); font-family:var(--fi);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+}
+::selection{ background:var(--ink); color:var(--lime); }
+a{ color:inherit; text-decoration:none; }
+.page{ max-width:1200px; margin:0 auto; padding:14px clamp(12px,3vw,36px) 80px; }
+
+/* folio */
+.folio{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:4px 16px;
+  padding:6px 0 8px; font-family:var(--fm); font-size:9.5px; font-weight:500; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--gray); }
+.folio b{ color:var(--ink); font-weight:700; }
+
+/* section masthead */
+.desk-head{ border-top:3px solid var(--ink); border-bottom:3px solid var(--ink); padding:18px 0 12px; text-align:center; position:relative; }
+.desk-kicker{ font-family:var(--fm); font-size:9px; font-weight:700; letter-spacing:.24em; text-transform:uppercase; color:var(--red); margin-bottom:8px; }
+.desk-title{ font-family:var(--fd); font-size:clamp(2.6rem,8vw,6rem); line-height:.84; text-transform:uppercase; letter-spacing:.01em; }
+.desk-strip{ margin-top:12px; background:var(--ink); color:var(--cream); font-family:var(--fm); font-size:8.5px;
+  font-weight:700; letter-spacing:.18em; text-transform:uppercase; padding:5px 12px; display:flex; justify-content:center; gap:14px; flex-wrap:wrap; }
+.desk-strip .on{ color:var(--lime); }
+
+/* ---- lead article ---- */
+.lead{ padding:22px 0 0; border-bottom:3px solid var(--ink); }
+.art-kicker{ font-family:var(--fm); font-size:9px; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:var(--red); margin-bottom:9px; }
+.art-head{ font-family:var(--fd); font-size:clamp(1.9rem,5.4vw,4.1rem); line-height:.9; text-transform:uppercase; letter-spacing:.01em; }
+.art-deck{ font-family:var(--fi); font-style:italic; font-size:clamp(1rem,1.7vw,1.3rem); line-height:1.4; margin-top:12px; max-width:64ch; }
+.art-byline{ font-family:var(--fm); font-size:9.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--gray);
+  margin-top:12px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding-bottom:14px; border-bottom:1px solid var(--ink); }
+.stamp{ background:var(--red); color:var(--cream); border:2px solid var(--ink); box-shadow:2px 2px 0 var(--ink); padding:3px 7px; letter-spacing:.14em; }
+.stamp.dev{ background:var(--ink); color:var(--lime); }
+
+.body-grid{ display:grid; grid-template-columns:1fr minmax(280px,340px); gap:0 clamp(20px,2.6vw,40px); padding-top:16px; }
+.flow{ columns:2; column-gap:clamp(18px,2.4vw,32px); padding-right:clamp(16px,2vw,26px); border-right:1px solid var(--ink); }
+.flow p{ font-size:1.02rem; line-height:1.75; text-align:justify; margin-bottom:.9em; break-inside:avoid-column; }
+.dropcap{ font-family:var(--fd); font-size:3.5em; line-height:.72; float:left; margin:5px 8px -2px 0; }
+.flow code{ font-family:var(--fm); font-size:.8em; background:var(--cream2); padding:1px 4px; }
+
+/* figure: the 2x2 */
+.fig{ border:2px solid var(--ink); box-shadow:6px 6px 0 var(--ink); background:var(--cream2); margin:0 0 16px; break-inside:avoid; column-span:all; }
+.fig-head{ background:var(--ink); color:var(--cream); font-family:var(--fm); font-size:8.5px; font-weight:700;
+  letter-spacing:.18em; text-transform:uppercase; padding:6px 10px; display:flex; justify-content:space-between; gap:10px; }
+.fig-head .n{ color:var(--lime); }
+.grid2{ display:grid; grid-template-columns:auto 1fr 1fr; }
+.gh{ font-family:var(--fm); font-size:8.5px; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
+  padding:8px 6px; text-align:center; color:var(--gray); border-bottom:2px solid var(--ink); }
+.gs{ font-family:var(--fm); font-size:8.5px; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
+  padding:10px 8px; color:var(--gray); display:grid; place-items:center; border-right:2px solid var(--ink); writing-mode:vertical-rl; transform:rotate(180deg); }
+.cell{ padding:14px 12px; border-right:1px solid rgba(20,20,20,.22); border-bottom:1px solid rgba(20,20,20,.22);
+  cursor:default; transition:background .15s ease; }
+.cell:hover{ background:#fff; }
+.cell .nm{ font-family:var(--fd); font-size:1.5rem; line-height:1; text-transform:uppercase; }
+.cell .ds{ font-family:var(--fm); font-size:8px; letter-spacing:.08em; line-height:1.5; color:var(--gray); margin-top:5px; text-transform:uppercase; }
+.cell.trap{ background:var(--red); color:var(--cream); }
+.cell.trap:hover{ background:var(--red-hot); }
+.cell.trap .ds{ color:rgba(247,245,241,.85); }
+.cell.trap .nm::after{ content:" ◂ THE HARD CASE"; font-family:var(--fm); font-size:.42em; letter-spacing:.12em; color:var(--lime); }
+.fig-cap{ font-family:var(--fm); font-size:8.5px; font-weight:700; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--gray); padding:7px 10px; line-height:1.55; background:var(--cream2); border-top:2px solid var(--ink); }
+.fig-cap b{ color:var(--ink); }
+
+/* sidebar */
+.side{ padding-left:clamp(14px,1.8vw,22px); }
+.box{ border:2px solid var(--ink); box-shadow:5px 5px 0 var(--ink); background:var(--cream2); margin-bottom:14px; }
+.box-head{ background:var(--ink); color:var(--cream); font-family:var(--fm); font-size:9px; font-weight:700;
+  letter-spacing:.18em; text-transform:uppercase; padding:6px 10px; }
+.stat{ padding:12px 10px; border-bottom:1px solid rgba(20,20,20,.18); }
+.stat:last-child{ border-bottom:none; }
+.stat .v{ font-family:var(--fd); font-size:2.3rem; line-height:1; color:var(--red); }
+.stat .v .ci{ font-family:var(--fm); font-size:.32em; color:var(--gray); letter-spacing:.04em; margin-left:6px; }
+.stat .l{ font-family:var(--fm); font-size:8.5px; font-weight:500; letter-spacing:.06em; text-transform:uppercase;
+  line-height:1.55; margin-top:6px; }
+.stat .l b{ color:var(--ink); font-weight:700; }
+.srcline{ font-family:var(--fm); font-size:7.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--gray);
+  padding:7px 10px; border-top:1px dashed rgba(20,20,20,.3); line-height:1.5; }
+.meth{ padding:9px 10px; font-family:var(--fm); font-size:8.5px; line-height:1.7; letter-spacing:.04em; }
+.meth .r{ display:flex; justify-content:space-between; gap:8px; border-bottom:1px dotted rgba(20,20,20,.3); padding:3px 0; }
+.meth .r:last-child{ border-bottom:none; }
+.meth .r b{ color:var(--red); }
+
+/* ---- secondary articles ---- */
+.row2{ display:grid; grid-template-columns:1fr 1fr; gap:0 clamp(20px,2.6vw,40px); padding-top:20px; }
+.sub{ padding-bottom:16px; }
+.sub + .sub{ border-left:1px solid var(--ink); padding-left:clamp(18px,2.2vw,32px); }
+.sub-head{ font-family:var(--fd); font-size:clamp(1.3rem,2.6vw,2rem); line-height:.95; text-transform:uppercase; margin-top:8px; }
+.sub-deck{ font-family:var(--fi); font-style:italic; font-size:1rem; line-height:1.45; margin-top:9px; }
+.sub p{ font-size:.96rem; line-height:1.7; margin-top:10px; }
+.minifig{ margin-top:12px; border:2px solid var(--ink); box-shadow:4px 4px 0 var(--ink); background:var(--cream2); padding:12px; }
+.setbars{ display:flex; align-items:flex-end; gap:5px; height:56px; }
+.setbars i{ flex:1; background:var(--ink); display:block; }
+.setbars i.on{ background:var(--red); }
+.setbars i.gone{ background:repeating-linear-gradient(45deg,var(--cream2) 0 3px,rgba(20,20,20,.25) 3px 5px); }
+.klmeter{ height:14px; border:2px solid var(--ink); background:var(--cream); position:relative; overflow:hidden; }
+.klmeter span{ position:absolute; left:0; top:0; bottom:0; width:38%; background:var(--lime); border-right:2px solid var(--ink); }
+.mini-cap{ font-family:var(--fm); font-size:7.5px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--gray); margin-top:8px; }
+
+/* also strip */
+.also{ margin-top:26px; border-top:3px solid var(--ink); padding-top:12px; }
+.also-h{ font-family:var(--fd); font-size:1.15rem; text-transform:uppercase; letter-spacing:.03em; margin-bottom:9px; }
+.also-row{ display:flex; flex-wrap:wrap; gap:8px; }
+.chip{ border:2px solid var(--ink); background:var(--cream2); box-shadow:3px 3px 0 var(--ink); padding:7px 10px;
+  font-family:var(--fm); font-size:8.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
+.chip b{ color:var(--red); }
+
+@media (max-width:900px){
+  .body-grid{ grid-template-columns:1fr; }
+  .flow{ border-right:none; padding-right:0; }
+  .side{ padding-left:0; padding-top:16px; }
+  .row2{ grid-template-columns:1fr; }
+  .sub + .sub{ border-left:none; padding-left:0; border-top:1px solid var(--ink); padding-top:16px; }
+}
+@media (max-width:620px){ .flow{ columns:1; } .grid2{ grid-template-columns:auto 1fr; } .gs{ writing-mode:horizontal-tb; transform:none; } }
+@media (prefers-reduced-motion:reduce){ *{ transition:none !important; animation:none !important; } }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="folio">
+    <span>VOL. PES1UG24CS127 &middot; <b>THE RESEARCH DESK</b></span>
+    <span>PRICE: ONE FILTER COFFEE</span>
+    <span>BENGALURU &middot; 2026</span>
+  </div>
+
+  <div class="desk-head">
+    <div class="desk-kicker">&#9654; DIRECTION A &middot; NEWSPAPER-NATIVE</div>
+    <div class="desk-title">THE RESEARCH DESK</div>
+    <div class="desk-strip">
+      <span class="on">3 STUDIES</span><span>&middot;</span>
+      <span>RAG RELIABILITY</span><span>&middot;</span>
+      <span>INTERPRETABILITY</span><span>&middot;</span>
+      <span>PESU INTELLIGENCE LABS</span>
+    </div>
+  </div>
+
+  <!-- ================= LEAD: LINEUP ================= -->
+  <article class="lead">
+    <div class="art-kicker">&#9654; STUDY No.01 &middot; RAG ATTRIBUTION &middot; BENCHMARK</div>
+    <h1 class="art-head">When the answer is wrong, which passage lied?</h1>
+    <p class="art-deck">A controlled benchmark where every retrieved chunk&rsquo;s true causal role is known
+      by construction &mdash; so attribution methods can be <em>graded</em> instead of trusted.</p>
+    <div class="art-byline">
+      <span class="stamp">LINEUP</span>
+      <span>Santosh Cheethirala &middot; PESU Intelligence Labs</span>
+      <span>&middot;</span>
+      <span class="stamp dev">UNDER REVIEW</span>
+    </div>
+
+    <div class="body-grid">
+      <div class="flow">
+
+        <figure class="fig">
+          <div class="fig-head"><span>FIG. 1 &mdash; THE ROLE MATRIX</span><span class="n">KNOWN BY CONSTRUCTION</span></div>
+          <div class="grid2">
+            <div class="gs" style="border-bottom:2px solid var(--ink);"></div>
+            <div class="gh">SALIENT<br /><span style="font-weight:400;text-transform:none;">looks responsible</span></div>
+            <div class="gh">NOT SALIENT</div>
+
+            <div class="gs">CAUSAL</div>
+            <div class="cell">
+              <div class="nm">Culprit</div>
+              <div class="ds">Removing it changes the answer &mdash; and it looks like it should</div>
+            </div>
+            <div class="cell">
+              <div class="nm">Silent</div>
+              <div class="ds">Actually causal, but attracts no attention</div>
+            </div>
+
+            <div class="gs" style="border-bottom:none;">NOT CAUSAL</div>
+            <div class="cell trap">
+              <div class="nm">Misleading</div>
+              <div class="ds">Looks guilty. Isn&rsquo;t. Blaming it confuses correlation with cause</div>
+            </div>
+            <div class="cell">
+              <div class="nm">Inert</div>
+              <div class="ds">Neither causal nor salient &mdash; background</div>
+            </div>
+          </div>
+          <figcaption class="fig-cap"><b>ABOVE:</b> every chunk sits on two axes &mdash; counterfactual effect
+            (does removing it change the answer?) and apparent salience (does it look responsible?).
+            Roles are assigned by exact leave-one-out, not by a heuristic.</figcaption>
+        </figure>
+
+        <p><span class="dropcap">W</span>hen a retrieval-augmented system answers confidently and wrongly,
+          the usual tools tell you <em>that</em> the answer is unfaithful. They do not tell you <em>which</em>
+          retrieved passage caused it &mdash; and they are easiest to fool when the offending passage is not
+          adversarial, but merely stale, near-duplicate, or topically adjacent.</p>
+
+        <p>LINEUP builds the missing ground truth. Each question is assembled from gold chunks, distractors,
+          and one constructed organic near-miss, then every chunk is assigned its true role by exact
+          leave-one-out. Attribution methods &mdash; <code>ContextCite</code>, a lexical-similarity baseline,
+          an LLM judge &mdash; are scored on whether they recover the causal chunk or fall for the merely
+          salient one.</p>
+
+        <p>The headline result is not that the methods are imperfect. It is that a large share of real errors
+          have <em>no single culprit to find</em>: responsibility is spread across a coalition of passages,
+          and any method forced to name one suspect is answering a question the evidence does not support.</p>
+      </div>
+
+      <aside class="side">
+        <div class="box">
+          <div class="box-head">// THE FINDING</div>
+          <div class="stat">
+            <div class="v">37%<span class="ci">[35&ndash;39]</span></div>
+            <div class="l">of wrong answers have <b>no single culprit</b> &mdash; responsibility is a coalition. n=<b>1,766</b> wrong cases</div>
+          </div>
+          <div class="stat">
+            <div class="v">0.35</div>
+            <div class="l">top-1 attribution is correct on only <b>35%</b> of all errors</div>
+          </div>
+          <div class="stat">
+            <div class="v">1.6&times;</div>
+            <div class="l">model spread &mdash; <b>Qwen 29%</b> to <b>Mistral 47%</b>. Pooling hides it</div>
+          </div>
+          <div class="srcline">Wilson 95% CIs &middot; 3 models &times; 2 datasets &times; 2 regimes = 12 cells &middot;
+            held-out halves replicate at 35% / 38%</div>
+        </div>
+
+        <div class="box">
+          <div class="box-head">// UNDER TEST</div>
+          <div class="meth">
+            <div class="r"><span>ContextCite</span><b>attribution</b></div>
+            <div class="r"><span>Lexical similarity</span><b>baseline</b></div>
+            <div class="r"><span>LLM judge</span><b>baseline</b></div>
+            <div class="r"><span>Leave-one-out</span><b>oracle</b></div>
+          </div>
+        </div>
+
+        <div class="box">
+          <div class="box-head">// THE STACK</div>
+          <div class="meth">
+            <div class="r"><span>HotpotQA &middot; 2WikiMultiHop</span></div>
+            <div class="r"><span>Qwen2.5-7B &middot; Phi-3.5 &middot; Mistral-7B</span></div>
+            <div class="r"><span>9 build stages &middot; HF dataset release</span></div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </article>
+
+  <!-- ================= SECONDARY: DRAGNET + MIRROR ================= -->
+  <div class="row2">
+    <article class="sub">
+      <div class="art-kicker">&#9654; STUDY No.02 &middot; METHOD</div>
+      <h2 class="sub-head">If there&rsquo;s no one suspect, cast a dragnet</h2>
+      <p class="sub-deck">Set-valued causal attribution: name the smallest group of passages
+        guaranteed to contain the responsible ones.</p>
+      <p>Where LINEUP shows that single-culprit attribution is often ill-posed, DRAGNET replaces it.
+        It estimates the <em>minimal sufficient causal set</em> &mdash; the smallest passage subset that
+        alone reproduces the answer &mdash; under an explicit model-query budget, wrapped in a
+        distribution-free coverage guarantee.</p>
+      <div class="minifig">
+        <div class="setbars">
+          <i class="gone" style="height:40%"></i><i class="on" style="height:78%"></i>
+          <i class="gone" style="height:30%"></i><i class="on" style="height:64%"></i>
+          <i class="gone" style="height:52%"></i><i class="gone" style="height:35%"></i>
+        </div>
+        <div class="mini-cap">FIG. 2 &mdash; candidate set pruned to the minimal sufficient pair &middot; 90% coverage target</div>
+      </div>
+      <div class="art-byline" style="border-bottom:none;padding-bottom:0;">
+        <span class="stamp">DRAGNET</span><span class="stamp dev">PAPER IN PREP</span>
+      </div>
+    </article>
+
+    <article class="sub">
+      <div class="art-kicker">&#9654; STUDY No.03 &middot; DEVELOPING</div>
+      <h2 class="sub-head">Is the model introspecting &mdash; or making it up?</h2>
+      <p class="sub-deck">Dissociating genuine self-report from confabulation in language models.</p>
+      <p>Extract a concept direction from contrastive prompts, inject it into the residual stream while
+        the model generates, then ask it what it notices. A KL meter records how hard the injection
+        actually perturbed the model &mdash; so a self-report can be checked against the size of the
+        thing it claims to have noticed.</p>
+      <div class="minifig">
+        <div class="klmeter"><span></span></div>
+        <div class="mini-cap">FIG. 3 &mdash; schematic. Injection strength vs. KL divergence.
+          <b style="color:var(--red)">No results published &mdash; study in progress.</b></div>
+      </div>
+      <div class="art-byline" style="border-bottom:none;padding-bottom:0;">
+        <span class="stamp">MIRROR</span><span class="stamp dev">DEVELOPING STORY</span>
+      </div>
+    </article>
+  </div>
+
+  <!-- ================= ALSO ================= -->
+  <div class="also">
+    <div class="also-h">Also on the record</div>
+    <div class="also-row">
+      <span class="chip">Sahay AI &middot; <b>Multimedia Domain Head</b> &middot; 5&ndash;6&times; growth &middot; 2025&ndash;26</span>
+      <span class="chip">VICHAR Ideathon &middot; <b>Finalist</b> &middot; VillageAI &middot; 2026</span>
+      <span class="chip">TAMS &middot; <b>Crew</b> &middot; Frame by Frame</span>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

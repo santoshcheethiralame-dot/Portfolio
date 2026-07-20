@@ -64,7 +64,7 @@
   /* Space Grotesk dropped — was loaded but unused */
   --font-body: 'Inter', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
-  --font-intro: 'Faktum', 'Hanken Grotesk', 'Inter', sans-serif;
+  --font-intro: 'Faktum', 'Inter', sans-serif;
   /* Faktum (paid) → Hanken Grotesk stand-in */
 
   /* spacing */
@@ -791,7 +791,7 @@ html.press-held #press-stamp {
    sections themselves get position:relative with no z-index/transform, so their
    position:fixed children (phone, stderr cat, scrub bubble) are undisturbed. */
 #projects,
-#experience,
+#research,
 #education,
 #stack,
 #contact {
@@ -817,7 +817,7 @@ html.press-held #press-stamp {
     12px 12px 0 #141414;
 }
 
-#experience {
+#research {
   --lay-edge: #f7f5f1;
   /* Alarm Raise — a cream specular lip */
   width: calc(100% - 2 * clamp(10px, 1.4vw, 20px));
@@ -899,7 +899,7 @@ html.press-held #press-stamp {
    copy stays readable while you finish it (no scroll snapping, just spacing). The
    closer (#contact) is omitted — nothing covers it, so a buffer would just dangle. */
 #projects,
-#experience,
+#research,
 #education,
 #stack {
   padding-bottom: clamp(90px, 16vh, 200px);
@@ -913,7 +913,7 @@ html.cover-on #projects {
   z-index: 2;
 }
 
-html.cover-on #experience {
+html.cover-on #research {
   margin-top: -100vh;
   z-index: 3;
 }
@@ -939,7 +939,7 @@ html.cover-on #contact {
 /* min-height floor so a short act (sparse content / landscape phone) can't fire
    its pin before its top reaches the top and over-cover live content */
 html.cover-on #projects,
-html.cover-on #experience,
+html.cover-on #research,
 html.cover-on #education,
 html.cover-on #stack,
 html.cover-on #contact {
@@ -951,16 +951,12 @@ html.cover-on #contact {
    context, so it would render under the nav HUD / command palette. While the
    modal is open, lift the whole act above them; :has() keeps it pure-CSS and
    reverts the instant the modal closes. */
-html.cover-on #experience:has(.call.is-open, .pad.is-open) {
-  z-index: 1500;
-}
-
 html.cover-on #contact:has(#lt-call.is-open) {
   z-index: 1950;
 }
 
 #projects::before,
-#experience::before,
+#research::before,
 #education::before,
 #stack::before,
 #contact::before {
@@ -982,7 +978,7 @@ html.cover-on #contact:has(#lt-call.is-open) {
 /* registration tick row riding just under the cut — press furniture on the
    page top; seats with the edge and fades in on the same scrub var. */
 #projects::after,
-#experience::after,
+#research::after,
 #education::after,
 #stack::after,
 #contact::after {
@@ -1951,7 +1947,7 @@ html.cover-on #contact:has(#lt-call.is-open) {
   /* same content box as the about page (.edition .page) so the acts line up
      edge-to-edge as the cover-stack swaps them */
   padding: clamp(24px, 4vw, 46px) clamp(12px, 3vw, 36px) clamp(50px, 8vw, 96px);
-  max-width: 1200px;
+  max-width: 1500px;
   margin: 0 auto;
 }
 
@@ -2179,8 +2175,14 @@ html.cover-on #contact:has(#lt-call.is-open) {
 
 .li-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: clamp(22px, 2.6vw, 36px) clamp(22px, 2.6vw, 40px);
+}
+
+@media (max-width: 1180px) {
+  .li-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 880px) {
@@ -4132,3 +4134,19 @@ body.li-cs-open {
 }
 
 /* (the page-by-page reader was removed — the cover-stack scrolls freely now) */
+/* ============================================================ SECTION WIDTH PARITY
+   Every act caps at 1500px and carries its own ~36px gutter, matching .li-page
+   (the projects desk). The research + education section wrappers previously added
+   their own large horizontal padding (100.8px / 23px), which made those acts read
+   narrower than the rest of the page. Zero it and let each inner shell own the
+   gutter, so all four acts share one measure. */
+#research.section,
+#education.section {
+  padding-left: 0;
+  padding-right: 0;
+}
+/* .rd-head is a sibling of .rd-sheet, so it needs the gutter the section used to give it */
+#research .rd-head {
+  padding-left: clamp(14px, 2.4vw, 34px);
+  padding-right: clamp(14px, 2.4vw, 34px);
+}

@@ -1,0 +1,127 @@
+---
+/* ------------------------------------------------------------------
+   BrowserNotice — a slim press note shown ONLY on non-Chromium engines.
+   The page runs heavy live animation (canvas instruments, a cover-stack,
+   smooth scroll); it is tuned on Chromium and can stutter elsewhere.
+
+   Deliberately NOT shown to everyone: Chrome/Edge/Brave visitors — the
+   majority, and the tuned target — never see it. Dismissed for the
+   session. JS-gated, so no-JS visitors just get the page.
+   ------------------------------------------------------------------ */
+---
+
+<script is:inline>
+  // Decide before first paint so the strip never flashes on Chromium.
+  try {
+    var ua = navigator.userAgent;
+    var brands = (navigator.userAgentData && navigator.userAgentData.brands) || null;
+    var chromium = brands
+      ? brands.some(function (b) { return /Chromium/i.test(b.brand); })
+      : (/Chrome|Chromium|CriOS|Edg/i.test(ua) && !/Firefox|FxiOS/i.test(ua));
+    var seen = false;
+    try { seen = sessionStorage.getItem('dc-bn') === 'seen'; } catch (e) {}
+    if (!chromium && !seen) document.documentElement.classList.add('bn-on');
+  } catch (e) {}
+</script>
+
+<aside class="bn" id="browser-notice" role="note" aria-label="Browser compatibility notice">
+  <span class="bn-flag" aria-hidden="true">PRESS NOTE</span>
+  <p class="bn-txt">
+    This edition is set for a <b>Chromium press</b> — Chrome, Edge or Brave. On
+    <b id="bn-engine">this browser</b> the ink runs: the live type and moving figures may stutter.
+  </p>
+  <button class="bn-x" id="bn-dismiss" type="button">READ ANYWAY <span aria-hidden="true">&times;</span></button>
+</aside>
+
+<style>
+  .bn {
+    --bink: #141414;
+    --bcream: #f7f5f1;
+    --bred: #ed1c24;
+    --blime: #b4ff2e;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 9990;
+    display: none;
+    align-items: center;
+    gap: clamp(8px, 1.6vw, 16px);
+    padding: 7px clamp(10px, 2vw, 18px);
+    background: var(--bink);
+    color: var(--bcream);
+    border-bottom: 3px solid var(--bred);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  :global(html.bn-on) .bn { display: flex; }
+
+  .bn-flag {
+    flex: none;
+    background: var(--bred);
+    color: var(--bcream);
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 4px 7px;
+    border: 2px solid var(--bcream);
+  }
+  .bn-txt {
+    margin: 0;
+    flex: 1;
+    min-width: 0;
+    font-size: 10px;
+    line-height: 1.55;
+    letter-spacing: 0.04em;
+    color: rgba(247, 245, 241, 0.85);
+  }
+  .bn-txt b { color: var(--blime); font-weight: 700; }
+  .bn-x {
+    flex: none;
+    background: transparent;
+    color: var(--bcream);
+    border: 2px solid var(--bcream);
+    font-family: inherit;
+    font-size: 8.5px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    padding: 6px 9px;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s;
+  }
+  .bn-x:hover { background: var(--bcream); color: var(--bink); }
+  .bn-x:focus-visible { outline: 2px solid var(--bred); outline-offset: 2px; }
+
+  @media (max-width: 620px) {
+    .bn { gap: 8px; padding: 6px 10px; flex-wrap: wrap; }
+    .bn-txt { font-size: 9px; flex-basis: 100%; order: 3; }
+  }
+</style>
+
+<script>
+  (function () {
+    'use strict';
+    try {
+      var root = document.getElementById('browser-notice');
+      if (!root) return;
+
+      var ua = navigator.userAgent;
+      var name =
+        /Firefox|FxiOS/i.test(ua) ? 'Firefox' :
+        /Edg/i.test(ua) ? 'Edge' :
+        /OPR|Opera/i.test(ua) ? 'Opera' :
+        /Safari/i.test(ua) && !/Chrome|Chromium|CriOS/i.test(ua) ? 'Safari' :
+        'this browser';
+      var el = document.getElementById('bn-engine');
+      if (el) el.textContent = name;
+
+      var btn = document.getElementById('bn-dismiss');
+      if (btn) {
+        btn.addEventListener('click', function () {
+          document.documentElement.classList.remove('bn-on');
+          try { sessionStorage.setItem('dc-bn', 'seen'); } catch (e) {}
+        });
+      }
+    } catch (e) { /* notice is non-critical */ }
+  })();
+</script>

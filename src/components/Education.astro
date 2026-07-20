@@ -226,7 +226,7 @@ const placeMeta = `${education.place} · ${education.dates} · 8 Semesters`;
     --font-mono: 'JetBrains Mono', monospace;
     font-family: var(--font-mono);
     color: var(--ink);
-    max-width: min(100%, 1320px);
+    max-width: min(100%, 1500px);
     margin: 0 auto;
     background-color: var(--cream);
     /* grain + a faint ledger grid so the record reads as ruled paper, not blank */
@@ -238,10 +238,11 @@ const placeMeta = `${education.place} · ${education.dates} · 8 Semesters`;
     box-shadow: 12px 12px 0 var(--black);
     padding: clamp(22px, 3vw, 48px) clamp(12px, 3vw, 36px) clamp(30px, 4vw, 58px);
   }
-  /* the record runs wide like the edition/projects — trim the section gutter */
+  /* the record runs wide like the edition/projects — the .edu-shell owns the
+     gutter, so the section wrapper adds none (keeps all four acts on one measure) */
   #education.section {
-    padding-left: clamp(10px, 1.6vw, 24px);
-    padding-right: clamp(10px, 1.6vw, 24px);
+    padding-left: 0;
+    padding-right: 0;
   }
   .edu-subline {
     font-size: 12px;

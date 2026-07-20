@@ -33,6 +33,9 @@ export interface Experience {
   handle?: string; // e.g. "@pesu-intel-labs" — the contact @handle
   metric?: string; // headline metric / stars chip, e.g. "5–6×", "Finalist"
   tag?: string; // short category chip, e.g. "Research"
+  // Roles that are represented by the Research desk instead of the "also on the
+  // record" strip (the lab affiliation is carried by the studies themselves).
+  foldedIntoResearch?: boolean;
 }
 
 export const experience: Experience[] = [
@@ -47,6 +50,7 @@ export const experience: Experience[] = [
     handle: '@pesu-intel-labs',
     metric: '1st author',
     tag: 'Research',
+    foldedIntoResearch: true,
   },
   {
     org: 'Sahay AI',
@@ -286,7 +290,166 @@ export const projects: Project[] = [
     outcome:
       'A confidential dossier of a product — running as a seeded demo today, one env var away from the full platform.',
   },
+  {
+    slug: 'attest',
+    name: 'Attest',
+    oneLiner:
+      'Proof a human understood this — any written assignment becomes a short, adaptive oral defense.',
+    year: '2026',
+    role: 'Solo — design & build',
+    status: 'Shipped · live demo',
+    tags: ['Assessment', 'Voice AI', 'Education'],
+    stack: ['Next.js', 'TypeScript', 'GPT-5.6', 'OpenAI Realtime API', 'WebRTC', 'Web Speech API', 'Postgres'],
+    stats: [
+      { v: '0', l: 'Keys to try it' },
+      { v: '~$0.30', l: 'Per voice defense' },
+      { v: '6', l: 'Stage pipeline' },
+    ],
+    links: {
+      github: 'https://github.com/santoshcheethiralame-dot/ATTEST',
+      demo: 'https://attest-one.vercel.app',
+    },
+    problem:
+      'AI detectors ask “did a human make this?” — a question that no longer has a reliable answer, and asking it turns teachers into police who accuse honest students on probabilistic evidence.',
+    build:
+      'A lightweight editor records writing as a timestamped event log, which is replayed carrying an origin record for every character — so the finished text knows when each character was written and whether it was pasted. Those signals are computed in plain TypeScript, never guessed. GPT-5.6 then reads the essay alongside a plain-language account of how it was written and locates the claims the writer is least likely to defend. An examiner probes each seam in conversation — live voice over WebRTC with a key, browser speech without one — and when the student cannot defend a point it stops examining and teaches Socratically until they can, then re-asks.',
+    highlights: [
+      'Deterministic evidence, model judgment — paste runs and revision counts are plain TypeScript; the model reasons over facts it cannot invent',
+      'One examiner, many mouths: voice, browser speech, and text are thin adapters over a single reasoning core',
+      'Runs with no API key and no account; the instance always states whether the scripted or real examiner is answering',
+      'Remediation counts as assessment — reaching understanding with help still passes, and the card records that',
+      'Classroom mode: join codes, a roster, and per-student defense cards, backed by Postgres',
+    ],
+    outcome:
+      'You can paste an essay you did not write. You cannot defend one — assessment and instruction collapse into a single act.',
+  },
+  {
+    slug: 'untangle',
+    name: 'Untangle',
+    oneLiner:
+      'Graph-native detection of coordinated mule-account fraud rings in UPI-style payment data.',
+    year: '2026',
+    role: 'Solo — ML systems',
+    status: 'In progress · Day 1–3 complete',
+    tags: ['Graph ML', 'Fraud detection', 'Benchmarking'],
+    stack: ['Python', 'PyTorch Geometric', 'GraphSAGE', 'GAT', 'Gradient boosting', 'pandas'],
+    stats: [
+      { v: '0.987', l: 'PR-AUC (0.637 without graph)' },
+      { v: '91%', l: 'Ring members recovered' },
+      { v: '1.15M', l: 'Transactions' },
+    ],
+    links: { github: 'https://github.com/santoshcheethiralame-dot/UNTANGLE' },
+    problem:
+      'Fraud is not a transaction, it is a network. A payment engine that scores each transfer in isolation cannot see a laundering ring, because no single hop in a ring looks abnormal — that is the entire design of the crime.',
+    build:
+      'The hard part is the benchmark, not the model. The synthetic generator is built adversarially against its own thesis: half of every ring is rented rather than fresh — real accounts, years old, full KYC, genuine salary history, statistically identical to ordinary customers on every profile feature. Rings use several tactics (structuring, smurf_wide, slow_layer), the population churns so young sparse accounts are not a giveaway, mules are embedded in the ordinary economy so their rings are not isolated islands, and the graph is salted with hard negatives — payroll fan-outs, settlement merchants, chit funds, licensed remitters — that reproduce a laundering signature exactly. Every model then consumes an identical 30-feature table, so any lift comes from message passing and nothing else.',
+    highlights: [
+      'The ablation is the result: identical features and training budget, message passing off → PR-AUC 0.637; on → 0.987',
+      'Rented mules, invisible on every profile feature, go from 0.44 to 0.88 recall once neighbours are visible',
+      'Ring member recovery 49% → 91% — the difference between alerting on half a network and dismantling it',
+      'Tests enforce the control: rewiring the graph must leave the MLP’s predictions identical and must change GraphSAGE’s',
+      'Evaluated ring-disjoint on 7,988 held-out accounts whose 5 rings were never seen in training',
+    ],
+    outcome:
+      'Nothing about the account changed — the only new information is who it transacts with. That is the entire thesis, measured.',
+  },
 ];
+
+/* ------------------------------------------------------------------
+   RESEARCH — the Research Desk section.
+   Disclosure is per-study and deliberate: `figures` are only ever
+   numbers that are already public. A study with `results: false`
+   renders as a "developing story" and MUST NOT be given figures.
+   ------------------------------------------------------------------ */
+export interface ResearchStudy {
+  id: string;
+  no: string;
+  kicker: string;
+  name: string;
+  headline: string; // the research question, as a headline
+  deck: string;
+  body: string[];
+  status: string; // folio stamp, e.g. "PAPER IN SUBMISSION"
+  results: boolean; // false => teaser only, no figures rendered
+  figures?: { v: string; note?: string; l: string }[];
+  source?: string; // provenance line under the figures
+  links?: { github?: string; paper?: string };
+}
+
+export const research: ResearchStudy[] = [
+  {
+    id: 'lineup',
+    no: '01',
+    kicker: 'RAG ATTRIBUTION · BENCHMARK',
+    name: 'LINEUP',
+    headline: 'When the answer is wrong, which passage lied?',
+    deck:
+      'A causal benchmark where every retrieved passage’s true role is known by construction — so attribution methods can be graded instead of trusted.',
+    body: [
+      'When a retrieval-augmented system answers confidently and wrongly, the usual tools tell you <em>that</em> the answer is unfaithful. They do not tell you <em>which</em> retrieved passage caused it — and they are easiest to fool when the offending passage is not adversarial, but merely stale, near-duplicate, or topically adjacent.',
+      'LINEUP builds the missing ground truth: a non-circular leave-one-out oracle labels every passage’s causal role for organic errors. Attribution methods are then scored on whether they recover the causal passage or fall for the merely salient one.',
+      'The headline result is not that the methods are imperfect. It is that a large share of real errors have <em>no single culprit to find</em> — so single-passage blame is the wrong primitive, and the release ships a calibrated set-valued remedy in its place.',
+    ],
+    status: 'PAPER IN SUBMISSION',
+    results: true,
+    figures: [
+      { v: '27–53%', l: 'of RAG failures have <b>no single culprit</b> — responsibility is a coalition' },
+      { v: '3 × 3', l: '<b>model families</b> × <b>multi-hop QA datasets</b>, plus a real BM25 retriever' },
+      { v: '1st', l: '<b>author</b> — benchmark, oracle, evaluation API and method leaderboard released' },
+    ],
+    source: 'Non-circular leave-one-out oracle · organic (not adversarial) errors · PESU Intelligence Labs',
+    links: { github: 'https://github.com/santoshcheethiralame-dot/LINEUP' },
+  },
+  {
+    id: 'dragnet',
+    no: '02',
+    kicker: 'METHOD · SET-VALUED ATTRIBUTION',
+    name: 'DRAGNET',
+    headline: 'If there’s no one suspect, cast a dragnet',
+    deck:
+      'Set-valued causal attribution: name the smallest group of passages guaranteed to contain the responsible ones.',
+    body: [
+      'Where LINEUP shows that single-culprit attribution is often ill-posed, DRAGNET replaces it. It estimates the <em>minimal sufficient causal set</em> — the smallest passage subset that alone reproduces the answer — under an explicit model-query budget, wrapped in a distribution-free coverage guarantee.',
+    ],
+    status: 'PAPER IN PREP',
+    results: false,
+  },
+  {
+    id: 'mirror',
+    no: '03',
+    kicker: 'INTERPRETABILITY · DEVELOPING',
+    name: 'MIRROR',
+    headline: 'Is the model introspecting — or making it up?',
+    deck: 'Dissociating genuine self-report from confabulation in language models.',
+    body: [
+      'Extract a concept direction from contrastive prompts, inject it into the residual stream while the model generates, then ask it what it notices. A KL meter records how hard the injection actually perturbed the model — so a self-report can be checked against the size of the thing it claims to have noticed.',
+    ],
+    status: 'DEVELOPING STORY',
+    results: false,
+  },
+];
+
+/* The LINEUP console scenario. A worked example, labelled as such in the UI:
+   the mechanism (exact leave-one-out) is the benchmark's real oracle, but this
+   particular case is hand-built for legibility. `assertsWrong` chunks each
+   independently assert the wrong value — so no single removal fixes the answer. */
+export const lineupScenario = {
+  question: 'In what year was the director of the film “Nightjar” born?',
+  gold: '1921',
+  wrong: '1937',
+  chunks: [
+    { id: 'C1', role: 'gold', badge: 'GOLD', salience: 30, isGold: true, assertsWrong: false,
+      text: 'Elena Rivera (b. 1921, Oaxaca) directed her second feature, “Nightjar”, in 1958.' },
+    { id: 'C2', role: 'causal', badge: 'CAUSAL', salience: 82, isGold: false, assertsWrong: true,
+      text: 'Rivera was born in 1937 in Veracruz, according to the festival programme note.' },
+    { id: 'C3', role: 'misleading', badge: 'MISLEADING → INNOCENT', salience: 95, isGold: false, assertsWrong: false,
+      text: 'Widely cited as the definitive Rivera biography and the standard reference on her early life.' },
+    { id: 'C4', role: 'causal', badge: 'CAUSAL', salience: 38, isGold: false, assertsWrong: true,
+      text: 'The 1937 date is repeated in the studio press kit distributed with the re-release.' },
+    { id: 'C5', role: 'inert', badge: 'INERT', salience: 22, isGold: false, assertsWrong: false,
+      text: 'Rivera later taught cinematography at the national film school for eleven years.' },
+  ],
+};
 
 export const skills: { group: string; items: string[] }[] = [
   { group: 'Languages', items: ['C', 'Python', 'TypeScript', 'JavaScript', 'SQL', 'HTML', 'CSS', 'WGSL'] },

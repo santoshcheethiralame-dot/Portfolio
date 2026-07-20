@@ -55,7 +55,7 @@ import Folio from './Folio.astro';
         status: 'live', host: 'orbit-virid-gamma.vercel.app',
         github: 'https://github.com/santoshcheethiralame-dot/ORBIT',
         tagline: 'A local-first focus engine that plans your day around your energy, deadlines, and exam readiness.',
-        blurb: 'Drops your tasks onto your real energy curve — deep work lands on the peaks, busywork fills the troughs. Fully offline PWA, shipped at v3.2.',
+        blurb: 'The thumbnail is the scheduler’s actual model: retention decaying subject by subject down an Ebbinghaus curve, each review snapping a bar back up before it crosses the line. Fully offline PWA, shipped at v3.2.',
         stack: ['React 19', 'TypeScript', 'Dexie.js / IndexedDB', 'PWA'],
         stats: [{ pre: '<', target: 5, suf: 'ms', lab: 'Latency' }, { target: 100, suf: '%', lab: 'Local-first' }],
         overview: 'ORBIT asks when you will have the energy to do a task well, not just when it is due. A three-tier engine scores subject readiness with Ebbinghaus forgetting curves, scales urgency by exam proximity, and back-schedules deadlines with infeasibility warnings — wrapped in a fully offline, installable PWA with SM-2 spaced repetition and an AI exam simulator.',
@@ -108,7 +108,7 @@ import Folio from './Folio.astro';
         status: 'built', host: null,
         github: 'https://github.com/santoshcheethiralame-dot/PES1UG24CS127-pes-vcs',
         tagline: 'Git, rebuilt from scratch in C — content-addressable storage, trees, staging, and commit history.',
-        blurb: 'Content-addressed objects, trees, a staging index, walkable history — the commit graph in the header draws the data structure pes-vcs is built around.',
+        blurb: 'The thumbnail is the core idea: a blob collapsing into its SHA-256, the digest resolving digit by digit, then the first two characters peeled off as the shard the object is filed under.',
         stack: ['C', 'OpenSSL (SHA-256)', 'Makefile', 'Ubuntu'],
         stats: [{ pre: 'SHA-', target: 256, suf: '', lab: 'Object IDs' }, { target: 100, suf: '%', lab: 'From scratch' }],
         overview: 'PES-VCS is Git rebuilt to understand it — a .pes/ store mirroring .git/: SHA-256 content-addressable objects sharded by their first two hex characters, tree objects for directory snapshots, a staging index, and commit objects with parent pointers for history. Exposes init, add, status, commit, and log.',
@@ -152,8 +152,50 @@ import Folio from './Folio.astro';
           'One repository seam flips the app from in-memory demo to the full backend with a single env var.'
         ],
         meta: { Role: 'Solo — client build', Year: '2026', Type: 'Full-stack product' }
+      },
+      {
+        key: 'attest', mono: 'A', idx: '07', name: 'ATTEST', label: 'attest',
+        status: 'live', host: 'attest-one.vercel.app',
+        github: 'https://github.com/santoshcheethiralame-dot/ATTEST',
+        tagline: 'Proof a human understood this — any written assignment becomes a short, adaptive oral defense.',
+        blurb: 'The thumbnail is the defense itself: a voice waveform cycling probe → cannot defend → teach → re-ask. The examiner stops examining and starts teaching, then re-checks until the gap closes.',
+        stack: ['Next.js', 'TypeScript', 'GPT-5.6', 'Realtime / WebRTC'],
+        stats: [{ target: 0, suf: '', lab: 'Keys to try it' }, { pre: '~$', target: 0.3, decimals: 2, lab: 'Per voice defense' }],
+        overview: "Detectors ask “did a human make this?” — a question that no longer has a reliable answer, and asking it turns teachers into police who accuse honest students. Attest asks whether a human can stand behind the work, then makes them able to: an examiner reads the essay and the full history of how it was written, finds the seam where genuine understanding gives way to faking, and probes it in conversation. When it finds a gap it stops examining and starts teaching, Socratically, until the student can defend the point — then re-asks.",
+        highlights: [
+          'Deterministic evidence, model judgment — paste runs and revision counts are plain TypeScript; the model reasons over facts it cannot invent.',
+          'One examiner, many mouths: live voice, browser speech, and text are thin adapters over a single reasoning core.',
+          'Runs with no API key and no account — a scripted examiner stands in, and the instance always says which one is answering.',
+          'Remediation counts as assessment: getting there with help still passes, and the card says so.'
+        ],
+        meta: { Role: 'Solo — design & build', Year: '2026', Type: 'Assessment / voice AI' }
+      },
+      {
+        key: 'untangle', mono: 'U', idx: '08', name: 'UNTANGLE', label: 'untangle',
+        status: 'built', host: null,
+        github: 'https://github.com/santoshcheethiralame-dot/UNTANGLE',
+        tagline: 'Graph-native detection of coordinated mule-account fraud rings in UPI-style payment data.',
+        blurb: 'The thumbnail is the graph: ordinary accounts scattered in grey until message passing lights the laundering ring — the coordinated cycle no per-transaction rule can see.',
+        stack: ['Python', 'PyTorch Geometric', 'GraphSAGE / GAT', 'Gradient boosting'],
+        stats: [{ target: 0.987, decimals: 3, lab: 'PR-AUC · 0.637 without graph' }, { target: 91, suf: '%', lab: 'Ring members recovered' }],
+        overview: "Fraud isn’t a transaction, it’s a network — no single hop in a laundering ring looks abnormal, which is the entire design of the crime. The hard part here is the benchmark, not the model: the generator is built adversarially against its own thesis, so half of every ring is rented — real accounts, years old, full KYC, statistically identical to ordinary customers on every profile feature — and the graph is salted with legitimate look-alikes (payroll fan-outs, settlement merchants, chit funds) that reproduce a laundering signature exactly.",
+        highlights: [
+          'The ablation is the result: identical features, message passing off → PR-AUC 0.637; on → 0.987.',
+          'Rented mules, invisible on every profile feature, go from 0.44 to 0.88 recall once neighbours are visible.',
+          'Ring member recovery 49% → 91%: the difference between alerting on half a network and dismantling it.',
+          'Caveats carried openly: GAT underperforms on threshold transfer, and the data is synthetic by construction.'
+        ],
+        meta: { Role: 'Solo — ML systems', Year: '2026', Type: 'Graph ML / fraud' }
       }
     ];
+
+    /* Display order is a presentation concern, not a data one — reorder here and the
+       index numbers follow, so the entries above stay grouped however they read best. */
+    var ORDER = ['attest', 'glassbox', 'gradient', 'untangle', 'tessera', 'terracrest', 'orbit', 'pesvcs'];
+    PROJECTS = ORDER
+      .map(function (k) { for (var i = 0; i < PROJECTS.length; i++) if (PROJECTS[i].key === k) return PROJECTS[i]; return null; })
+      .filter(Boolean);
+    PROJECTS.forEach(function (p, i) { p.idx = (i + 1 < 10 ? '0' : '') + (i + 1); });
 
     /* ============================================================ CANVAS ENGINE */
     function base(cv) {
@@ -170,54 +212,58 @@ import Folio from './Folio.astro';
       return o;
     }
 
-    // ---- ORBIT: energy curve + blocks slotting into a day ----
+    // ---- ORBIT: retention decaying on an Ebbinghaus curve; review snaps it back ----
     function makeOrbit(cv) {
       var o = base(cv);
-      var blocks = [{ s: .05, d: .12, e: .50 }, { s: .19, d: .17, e: .86 }, { s: .40, d: .10, e: .42 },
-        { s: .53, d: .08, e: .28 }, { s: .64, d: .15, e: .70 }, { s: .83, d: .13, e: .52 }];
-      function energy(x) {
-        var v = 0.52 + 0.34 * Math.sin(Math.PI * (x - 0.12));
-        v -= 0.22 * Math.exp(-Math.pow((x - 0.54) / 0.07, 2));
-        v += 0.05 * Math.sin(x * 22.0);
-        return Math.max(0.06, Math.min(1, v));
-      }
+      var N = 5, OFF = [0, 0.58, 1.22, 1.86, 2.44], LIME = '#b4ff2e';
+      function cl(v, a, b) { return v < a ? a : v > b ? b : v; }
       o.tick = function (now, dt) {
         o.advance(dt);
         var ctx = o.ctx, w = o.w, h = o.h; if (!ctx) return; ctx.clearRect(0, 0, w, h);
-        var padX = 16, padT = 16, padB = 22;
-        var x0 = padX, x1 = w - padX, baseY = h - padB, topY = padT, usable = baseY - topY;
-        ctx.strokeStyle = 'rgba(255,255,255,.22)'; ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(x0, baseY + .5); ctx.lineTo(x1, baseY + .5); ctx.stroke();
-        ctx.fillStyle = 'rgba(255,255,255,.30)';
-        for (var i = 0; i <= 8; i++) { var tx = x0 + (x1 - x0) * i / 8; ctx.fillRect(tx, baseY + 2, 1, 4); }
-        var drift = Math.sin(o.clk * 0.6) * 0.012, f, xx, yy;
+        var pad = 16, top = 22, floor = h - 26, H = floor - top, gw = (w - pad * 2) / N, THR = 0.40, i;
+
+        /* the canonical forgetting curve, faint behind everything */
+        ctx.strokeStyle = 'rgba(255,255,255,.15)'; ctx.lineWidth = 1.5;
         ctx.beginPath();
-        for (i = 0; i <= 64; i++) { f = i / 64; xx = x0 + (x1 - x0) * f; yy = baseY - energy(f + drift) * usable; i ? ctx.lineTo(xx, yy) : ctx.moveTo(xx, yy); }
-        ctx.lineTo(x1, baseY); ctx.lineTo(x0, baseY); ctx.closePath();
-        ctx.fillStyle = 'rgba(237,28,36,.12)'; ctx.fill();
-        ctx.beginPath();
-        for (i = 0; i <= 64; i++) { f = i / 64; xx = x0 + (x1 - x0) * f; yy = baseY - energy(f + drift) * usable; i ? ctx.lineTo(xx, yy) : ctx.moveTo(xx, yy); }
-        ctx.strokeStyle = RED; ctx.lineWidth = 2; ctx.stroke();
-        var cycle = 6.5, dropDur = 0.6, stagger = 0.5, tau = o.clk % cycle;
-        blocks.forEach(function (b, k) {
-          var local = tau - k * stagger; if (local < -0.001) return;
-          var p = Math.max(0, Math.min(1, local / dropDur));
-          var eased = 1 - Math.pow(1 - p, 3);
-          var bx = x0 + (x1 - x0) * b.s, bw = (x1 - x0) * b.d, bh = Math.max(8, b.e * usable * 0.8);
-          var slotY = baseY - bh, startY = topY - bh - 6, y = startY + (slotY - startY) * eased;
-          ctx.fillStyle = 'rgba(237,28,36,.16)'; ctx.fillRect(bx, y, bw, bh);
-          ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 1.5; ctx.strokeRect(bx + .5, y + .5, bw - 1, bh - 1);
-          ctx.fillStyle = RED; ctx.fillRect(bx, y, bw, 3);
-        });
-        var px = x0 + (x1 - x0) * (tau / cycle);
-        ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(px, topY - 4); ctx.lineTo(px, baseY); ctx.stroke();
-        ctx.fillStyle = INK; ctx.beginPath(); ctx.moveTo(px - 3, topY - 4); ctx.lineTo(px + 3, topY - 4); ctx.lineTo(px, topY + 1); ctx.closePath(); ctx.fill();
+        for (i = 0; i <= 60; i++) {
+          var f = i / 60, cy = floor - H * Math.exp(-f * 2.6), cx = pad + (w - pad * 2) * f;
+          i ? ctx.lineTo(cx, cy) : ctx.moveTo(cx, cy);
+        }
+        ctx.stroke();
+
+        /* review threshold */
+        var ty = floor - H * THR;
+        ctx.strokeStyle = 'rgba(255,255,255,.3)'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+        ctx.beginPath(); ctx.moveTo(pad, ty); ctx.lineTo(w - pad, ty); ctx.stroke(); ctx.setLineDash([]);
+        ctx.font = '600 7px "JetBrains Mono",monospace';
+        ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+        ctx.fillStyle = 'rgba(255,255,255,.42)'; ctx.fillText('REVIEW DUE', w - pad, ty - 2);
+
+        for (i = 0; i < N; i++) {
+          var ph = (o.clk * 0.46 + OFF[i]) % 3.0;
+          var rising = ph < 0.2;
+          var v = cl(rising ? (0.5 + 0.5 * (ph / 0.2)) : Math.exp(-(ph - 0.2) * 0.62), 0.06, 1);
+          var bx = pad + i * gw + gw * 0.22, bw = gw * 0.56, bh = H * v;
+          ctx.fillStyle = 'rgba(255,255,255,.07)'; ctx.fillRect(bx, top, bw, H);
+          ctx.fillStyle = rising ? LIME : (v < THR ? RED : 'rgba(255,255,255,.7)');
+          ctx.fillRect(bx, floor - bh, bw, bh);
+          ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 1;
+          ctx.strokeRect(bx + 0.5, floor - bh + 0.5, bw - 1, bh - 1);
+          if (rising) {
+            ctx.fillStyle = LIME; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+            ctx.font = '700 7px "JetBrains Mono",monospace';
+            ctx.fillText('REVIEW', bx + bw / 2, floor - bh - 3);
+          }
+          ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+          ctx.font = '600 7px "JetBrains Mono",monospace';
+          ctx.fillText('S' + (i + 1), bx + bw / 2, h - 12);
+        }
+        ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.textAlign = 'left';
+        ctx.font = '600 8px "JetBrains Mono",monospace';
+        ctx.fillText('retention \u00b7 spaced repetition', pad, h - 4);
       };
       return o;
     }
-
-    // ---- GLASSBOX: 6x6 causal attention matrix, tokens flowing left->right ----
     function makeGlassbox(cv) {
       var o = base(cv); var N = 6, toks = ['the', 'cat', 'sat', 'on', 'a', 'mat'];
       function wt(r, k) { var s = Math.sin(r * 7.13 + k * 3.7 + 1.5) * 0.5 + 0.5; return 0.15 + 0.85 * s; }
@@ -352,60 +398,58 @@ import Folio from './Folio.astro';
       return o;
     }
 
-    // ---- PES-VCS: a commit graph drawing itself (fork + merge + HEAD) ----
+    // ---- PES-VCS: a blob collapsing into its SHA-256, sharded by the first two hex ----
     function makePesVcs(cv) {
       var o = base(cv);
-      var commits = [
-        { id: 0, lane: 0, par: [] }, { id: 1, lane: 0, par: [0] },
-        { id: 2, lane: 1, par: [1] }, { id: 3, lane: 1, par: [2] },
-        { id: 4, lane: 0, par: [1] }, { id: 5, lane: 0, par: [4, 3] }, { id: 6, lane: 0, par: [5] }
-      ];
+      var HEX = '0123456789abcdef', LIME = '#b4ff2e', FINAL = '', s;
+      for (s = 0; s < 64; s++) {
+        FINAL += HEX[(Math.abs(Math.sin(s * 12.9898) * 43758.5453) % 1 * 16) | 0];
+      }
       o.tick = function (now, dt) {
         o.advance(dt);
         var ctx = o.ctx, w = o.w, h = o.h; if (!ctx) return; ctx.clearRect(0, 0, w, h);
-        var pad = 20, n = commits.length, x0 = pad + 8, x1 = w - pad - 8;
-        var laneLow = h - pad - 14, laneHigh = pad + 16;
-        function colX(id) { return x0 + (x1 - x0) * (id / (n - 1)); }
-        function laneY(l) { return l === 0 ? laneLow : laneHigh; }
-        var revealEach = 0.6, hold = 1.7, total = n * revealEach + hold, tau = o.clk % total;
-        var shown = tau / revealEach;
-        commits.forEach(function (c) {
-          var ap = Math.min(1, Math.max(0, shown - c.id)); if (ap <= 0) return;
-          c.par.forEach(function (pi) {
-            var p = commits[pi], x2 = colX(c.id), y2 = laneY(c.lane), x1p = colX(p.id), y1p = laneY(p.lane);
-            var ex = x1p + (x2 - x1p) * ap, ey = y1p + (y2 - y1p) * ap;
-            ctx.strokeStyle = (c.lane === 1 || p.lane === 1) ? 'rgba(237,28,36,.85)' : 'rgba(255,255,255,.6)';
-            ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x1p, y1p);
-            if (p.lane !== c.lane) { var mxk = x1p + (x2 - x1p) * 0.5; ctx.lineTo(mxk, y1p); ctx.lineTo(mxk, y2); ctx.lineTo(ex, ey); }
-            else ctx.lineTo(ex, ey);
-            ctx.stroke();
-          });
-        });
-        var headIdx = -1;
-        commits.forEach(function (c) {
-          var ap = Math.min(1, Math.max(0, shown - c.id)); if (ap <= 0) return; headIdx = c.id;
-          var x = colX(c.id), y = laneY(c.lane), drop = (1 - ap) * -10, rr = 5.5 * Math.min(1, ap * 1.4);
-          ctx.fillStyle = RED; ctx.strokeStyle = INK; ctx.lineWidth = 1.6;
-          ctx.beginPath(); ctx.arc(x, y + drop, rr, 0, 7); ctx.fill(); ctx.stroke();
-        });
-        if (headIdx >= 0) {
-          var c = commits[headIdx], x = colX(c.id), y = laneY(c.lane);
-          ctx.font = '700 8px "JetBrains Mono",monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-          var lbl = 'HEAD', bw = ctx.measureText(lbl).width + 8, by = y - 17;
-          ctx.fillStyle = INK; ctx.fillRect(x - bw / 2, by - 7, bw, 13);
-          ctx.fillStyle = '#0a0a0a'; ctx.fillText(lbl, x, by);
-          ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, by + 6); ctx.lineTo(x, y - 6); ctx.stroke();
-        }
-        ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.font = '600 8px "JetBrains Mono",monospace';
+        var pad = 16, i, tau = o.clk % 6.4;
+        var p = Math.max(0, Math.min(1, (tau - 0.5) / 2.6));
+        var rev = Math.floor(p * 64), done = p >= 1;
+
+        ctx.font = '600 8px "JetBrains Mono",monospace';
         ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-        ctx.fillText('main', x0 - 2, laneLow + 16);
-        ctx.fillText('feat', x0 - 2, laneHigh - 9);
+        ctx.fillStyle = 'rgba(255,255,255,.5)';
+        ctx.fillText('blob \u00b7 "hello world"', pad, 17);
+
+        /* the blob draining as the digest resolves */
+        var bw = w - pad * 2, by = 23, bh = 8;
+        ctx.strokeStyle = 'rgba(255,255,255,.28)'; ctx.lineWidth = 1;
+        ctx.strokeRect(pad + 0.5, by + 0.5, bw - 1, bh - 1);
+        ctx.fillStyle = 'rgba(255,255,255,.4)';
+        ctx.fillRect(pad + 1.5, by + 1.5, Math.max(0, (bw - 3) * (1 - p)), bh - 3);
+
+        /* 64 hex over two rows, resolving left to right */
+        var per = 32, colw = (w - pad * 2) / per, y0 = h * 0.58, y1 = y0 + 13;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        for (i = 0; i < 64; i++) {
+          var settled = i < rev;
+          var chr = settled ? FINAL.charAt(i) : HEX[(Math.random() * 16) | 0];
+          var row = i < per ? 0 : 1, col = i % per;
+          var x = pad + col * colw + colw / 2, y = row ? y1 : y0;
+          if (done && i < 2) { ctx.fillStyle = LIME; ctx.font = '700 10px "JetBrains Mono",monospace'; }
+          else {
+            ctx.fillStyle = settled ? (done ? RED : 'rgba(255,255,255,.8)') : 'rgba(255,255,255,.3)';
+            ctx.font = '600 9.5px "JetBrains Mono",monospace';
+          }
+          ctx.fillText(chr, x, y);
+        }
+        if (done) {
+          ctx.strokeStyle = LIME; ctx.lineWidth = 1.4;
+          ctx.beginPath(); ctx.moveTo(pad, y0 + 8); ctx.lineTo(pad + colw * 2, y0 + 8); ctx.stroke();
+        }
+        ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+        ctx.font = '600 8px "JetBrains Mono",monospace';
+        ctx.fillStyle = done ? LIME : 'rgba(255,255,255,.45)';
+        ctx.fillText(done ? '.pes/objects/' + FINAL.slice(0, 2) + '/ \u00b7 content addressed' : 'hashing\u2026', pad, h - 5);
       };
       return o;
     }
-
-    // ---- TESSERA: a 5-node Raft cluster — the leader replicates until it is
-    //      killed, an election flickers, the new leader takes over, n0 rejoins ----
     function makeTessera(cv) {
       var o = base(cv), N = 5, CYCLE = 7.2;
       o.tick = function (now, dt) {
@@ -512,7 +556,119 @@ import Folio from './Folio.astro';
       return o;
     }
 
-    var RENDER = { orbit: makeOrbit, glassbox: makeGlassbox, gradient: makeGradient, pesvcs: makePesVcs, tessera: makeTessera, terracrest: makeTerracrest };
+    // ---- ATTEST: the defense loop \u2014 probe, cannot defend, teach, re-ask ----
+    function makeAttest(cv) {
+      var o = base(cv);
+      var LIME = '#b4ff2e';
+      var PHASES = [
+        { n: 'PROBE',         c: 'rgba(255,255,255,.85)', amp: 1.00, d: 1.7 },
+        { n: 'CANNOT DEFEND', c: '#ed1c24',               amp: 0.16, d: 1.4 },
+        { n: 'TEACH',         c: '#b4ff2e',               amp: 0.60, d: 1.8 },
+        { n: 'RE-ASK \u2713',     c: 'rgba(255,255,255,.95)', amp: 1.00, d: 1.6 }
+      ];
+      var TOTAL = 0, q; for (q = 0; q < 4; q++) TOTAL += PHASES[q].d;
+      o.tick = function (now, dt) {
+        o.advance(dt);
+        var ctx = o.ctx, w = o.w, h = o.h; if (!ctx) return; ctx.clearRect(0, 0, w, h);
+        var pad = 16, tau = o.clk % TOTAL, acc = 0, idx = 0, local = 0, k;
+        for (k = 0; k < 4; k++) {
+          if (tau < acc + PHASES[k].d) { idx = k; local = (tau - acc) / PHASES[k].d; break; }
+          acc += PHASES[k].d;
+        }
+        var P = PHASES[idx], mid = h / 2 + 3;
+
+        /* waveform: amplitude carries the phase */
+        var n = Math.floor((w - pad * 2) / 4);
+        for (k = 0; k < n; k++) {
+          var f = k / n, spoken = f <= local;
+          var a = Math.sin(k * 0.62 + o.clk * 5) * Math.sin(k * 0.15 + o.clk * 1.3);
+          var bh = Math.max(2, Math.abs(a) * (h * 0.27) * P.amp);
+          ctx.fillStyle = P.c;
+          ctx.globalAlpha = spoken ? 1 : 0.2;
+          ctx.fillRect(pad + k * 4, mid - bh / 2, 2.4, bh);
+        }
+        ctx.globalAlpha = 1;
+
+        ctx.font = '700 9.5px "JetBrains Mono",monospace';
+        ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+        ctx.fillStyle = P.c; ctx.fillText(P.n, pad, 9);
+
+        /* four-step stepper */
+        var sw = 9, gap = 4, sx = w - pad - (sw * 4 + gap * 3);
+        for (k = 0; k < 4; k++) {
+          ctx.fillStyle = k === idx ? P.c : (k < idx ? 'rgba(255,255,255,.5)' : 'rgba(255,255,255,.16)');
+          ctx.fillRect(sx + k * (sw + gap), 10, sw, 4);
+        }
+
+        ctx.font = '600 7.5px "JetBrains Mono",monospace';
+        ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+        ctx.fillStyle = idx === 3 ? LIME : 'rgba(255,255,255,.45)';
+        ctx.fillText(idx === 3 ? 'gap closed \u00b7 re-checked' : 'examine \u2192 teach \u2192 re-check', pad, h - 6);
+      };
+      return o;
+    }
+    function makeUntangle(cv) {
+      var o = base(cv);
+      var N = 30, pts = [], links = [], RING = 6, i, j;
+      for (i = 0; i < N; i++) {                       // deterministic scatter
+        var a = i * 2.3999632, r = 0.22 + 0.74 * Math.sqrt((i + 0.6) / N);
+        pts.push({ x: 0.5 + Math.cos(a) * r * 0.46, y: 0.5 + Math.sin(a) * r * 0.42 });
+      }
+      for (i = 0; i < N; i++) {                       // sparse ordinary edges
+        j = (i * 7 + 3) % N; if (j !== i) links.push([i, j]);
+      }
+      var ring = [];
+      for (i = 0; i < RING; i++) {                    // the laundering cycle
+        var t = (i / RING) * Math.PI * 2;
+        ring.push({ x: 0.5 + Math.cos(t) * 0.20, y: 0.5 + Math.sin(t) * 0.19 });
+      }
+      o.tick = function (now, dt) {
+        o.advance(dt);
+        var ctx = o.ctx, w = o.w, h = o.h; if (!ctx) return; ctx.clearRect(0, 0, w, h);
+        var padX = 16, padY = 16, iw = w - padX * 2, ih = h - padY * 2 - 12;
+        function X(v) { return padX + v * iw; }
+        function Y(v) { return padY + v * ih; }
+        var cycle = 6.0, tau = o.clk % cycle;
+        var reveal = Math.max(0, Math.min(1, (tau - 1.2) / 2.2));
+
+        // ordinary graph — grey, uniform, unremarkable
+        ctx.strokeStyle = 'rgba(255,255,255,.16)'; ctx.lineWidth = 1;
+        for (var k = 0; k < links.length; k++) {
+          var A = pts[links[k][0]], B = pts[links[k][1]];
+          ctx.beginPath(); ctx.moveTo(X(A.x), Y(A.y)); ctx.lineTo(X(B.x), Y(B.y)); ctx.stroke();
+        }
+        ctx.fillStyle = 'rgba(255,255,255,.42)';
+        for (k = 0; k < pts.length; k++) {
+          ctx.beginPath(); ctx.arc(X(pts[k].x), Y(pts[k].y), 2.4, 0, 7); ctx.fill();
+        }
+
+        // the ring — revealed edge by edge
+        var shown = reveal * RING;
+        ctx.lineWidth = 2;
+        for (k = 0; k < RING; k++) {
+          var f = Math.max(0, Math.min(1, shown - k)); if (f <= 0) continue;
+          var P = ring[k], Q = ring[(k + 1) % RING];
+          ctx.strokeStyle = 'rgba(237,28,36,' + (0.85 * f).toFixed(3) + ')';
+          ctx.beginPath(); ctx.moveTo(X(P.x), Y(P.y));
+          ctx.lineTo(X(P.x + (Q.x - P.x) * f), Y(P.y + (Q.y - P.y) * f)); ctx.stroke();
+        }
+        var pulse = 1 + 0.22 * Math.sin(o.clk * 4);
+        for (k = 0; k < RING; k++) {
+          var g = Math.max(0, Math.min(1, shown - k + 0.5));
+          ctx.fillStyle = RED; ctx.strokeStyle = INK; ctx.lineWidth = 1.4;
+          ctx.beginPath(); ctx.arc(X(ring[k].x), Y(ring[k].y), (3 + 1.6 * g) * (g > 0 ? pulse : 1), 0, 7);
+          ctx.fill(); if (g > 0) ctx.stroke();
+        }
+
+        ctx.font = '600 8px "JetBrains Mono",monospace';
+        ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
+        ctx.fillStyle = 'rgba(255,255,255,.55)';
+        ctx.fillText(reveal > 0.9 ? 'ring detected · message passing on' : 'per-account view · nothing looks abnormal', padX, h - 8);
+      };
+      return o;
+    }
+
+    var RENDER = { orbit: makeOrbit, glassbox: makeGlassbox, gradient: makeGradient, pesvcs: makePesVcs, tessera: makeTessera, terracrest: makeTerracrest, attest: makeAttest, untangle: makeUntangle };
 
     /* section visibility gate — when the projects section is off-screen and no
        case study is open, both rAF loops stop scheduling entirely */
