@@ -4150,3 +4150,170 @@ body.li-cs-open {
   padding-left: clamp(14px, 2.4vw, 34px);
   padding-right: clamp(14px, 2.4vw, 34px);
 }
+
+/* ============================================================ RARITY LADDER
+   Earlier this board tried the game-loot convention (blue/purple/gold). It read
+   clearly but imported a whole foreign colour world onto a page built from red,
+   cream, ink and lime. So the ladder is drawn from the page's own palette, in
+   ascending intensity — the one ordering that keeps the hierarchy legible:
+
+     RARE       bone      the base paper stock, unprinted
+     EPIC       red       a one-colour press run — the site's brand accent
+     LEGENDARY  lime      the two-colour special edition, and the only tier
+                          that emits light. Lime already means "live / best"
+                          in the nav, so legendary inherits that meaning.
+
+   Rare is deliberately the dimmest: a bright neutral would out-shout the red
+   and inch the hierarchy. Hue is never the sole carrier — the pip count and the
+   RAR/EPI/LEG label each encode the tier independently. */
+#stack {
+  --rar-bone: rgba(247, 245, 241, 0.62);
+  --epi-red: #ff3b42;
+  --leg-lime: var(--neon-lime);
+}
+
+/* the panel frames, it doesn't compete: a full-strength red border sat at the
+   same weight as the epic slots inside it and muddied the field */
+#stack .panel {
+  border-color: rgba(237, 28, 36, 0.38);
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.55);
+}
+#stack .panel-head {
+  border-bottom-color: rgba(237, 28, 36, 0.38);
+}
+
+#stack .slot,
+#stack .slot.rare {
+  background: #0e0e0d;
+  border-color: rgba(247, 245, 241, 0.4);
+}
+#stack .slot .rar {
+  color: var(--rar-bone);
+}
+#stack .slot::after {
+  border-color: transparent rgba(247, 245, 241, 0.45) transparent transparent;
+}
+#stack .slot .pips i:not(.off) {
+  background: rgba(247, 245, 241, 0.85);
+}
+
+#stack .slot.epic {
+  background: #170c0d;
+  border-color: rgba(237, 28, 36, 0.9);
+  box-shadow: 0 0 10px rgba(237, 28, 36, 0.16);
+}
+#stack .slot.epic .rar {
+  color: var(--epi-red);
+}
+#stack .slot.epic::after {
+  border-color: transparent #ed1c24 transparent transparent;
+}
+#stack .slot.epic .pips i:not(.off) {
+  background: var(--epi-red);
+}
+
+#stack .slot.legendary {
+  background: #0c1105;
+  border-color: var(--leg-lime);
+  /* emission, not a soft edge — legendary is the only tier that gives off light */
+  box-shadow: 0 0 15px rgba(180, 255, 46, 0.3);
+}
+#stack .slot.legendary .rar {
+  color: var(--leg-lime);
+}
+#stack .slot.legendary::after {
+  border-color: transparent var(--leg-lime) transparent transparent;
+}
+#stack .slot.legendary .pips i:not(.off) {
+  background: var(--leg-lime);
+}
+
+#stack .slot.is-active {
+  box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.6);
+}
+#stack .slot.legendary.is-active {
+  box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.6), 0 0 18px rgba(180, 255, 46, 0.38);
+}
+
+/* the legend has to teach the same three steps */
+#stack .legend .swatch {
+  background: rgba(247, 245, 241, 0.85);
+  border-color: rgba(247, 245, 241, 0.85);
+}
+#stack .legend .swatch.epic {
+  background: #ed1c24;
+  border-color: #ed1c24;
+}
+#stack .legend .swatch.leg {
+  background: var(--leg-lime);
+  border-color: var(--leg-lime);
+  box-shadow: 0 0 10px rgba(180, 255, 46, 0.4);
+}
+
+/* ---- block balance: equal-height panels per row ----
+   align-items:start left every panel at its natural height, so a 21-slot class
+   next to a 7-slot one tore a hole in the row. Class sizes are now 7–12 in
+   site.ts, and stretching squares off whatever variance is left. */
+#stack .loadout {
+  align-items: stretch;
+}
+#stack .panel {
+  display: flex;
+  flex-direction: column;
+}
+#stack .grid-slots {
+  flex: 1;
+  align-content: start;
+}
+
+/* ---- item card: it inherited the light theme's --ink/--w-black and rendered as a
+   white box on a near-black board. Restated in explicit colours so it belongs to
+   the night shift, and it now wears the same tier accent as the slot it describes. */
+#stack .ld-card {
+  z-index: 900;
+  background: #0f0f0e;
+  color: rgba(247, 245, 241, 0.92);
+  border-color: rgba(247, 245, 241, 0.42);
+  box-shadow: 7px 7px 0 rgba(0, 0, 0, 0.6);
+}
+#stack .ld-card.epic {
+  border-color: rgba(237, 28, 36, 0.9);
+  box-shadow: 7px 7px 0 rgba(0, 0, 0, 0.6), 0 0 12px rgba(237, 28, 36, 0.18);
+}
+#stack .ld-card.leg {
+  border-color: var(--neon-lime);
+  box-shadow: 7px 7px 0 rgba(0, 0, 0, 0.6), 0 0 16px rgba(180, 255, 46, 0.3);
+}
+
+#stack .ld-card .card-hd { border-bottom-color: rgba(247, 245, 241, 0.3); }
+#stack .ld-card.epic .card-hd { border-bottom-color: rgba(237, 28, 36, 0.75); }
+#stack .ld-card.leg .card-hd { border-bottom-color: var(--neon-lime); }
+
+#stack .ld-card .card-hd .nm { color: rgba(247, 245, 241, 0.96); }
+#stack .ld-card.epic .card-hd .nm { color: #ff3b42; }
+#stack .ld-card.leg .card-hd .nm { color: var(--neon-lime); }
+
+#stack .ld-card .card-hd .rtag { border-color: rgba(247, 245, 241, 0.45); color: rgba(247, 245, 241, 0.78); }
+#stack .ld-card.epic .card-hd .rtag { border-color: #ed1c24; color: #ff3b42; }
+#stack .ld-card.leg .card-hd .rtag { border-color: var(--neon-lime); color: var(--neon-lime); }
+
+#stack .ld-card .card-cls { border-bottom-color: rgba(247, 245, 241, 0.16); color: rgba(247, 245, 241, 0.55); }
+#stack .ld-card .card-cls b { color: rgba(247, 245, 241, 0.92); }
+
+#stack .ld-card .stat .k { color: rgba(247, 245, 241, 0.55); }
+#stack .ld-card .stat .v { color: rgba(247, 245, 241, 0.92); }
+#stack .ld-card .stat .bar { border-color: rgba(247, 245, 241, 0.35); }
+#stack .ld-card .stat .bar > i { background: rgba(247, 245, 241, 0.8); }
+#stack .ld-card.epic .stat .bar > i { background: #ff3b42; }
+#stack .ld-card.leg .stat .bar > i { background: var(--neon-lime); }
+
+#stack .ld-card .card-set { border-top-color: rgba(247, 245, 241, 0.3); }
+#stack .ld-card.epic .card-set { border-top-color: rgba(237, 28, 36, 0.75); }
+#stack .ld-card.leg .card-set { border-top-color: var(--neon-lime); }
+
+#stack .ld-card .set-lab { color: rgba(247, 245, 241, 0.85); }
+#stack .ld-card .set-lab .bonus { border-color: rgba(247, 245, 241, 0.45); color: rgba(247, 245, 241, 0.92); }
+#stack .ld-card.epic .set-lab .bonus { border-color: #ed1c24; color: #ff3b42; }
+#stack .ld-card.leg .set-lab .bonus { border-color: var(--neon-lime); color: var(--neon-lime); }
+
+#stack .ld-card .card-set li { border-color: rgba(247, 245, 241, 0.28); color: rgba(247, 245, 241, 0.82); }

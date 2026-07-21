@@ -43,7 +43,10 @@ import Folio from './Folio.astro';
   (function () {
     'use strict';
 
-    var RED = '#ed1c24', INK = '#ffffff';
+    // Three colours, and lime carries a meaning rather than decoration: grey is
+    // structure and the ordinary, red is the signal under investigation, lime is
+    // the resolved state — converged, committed, unlocked, detected.
+    var RED = '#ed1c24', INK = '#ffffff', LIME = '#b4ff2e';
     var REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     /* ================================================================ DATA
@@ -276,7 +279,8 @@ import Folio from './Folio.astro';
         var qf = o.clk / 0.75, q = Math.floor(qf) % N, within = qf % 1;
         for (var k = 0; k < N; k++) {
           var tx = gx + cell * k, tw = cell, active = (k === q);
-          if (active) { ctx.fillStyle = INK; ctx.fillRect(tx + 2, pad - 2, tw - 4, topH - 4); }
+          // the token currently attending is the live cursor through the sequence
+          if (active) { ctx.fillStyle = LIME; ctx.fillRect(tx + 2, pad - 2, tw - 4, topH - 4); }
           ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.lineWidth = 1; ctx.strokeRect(tx + 2.5, pad - 1.5, tw - 5, topH - 5);
           ctx.fillStyle = active ? '#0a0a0a' : 'rgba(255,255,255,.7)';
           ctx.font = '600 9px "JetBrains Mono",monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -293,7 +297,7 @@ import Folio from './Folio.astro';
             ctx.strokeStyle = 'rgba(255,255,255,' + (k <= r ? 0.14 : 0.05) + ')'; ctx.lineWidth = 1; ctx.strokeRect(cx + .5, cy + .5, cell - 1, cell - 1);
           }
         }
-        ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 1.5;
+        ctx.strokeStyle = LIME; ctx.lineWidth = 1.5;
         ctx.strokeRect(gx + .5, gy + cell * q + .5, cell * N - 1, cell - 1);
       };
       return o;
@@ -365,8 +369,11 @@ import Folio from './Folio.astro';
         for (iy = 0; iy <= GN; iy++) { pv[iy] = []; for (ix = 0; ix <= GN; ix++) pv[iy][ix] = fwd(gxv[ix], gyv[iy]).p; }
         var gpx = function (i2) { return padL + i2 / GN * iw; };
         var gpy = function (i2) { return padT + i2 / GN * ih; };
-        // the decision boundary, as one crisp contour line (pure line-art)
-        ctx.strokeStyle = RED; ctx.lineWidth = 2; ctx.beginPath();
+        // the decision boundary, as one crisp contour line (pure line-art).
+        // it turns lime the moment the net actually converges — the payoff is real,
+        // not staged: accv is measured on the live model this frame.
+        var solved = accv >= 0.9;
+        ctx.strokeStyle = solved ? LIME : RED; ctx.lineWidth = 2; ctx.beginPath();
         for (iy = 0; iy < GN; iy++) for (ix = 0; ix < GN; ix++) {
           var corn = [
             { x: gpx(ix), y: gpy(iy), v: pv[iy][ix] },
@@ -472,9 +479,10 @@ import Folio from './Folio.astro';
             var lx = pos[lead].x, ly = pos[lead].y, fx = pos[i].x, fy = pos[i].y;
             ctx.strokeStyle = 'rgba(255,255,255,.16)'; ctx.lineWidth = 1;
             ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(fx, fy); ctx.stroke();
-            ctx.fillStyle = RED;
+            // red in flight; the instant it lands the follower acks in lime — committed
+            ctx.fillStyle = p > 0.86 ? LIME : RED;
             ctx.beginPath(); ctx.arc(lx + (fx - lx) * p, ly + (fy - ly) * p, 2.5, 0, 7); ctx.fill();
-            if (p > 0.86) { ctx.strokeStyle = 'rgba(237,28,36,.7)'; ctx.beginPath(); ctx.arc(fx, fy, 11 + (p - 0.86) * 40, 0, 7); ctx.stroke(); }
+            if (p > 0.86) { ctx.strokeStyle = 'rgba(180,255,46,.75)'; ctx.beginPath(); ctx.arc(fx, fy, 11 + (p - 0.86) * 40, 0, 7); ctx.stroke(); }
           }
         } else { // election — candidates flicker dashed rings
           for (i = 0; i < N; i++) {
@@ -543,11 +551,12 @@ import Folio from './Folio.astro';
           ctx.fillText(z[0], bx + bwid / 2, baseY + 12);
         });
         var cr = (18 + gdv * 74).toFixed(1); // the live number over the bars
-        ctx.fillStyle = INK; ctx.font = '700 10px "JetBrains Mono",monospace';
+        // the computed figure is the resolved output of the sweep — lime
+        ctx.fillStyle = LIME; ctx.font = '700 10px "JetBrains Mono",monospace';
         ctx.fillText(cr + ' CR NET', bx0 + bw * 1.5, topY + 4);
         var open = (o.clk % 6) > 4.4; // the sealed chip flashes its NDA reveal
         ctx.font = '600 8px "JetBrains Mono",monospace'; ctx.textAlign = 'left';
-        if (open) { ctx.fillStyle = RED; ctx.fillText('NDA ✓ SY.NO 48/2 · 4.1 AC', padX, 14); }
+        if (open) { ctx.fillStyle = LIME; ctx.fillText('NDA ✓ SY.NO 48/2 · 4.1 AC', padX, 14); }
         else {
           ctx.fillStyle = 'rgba(237,28,36,.8)'; ctx.fillRect(padX, 6, 86, 10);
           ctx.fillStyle = '#0a0a0a'; ctx.fillText('SEALED', padX + 4, 14);
@@ -655,14 +664,16 @@ import Folio from './Folio.astro';
         var pulse = 1 + 0.22 * Math.sin(o.clk * 4);
         for (k = 0; k < RING; k++) {
           var g = Math.max(0, Math.min(1, shown - k + 0.5));
-          ctx.fillStyle = RED; ctx.strokeStyle = INK; ctx.lineWidth = 1.4;
+          // the cycle is red while it is being traced; once the ring is fully
+          // recovered the members ring lime — detection confirmed
+          ctx.fillStyle = RED; ctx.strokeStyle = reveal > 0.9 ? LIME : INK; ctx.lineWidth = 1.4;
           ctx.beginPath(); ctx.arc(X(ring[k].x), Y(ring[k].y), (3 + 1.6 * g) * (g > 0 ? pulse : 1), 0, 7);
           ctx.fill(); if (g > 0) ctx.stroke();
         }
 
         ctx.font = '600 8px "JetBrains Mono",monospace';
         ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
-        ctx.fillStyle = 'rgba(255,255,255,.55)';
+        ctx.fillStyle = reveal > 0.9 ? LIME : 'rgba(255,255,255,.55)';
         ctx.fillText(reveal > 0.9 ? 'ring detected · message passing on' : 'per-account view · nothing looks abnormal', padX, h - 8);
       };
       return o;

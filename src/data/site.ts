@@ -389,6 +389,8 @@ export const research: ResearchStudy[] = [
       'When a retrieval-augmented system answers confidently and wrongly, the usual tools tell you <em>that</em> the answer is unfaithful. They do not tell you <em>which</em> retrieved passage caused it — and they are easiest to fool when the offending passage is not adversarial, but merely stale, near-duplicate, or topically adjacent.',
       'LINEUP builds the missing ground truth: a non-circular leave-one-out oracle labels every passage’s causal role for organic errors. Attribution methods are then scored on whether they recover the causal passage or fall for the merely salient one.',
       'The headline result is not that the methods are imperfect. It is that a large share of real errors have <em>no single culprit to find</em> — so single-passage blame is the wrong primitive, and the release ships a calibrated set-valued remedy in its place.',
+      'The rate is not a constant either, and that is the part a single number would hide. It moves substantially across model families and datasets, which is why the benchmark reports every cell rather than one pooled figure — an average here would describe none of the systems it was averaged over.',
+      'The rest is deliberately unglamorous. Roles come from exact leave-one-out rather than a heuristic, the errors are organic rather than adversarially planted, splits are held out by question so nothing leaks, and a split-half replication has to land in the same place twice. The number is meant to survive someone else running it.',
     ],
     status: 'PAPER IN SUBMISSION',
     results: true,
@@ -452,17 +454,61 @@ export const lineupScenario = {
 };
 
 export const skills: { group: string; items: string[] }[] = [
-  { group: 'Languages', items: ['C', 'Python', 'TypeScript', 'JavaScript', 'SQL', 'HTML', 'CSS', 'WGSL'] },
+  {
+    group: 'Languages',
+    items: ['C', 'Python', 'TypeScript', 'JavaScript', 'Rust', 'SQL', 'HTML', 'CSS', 'WGSL'],
+  },
+  // Class sizes are kept within 9–12 so the board's panels sit on roughly the same
+  // height. ML/AI at 21 and Web at 17 next to Research at 7 left ragged dead space.
   {
     group: 'ML / AI',
-    items: ['PyTorch', 'scikit-learn', 'NumPy', 'Pandas', 'TransformerLens', 'LLM Evaluation', 'RAG', 'Failure Taxonomy', 'Deep Learning'],
+    items: [
+      'PyTorch', 'NumPy', 'scikit-learn', 'Pandas', 'SciPy', 'Matplotlib',
+      'Deep Learning', 'Graph Neural Networks', 'Synthetic Data', 'Quantization', 'vLLM',
+    ],
+  },
+  {
+    group: 'Interpretability / LLM',
+    items: [
+      'Mechanistic Interpretability', 'TransformerLens', 'Activation Patching',
+      'Linear Probing', 'HuggingFace Transformers', 'LLM Evaluation', 'RAG',
+      'Failure Taxonomy', 'Tool Calling', 'Structured Outputs',
+    ],
   },
   {
     group: 'Web / Frontend',
-    items: ['React', 'Tailwind CSS', 'Vite', 'Astro', 'WebGPU', 'PWA', 'IndexedDB / Dexie.js', 'Canvas', 'Web Workers'],
+    items: [
+      'React', 'Next.js', 'React Router', 'Astro', 'Vite', 'Tailwind CSS',
+      'PWA', 'IndexedDB / Dexie.js', 'Web Workers', 'Leaflet',
+    ],
   },
-  { group: 'Backend / Data', items: ['FastAPI', 'Pydantic', 'Node.js', 'Express', 'MongoDB', 'REST APIs'] },
-  { group: 'Tools / Systems', items: ['Git', 'Linux', 'OpenRouter API'] },
+  {
+    group: 'Backend / Data',
+    items: [
+      'FastAPI', 'Pydantic', 'SQLAlchemy', 'PostgreSQL', 'MongoDB', 'Node.js',
+      'Express', 'REST APIs', 'JWT Auth', 'OpenAI Realtime API', 'Rate Limiting', 'Streamlit',
+    ],
+  },
+  {
+    group: 'Tools / Systems',
+    items: [
+      'Git', 'GitHub Actions', 'Docker', 'Linux', 'Distributed Systems', 'pytest',
+      'Vitest', 'Playwright', 'Vercel', 'Hugging Face Hub', 'Kaggle GPU', 'OpenRouter API',
+    ],
+  },
+  {
+    group: 'Research / Methods',
+    items: [
+      'Conformal Prediction', 'Causal Inference', 'Experimental Design',
+      'Statistical Inference', 'Benchmark Design', 'Scientific Writing', 'LaTeX',
+    ],
+  },
+  {
+    group: 'Graphics / Realtime',
+    items: [
+      'WebGPU', 'WebRTC', 'Canvas', 'SVG / Data Viz', 'Framer Motion', 'GSAP', 'Web Speech API',
+    ],
+  },
 ];
 
 export const education = {

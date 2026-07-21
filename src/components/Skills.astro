@@ -4,24 +4,61 @@ import Folio from './Folio.astro';
 
 // Loadout presentation metadata. The skill LIST stays in site.ts (single source);
 // these maps add the game-flavor (rarity weight + monogram) used to render slots.
+// The bar for each tier, so the ladder means something and stays defensible:
+//   LEGENDARY (5) — built the thing from scratch, or it is the differentiator a
+//                   reviewer would remember. Backed by a shipped artefact.
+//   EPIC (4)      — used it hard across more than one project, past tutorial depth.
+//   RARE (3)      — real but narrow: one project, one component, or a single use.
 const WEIGHTS: Record<string, number> = {
-  C: 4, Python: 5, TypeScript: 5, JavaScript: 4, SQL: 3, HTML: 4, CSS: 4, WGSL: 3,
-  PyTorch: 4, 'scikit-learn': 4, NumPy: 4, Pandas: 4, TransformerLens: 4, 'LLM Evaluation': 4,
-  RAG: 4, 'Failure Taxonomy': 3, 'Deep Learning': 4,
-  React: 5, 'Tailwind CSS': 4, Vite: 4, Astro: 4, WebGPU: 4, PWA: 4, 'IndexedDB / Dexie.js': 4,
-  Canvas: 3, 'Web Workers': 3,
-  FastAPI: 4, Pydantic: 3, 'Node.js': 4, Express: 3, MongoDB: 3, 'REST APIs': 4,
-  Git: 4, Linux: 4, 'OpenRouter API': 3,
+  // Languages — C rebuilt Git, Rust built a distributed KV store from std alone
+  C: 5, Python: 5, TypeScript: 5, Rust: 5, JavaScript: 4, HTML: 4, CSS: 4, SQL: 3, WGSL: 4,
+  // ML / AI — PyTorch and NumPy off hand-rolled message passing and the 96s→2s rewrite
+  PyTorch: 5, NumPy: 5, 'scikit-learn': 4, Pandas: 4, 'Deep Learning': 4,
+  'Graph Neural Networks': 4, 'Synthetic Data': 4, SciPy: 3, Matplotlib: 3, Quantization: 3, vLLM: 3,
+  // Interpretability / LLM — the most differentiated work on the board
+  'Mechanistic Interpretability': 5, TransformerLens: 5, RAG: 5, 'LLM Evaluation': 5,
+  'Activation Patching': 4, 'Linear Probing': 4, 'HuggingFace Transformers': 4,
+  'Failure Taxonomy': 4, 'Tool Calling': 3, 'Structured Outputs': 3,
+  // Research / Methods — the conformal + causal spine of the DRAGNET paper, and the
+  // control that killed a positive finding, which is the rarest thing here
+  'Conformal Prediction': 5, 'Causal Inference': 5, 'Experimental Design': 5,
+  'Statistical Inference': 4, 'Benchmark Design': 4, LaTeX: 4, 'Scientific Writing': 3,
+  // Web / Frontend
+  React: 5, 'Next.js': 4, Astro: 4, Vite: 4, 'Tailwind CSS': 4, PWA: 4,
+  'IndexedDB / Dexie.js': 4, 'React Router': 3, 'Web Workers': 3, Leaflet: 3,
+  // Graphics / Realtime — WebGPU trained a net on hand-written WGSL kernels
+  WebGPU: 5, WebRTC: 4, 'SVG / Data Viz': 4, 'Framer Motion': 4, Canvas: 3, GSAP: 3, 'Web Speech API': 3,
+  // Backend / Data
+  FastAPI: 4, SQLAlchemy: 4, PostgreSQL: 4, 'Node.js': 4, 'REST APIs': 4, 'OpenAI Realtime API': 4,
+  Pydantic: 3, MongoDB: 3, Express: 3, 'JWT Auth': 3, 'Rate Limiting': 3, Streamlit: 3,
+  // Tools / Systems — pytest at 5: 96 + 135 tests, red-green, caught real bugs;
+  // Distributed Systems at 5 off Tessera's LSM + Raft + deterministic simulator
+  pytest: 5, 'Distributed Systems': 5, Git: 4, 'GitHub Actions': 4, Docker: 4, Linux: 4,
+  Vitest: 4, Playwright: 4, 'Hugging Face Hub': 4, Vercel: 3, 'Kaggle GPU': 3, 'OpenRouter API': 3,
 };
 
 const ABBR: Record<string, string> = {
-  C: 'C', Python: 'PY', TypeScript: 'TS', JavaScript: 'JS', SQL: 'SQL', HTML: 'HTM', CSS: 'CSS', WGSL: 'WGS',
-  PyTorch: 'TRC', 'scikit-learn': 'SKL', NumPy: 'NPY', Pandas: 'PDS', TransformerLens: 'TLN',
-  'LLM Evaluation': 'EVAL', RAG: 'RAG', 'Failure Taxonomy': 'FTX', 'Deep Learning': 'DL',
-  React: 'RCT', 'Tailwind CSS': 'TWD', Vite: 'VITE', Astro: 'AST', WebGPU: 'WGP', PWA: 'PWA',
-  'IndexedDB / Dexie.js': 'IDB', Canvas: 'CNV', 'Web Workers': 'WRK',
-  FastAPI: 'API', Pydantic: 'PYD', 'Node.js': 'NODE', Express: 'EXP', MongoDB: 'MDB', 'REST APIs': 'REST',
-  Git: 'GIT', Linux: 'LNX', 'OpenRouter API': 'ORT',
+  C: 'C', Python: 'PY', TypeScript: 'TS', JavaScript: 'JS', Rust: 'RS', SQL: 'SQL',
+  HTML: 'HTM', CSS: 'CSS', WGSL: 'WGS',
+  PyTorch: 'TRC', NumPy: 'NPY', 'scikit-learn': 'SKL', Pandas: 'PDS', SciPy: 'SCI',
+  Matplotlib: 'MPL', 'Deep Learning': 'DL', 'Graph Neural Networks': 'GNN',
+  'Mechanistic Interpretability': 'MECH', TransformerLens: 'TLN', 'Activation Patching': 'PCH',
+  'Linear Probing': 'PRB', 'HuggingFace Transformers': 'HFT', Quantization: 'QNT', vLLM: 'VLM',
+  'LLM Evaluation': 'EVAL', RAG: 'RAG', 'Failure Taxonomy': 'FTX', 'Synthetic Data': 'SYN',
+  'Tool Calling': 'TOOL', 'Structured Outputs': 'STR',
+  'Conformal Prediction': 'CNF', 'Causal Inference': 'CSL', 'Experimental Design': 'EXD',
+  'Statistical Inference': 'STA', 'Benchmark Design': 'BCH', 'Scientific Writing': 'SCW', LaTeX: 'TEX',
+  React: 'RCT', 'Next.js': 'NXT', 'React Router': 'RTR', Astro: 'AST', Vite: 'VITE',
+  'Tailwind CSS': 'TWD', 'Framer Motion': 'FRM', GSAP: 'GSP', 'SVG / Data Viz': 'SVG',
+  Canvas: 'CNV', WebGPU: 'WGP', WebRTC: 'RTC', 'Web Speech API': 'SPE', 'Web Workers': 'WRK',
+  PWA: 'PWA', 'IndexedDB / Dexie.js': 'IDB', Leaflet: 'LFL',
+  FastAPI: 'API', Pydantic: 'PYD', SQLAlchemy: 'SQA', PostgreSQL: 'PG', MongoDB: 'MDB',
+  'Node.js': 'NODE', Express: 'EXP', 'REST APIs': 'REST', 'JWT Auth': 'JWT',
+  'OpenAI Realtime API': 'RT', 'Rate Limiting': 'RL', Streamlit: 'STL',
+  Git: 'GIT', 'GitHub Actions': 'GHA', Docker: 'DKR', Linux: 'LNX',
+  'Distributed Systems': 'DIST', pytest: 'PYT',
+  Vitest: 'VIT', Playwright: 'PWR', Vercel: 'VRC', 'Hugging Face Hub': 'HUB',
+  'Kaggle GPU': 'KGL', 'OpenRouter API': 'ORT',
 };
 
 const wOf = (n: string) => WEIGHTS[n] ?? 4;
@@ -368,7 +405,8 @@ const totalSlots = skills.reduce((a, g) => a + g.items.length, 0);
     /* ---- item card ---- */
     function buildCard(name: string, group: string, weight: number, rar: string, partners: string[]) {
       const leg = rar === 'LEGENDARY';
-      card!.className = 'ld-card' + (leg ? ' leg' : '');
+      // the card wears the same tier as the slot it describes
+      card!.className = 'ld-card ' + (leg ? 'leg' : weight >= 4 ? 'epic' : 'rare');
       const stats = STATS[name] || [['uptime', weight * 20], ['footgun risk', (6 - weight) * 17], ['throughput', weight * 20 - 8]];
       const statsHtml = stats.map((s) => {
         const val = s[1];
@@ -388,14 +426,28 @@ const totalSlots = skills.reduce((a, g) => a + g.items.length, 0);
     }
     function hideCard() { card!.classList.remove('show'); card!.setAttribute('aria-hidden', 'true'); }
 
-    function placeCard(x: number, y: number) {
-      const cw = card!.offsetWidth || 248, ch = card!.offsetHeight || 240, pad = 12;
-      x = Math.min(x, window.innerWidth - cw - pad); x = Math.max(x, pad);
-      y = Math.min(y, window.innerHeight - ch - pad); y = Math.max(y, pad + 64);
+    /* Flip, don't clamp. Clamping slid the card to the far edge of the screen and
+       left it stranded away from the cursor; flipping keeps it tucked against the
+       pointer on whichever side has room. HEAD_SAFE clears the fixed browser
+       notice + nav rail, which the card used to slide underneath. */
+    const HEAD_SAFE = 88;
+    function placeCard(px: number, py: number) {
+      const cw = card!.offsetWidth || 248, ch = card!.offsetHeight || 240;
+      const pad = 12, gap = 14, vw = window.innerWidth, vh = window.innerHeight;
+
+      let x = px + gap;
+      if (x + cw + pad > vw) x = px - cw - gap;          // flip to the left of the pointer
+      x = Math.max(pad, Math.min(x, vw - cw - pad));
+
+      let y = py + gap;
+      if (y + ch + pad > vh) y = py - ch - gap;          // flip above the pointer
+      y = Math.max(HEAD_SAFE, Math.min(y, vh - ch - pad));
+
       card!.style.left = x + 'px'; card!.style.top = y + 'px';
     }
-    function positionCard(e: MouseEvent) { if (card!.classList.contains('show')) placeCard(e.clientX + 18, e.clientY + 18); }
-    function positionCardForEl(el: HTMLElement) { const r = el.getBoundingClientRect(); placeCard(r.right + 12, r.top); }
+    function positionCard(e: MouseEvent) { if (card!.classList.contains('show')) placeCard(e.clientX, e.clientY); }
+    // keyboard focus and scroll have no pointer — anchor to the slot's right edge instead
+    function positionCardForEl(el: HTMLElement) { const r = el.getBoundingClientRect(); placeCard(r.right, r.top + r.height / 2); }
 
     /* ---- readout ---- */
     function updateLog(name: string, rar: string, count: number) {
