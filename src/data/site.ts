@@ -353,6 +353,39 @@ export const projects: Project[] = [
     outcome:
       'Nothing about the account changed — the only new information is who it transacts with. That is the entire thesis, measured.',
   },
+  {
+    slug: 'showme',
+    name: 'ShowMe',
+    oneLiner:
+      'Ask any question and GPT-5.6 draws you a custom animation, live — real running code, built for your exact confusion.',
+    year: '2026',
+    role: 'Solo — design & build',
+    status: 'Shipped · live demo',
+    tags: ['Generative UI', 'Education', 'LLM'],
+    stack: ['Next.js 16', 'TypeScript', 'React', 'Tailwind CSS', 'GPT-5.6 (Responses API, streaming)', 'HTML5 Canvas', 'Vercel'],
+    stats: [
+      { v: '0', l: 'Keys or accounts to try it' },
+      { v: '1', l: 'Self-contained HTML doc, no libraries' },
+      { v: 'GPT-5.6', l: 'Responses API · streamed token-by-token' },
+    ],
+    links: {
+      github: 'https://github.com/santoshcheethiralame-dot/ShowMe',
+      demo: 'https://showme-sandy.vercel.app',
+    },
+    problem:
+      'Everyone learning about a pendulum gets the same static textbook diagram — but nobody has the same confusion. One person doesn’t get why it speeds up, another doesn’t get why it comes back at all. A fixed picture can’t answer your question, and the 3Blue1Brown-style custom animation that could takes weeks to make.',
+    build:
+      'A single carefully engineered instruction to GPT-5.6 returns one self-contained HTML document — inline canvas plus vanilla JS, no libraries, no external requests — that animates the real mechanism rather than decoration. It streams token by token over the Responses API, so a 20-second generation feels alive instead of frozen and you watch the code being written. A stream cut off before its closing tag is rejected rather than rendered as a blank frame; the output runs in an allow-scripts-only iframe with an injected error watchdog, so model-written code can never touch the app and a failure surfaces a one-click Redraw. While it draws, the app asks what you think — committing to a guess first (the pretesting effect) improves retention, so the loading time itself teaches.',
+    highlights: [
+      'It builds, it doesn’t describe — the model writes a working canvas program, so a wrong mechanism visibly looks wrong',
+      'Streamed token-by-token over the Responses API; a truncated stream is rejected, never rendered as a blank frame',
+      'Model output runs sandboxed in an allow-scripts-only iframe with an error watchdog — it can never reach the app',
+      'Steerable like a tutor — Simpler / Go deeper / Give an example redraws at your level, and misconceptions are corrected on screen',
+      'Accessible by design: an extractable plain-text explanation for screen readers, and a static labelled frame under prefers-reduced-motion',
+    ],
+    outcome:
+      'Textbooks give everyone the same picture; ShowMe draws you yours — a custom explainer in seconds instead of weeks.',
+  },
 ];
 
 /* ------------------------------------------------------------------

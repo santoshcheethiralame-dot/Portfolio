@@ -189,12 +189,30 @@ import Folio from './Folio.astro';
           'Caveats carried openly: GAT underperforms on threshold transfer, and the data is synthetic by construction.'
         ],
         meta: { Role: 'Solo — ML systems', Year: '2026', Type: 'Graph ML / fraud' }
+      },
+      {
+        key: 'showme', mono: 'S', idx: '09', name: 'SHOWME', label: 'showme',
+        status: 'live', host: 'showme-sandy.vercel.app',
+        github: 'https://github.com/santoshcheethiralame-dot/ShowMe',
+        tagline: 'Ask any question and GPT-5.6 draws you a custom animation, live — real running code built for your exact confusion.',
+        blurb: 'The thumbnail is one of its answers: ask why the sky is blue and it draws you this — sunlight striking an air molecule, the short wavelengths bursting outward while the long ones carry straight through. Moving, labelled, built for the question.',
+        stack: ['Next.js 16', 'TypeScript', 'GPT-5.6 (Responses API)', 'HTML5 Canvas'],
+        stats: [{ target: 0, suf: '', lab: 'Deps in the output' }, { target: 1, suf: '', lab: 'Sandboxed HTML doc' }],
+        overview: "Everyone learning about a pendulum gets the same static textbook diagram, but nobody has the same confusion — a fixed picture can’t answer your question, and a 3Blue1Brown-style custom animation that could takes weeks. ShowMe makes one in seconds: a single engineered instruction to GPT-5.6 returns one self-contained HTML document (inline canvas + vanilla JS, no libraries, no external requests) that animates the real mechanism, streamed token by token so you watch the code being written. While it draws, it asks what you think — committing to a guess first improves retention, so the loading time itself teaches.",
+        highlights: [
+          'It builds, it doesn’t describe — the model writes a working canvas program, so a wrong mechanism visibly looks wrong.',
+          'Streamed token-by-token over the Responses API; a truncated stream is rejected rather than rendered as a blank frame.',
+          'Model output runs sandboxed in an allow-scripts-only iframe with an error watchdog — it can never touch the app.',
+          'Steerable like a tutor (Simpler / Go deeper / Give an example), and misconceptions are corrected on screen, not ignored.',
+          'Accessible by design: an extractable plain-text explanation for screen readers, and a static labelled frame under reduced-motion.'
+        ],
+        meta: { Role: 'Solo — design & build', Year: '2026', Type: 'Generative UI / edu' }
       }
     ];
 
     /* Display order is a presentation concern, not a data one — reorder here and the
        index numbers follow, so the entries above stay grouped however they read best. */
-    var ORDER = ['attest', 'glassbox', 'gradient', 'untangle', 'tessera', 'terracrest', 'orbit', 'pesvcs'];
+    var ORDER = ['attest', 'showme', 'glassbox', 'gradient', 'untangle', 'tessera', 'terracrest', 'orbit', 'pesvcs'];
     PROJECTS = ORDER
       .map(function (k) { for (var i = 0; i < PROJECTS.length; i++) if (PROJECTS[i].key === k) return PROJECTS[i]; return null; })
       .filter(Boolean);
@@ -679,7 +697,127 @@ import Folio from './Folio.astro';
       return o;
     }
 
-    var RENDER = { orbit: makeOrbit, glassbox: makeGlassbox, gradient: makeGradient, pesvcs: makePesVcs, tessera: makeTessera, terracrest: makeTerracrest, attest: makeAttest, untangle: makeUntangle };
+    // ---- SHOWME: one question, one explainer — the animation it draws for
+    //      "why is the sky blue?". A photon leaves the sun, strikes an air
+    //      molecule, and the short wavelengths burst outward in every direction
+    //      (lime) while the long ones carry straight on (red). The scatter is
+    //      caused by the arrival, so the mechanism is visible, not asserted.
+    function makeShowMe(cv) {
+      var o = base(cv); var LIME = '#b4ff2e';
+      var Q = 'why is the sky blue?';
+      function ease(x) { return 1 - Math.pow(1 - x, 2.2); }
+      o.tick = function (now, dt) {
+        o.advance(dt);
+        var ctx = o.ctx, w = o.w, h = o.h; if (!ctx) return; ctx.clearRect(0, 0, w, h);
+        var pad = 12, top = 27, bot = h - 19, t = o.clk, typeEnd = 1.1, i, k;
+
+        /* ---- the student's question, typed once, then it stays ---- */
+        ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
+        ctx.font = '700 9px "JetBrains Mono",monospace';
+        var pc = t < typeEnd ? Math.floor(t / typeEnd * Q.length) : Q.length;
+        ctx.fillStyle = LIME; ctx.fillText('>', pad, 15);
+        ctx.fillStyle = 'rgba(255,255,255,.95)'; ctx.fillText(Q.slice(0, pc), pad + 13, 15);
+        if (t < typeEnd + 0.8 && (t * 2.4 % 1) < 0.55) {
+          var pw = ctx.measureText(Q.slice(0, pc)).width;
+          ctx.fillStyle = RED; ctx.fillRect(pad + 13 + pw + 1, 8, 5, 9);
+        }
+        ctx.strokeStyle = 'rgba(255,255,255,.14)'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(pad, 21.5); ctx.lineTo(w - pad, 21.5); ctx.stroke();
+
+        /* the diagram draws itself in once the question lands */
+        var rev = Math.max(0, Math.min(1, (t - typeEnd) / 0.7));
+        if (rev <= 0) return;
+
+        var sx = pad + 21, sy = top + (bot - top) * 0.26;
+        var mx = pad + (w - pad * 2) * 0.50, my = top + (bot - top) * 0.56;
+        var exitX = w - pad - 2, Rs = Math.min(w, h) * 0.22;
+        var P = 2.3, base0 = (t - typeEnd) / P;
+
+        ctx.save(); ctx.globalAlpha = rev;
+
+        /* ---- the sun ---- */
+        ctx.fillStyle = 'rgba(255,255,255,.9)';
+        ctx.beginPath(); ctx.arc(sx, sy, 6, 0, 7); ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 1;
+        for (i = 0; i < 8; i++) {
+          var a = i / 8 * 6.283;
+          ctx.beginPath();
+          ctx.moveTo(sx + Math.cos(a) * 8.5, sy + Math.sin(a) * 8.5);
+          ctx.lineTo(sx + Math.cos(a) * 11.5, sy + Math.sin(a) * 11.5);
+          ctx.stroke();
+        }
+
+        /* ---- the incoming path, faint so the geometry always reads ---- */
+        ctx.strokeStyle = 'rgba(255,255,255,.2)'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+        ctx.beginPath(); ctx.moveTo(sx + 8, sy + 3); ctx.lineTo(mx, my); ctx.stroke();
+        ctx.setLineDash([]);
+
+        /* ---- two overlapping cycles so the loop never looks idle ---- */
+        for (k = 0; k < 2; k++) {
+          var p = (base0 + k * 0.5) % 1;
+          if (p < 0.5) {
+            /* sunlight on its way in — a white packet */
+            var f = ease(p / 0.5);
+            var px = sx + 8 + (mx - (sx + 8)) * f, py = sy + 3 + (my - (sy + 3)) * f;
+            ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(px - (mx - sx) * 0.05, py - (my - sy) * 0.05);
+            ctx.lineTo(px, py); ctx.stroke();
+          } else {
+            /* it has struck the molecule: short waves scatter, long waves carry on */
+            var b = (p - 0.5) / 0.5, eb = ease(b);
+            var n = 9, j;
+            for (j = 0; j < n; j++) {
+              var ang = j / n * 6.283 + k * 0.35;
+              var r0 = 5 + eb * Rs * 0.35, r1 = 5 + eb * Rs;
+              ctx.strokeStyle = 'rgba(180,255,46,' + (0.85 * (1 - b)).toFixed(3) + ')';
+              ctx.lineWidth = 1.6;
+              ctx.beginPath();
+              ctx.moveTo(mx + Math.cos(ang) * r0, my + Math.sin(ang) * r0);
+              ctx.lineTo(mx + Math.cos(ang) * r1, my + Math.sin(ang) * r1);
+              ctx.stroke();
+            }
+            /* the long wavelength keeps going, straight through */
+            var rx = mx + (exitX - mx) * eb;
+            ctx.strokeStyle = 'rgba(237,28,36,' + (0.9 * (1 - b * 0.5)).toFixed(3) + ')';
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(mx + 6, my); ctx.lineTo(rx, my); ctx.stroke();
+            ctx.fillStyle = RED;
+            ctx.beginPath(); ctx.arc(rx, my, 2.4, 0, 7); ctx.fill();
+          }
+        }
+
+        /* ---- the air molecule, flashing on each strike ---- */
+        var hit = Math.max(0, 1 - ((base0 % 0.5) / 0.5) * 4);
+        ctx.fillStyle = 'rgba(255,255,255,' + (0.45 + 0.5 * hit).toFixed(3) + ')';
+        ctx.beginPath(); ctx.arc(mx, my, 3.4 + hit * 1.6, 0, 7); ctx.fill();
+
+        /* ---- labels: the promise is "moving AND labelled" ---- */
+        ctx.font = '600 7px "JetBrains Mono",monospace';
+        ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.textAlign = 'center';
+        ctx.fillText('sunlight', (sx + mx) / 2, (sy + my) / 2 - 6);
+        ctx.fillStyle = LIME;
+        ctx.fillText('blue scatters', mx, my - Rs - 7);
+        ctx.fillStyle = '#ff5247'; ctx.textAlign = 'right';
+        ctx.fillText('red passes through', exitX, my + 13);
+        ctx.textAlign = 'left';
+        ctx.fillStyle = 'rgba(255,255,255,.5)';
+        ctx.fillText('air', mx + 7, my + 12);
+
+        ctx.restore();
+
+        /* ---- the answer, and the framing ---- */
+        ctx.globalAlpha = Math.max(0, Math.min(1, (rev - 0.5) / 0.5));
+        ctx.font = '700 8px "JetBrains Mono",monospace'; ctx.textAlign = 'left';
+        ctx.fillStyle = LIME; ctx.fillText('short waves scatter most', pad, h - 6);
+        ctx.font = '600 7px "JetBrains Mono",monospace'; ctx.textAlign = 'right';
+        ctx.fillStyle = 'rgba(255,255,255,.5)';
+        ctx.fillText('\u25b6 drawn for your question', w - pad, h - 6);
+        ctx.globalAlpha = 1;
+      };
+      return o;
+    }
+    var RENDER = { orbit: makeOrbit, glassbox: makeGlassbox, gradient: makeGradient, pesvcs: makePesVcs, tessera: makeTessera, terracrest: makeTerracrest, attest: makeAttest, untangle: makeUntangle, showme: makeShowMe };
 
     /* section visibility gate — when the projects section is off-screen and no
        case study is open, both rAF loops stop scheduling entirely */
