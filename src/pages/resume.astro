@@ -1,0 +1,251 @@
+---
+import Base from '../layouts/Base.astro';
+import Nav from '../components/Nav.astro';
+import { site } from '../data/site';
+
+// Six role-focused editions of the résumé. Focus lines are neutral role
+// descriptions; the lead chips are project names already public on the site.
+// No company / GPA / offer detail is surfaced here — that stays private.
+const RESUMES = [
+  { n: '01', role: 'SWE · Backend', focus: 'Product software engineering — builds it and stress-tests it.', file: '/resumes/Cheethirala_Resume_SWE_Backend.pdf', leads: ['tessera', 'GlassBox', 'BATCH'], lead: true },
+  { n: '02', role: 'ML · Research', focus: 'ML / AI engineering — interpretability and RAG reliability.', file: '/resumes/Cheethirala_Resume_ML_Research.pdf', leads: ['DRAGNET', 'GlassBox', 'Gradient'] },
+  { n: '03', role: 'Systems · Infra', focus: 'Distributed systems, storage and consensus.', file: '/resumes/Cheethirala_Resume_Systems_Infra.pdf', leads: ['highwater', 'tessera', 'GlassBox'] },
+  { n: '04', role: 'Fintech · Data', focus: 'Payments, fraud detection and causal measurement.', file: '/resumes/Cheethirala_Resume_Fintech_Data.pdf', leads: ['Untangle', 'LIFT', 'tessera'] },
+  { n: '05', role: 'SDET · Quality', focus: 'Testing, reliability and deterministic fault injection.', file: '/resumes/Cheethirala_Resume_SDET_Quality.pdf', leads: ['highwater', 'tessera', 'Gradient'] },
+  { n: '06', role: 'Security · Assurance', focus: 'Security, correctness and assurance.', file: '/resumes/Cheethirala_Resume_Security.pdf', leads: ['highwater', 'Untangle', 'tessera'] },
+];
+---
+
+<Base title={`Résumé — ${site.fullName}`} description="Role-focused résumés — pick the desk you're hiring for.">
+  <Nav />
+
+  <main class="rez">
+    <article class="rez-sheet">
+      <a href="/" class="rez-back">&larr; BACK TO THE FRONT PAGE</a>
+
+      <div class="rez-folio" aria-hidden="true">
+        <span>VOL. PES1UG24CS127</span>
+        <span class="rf-mid">THE DAILY CHEETHIRALA</span>
+        <span>{site.location}</span>
+      </div>
+      <hr class="rez-rule" />
+
+      <header class="rez-head">
+        <span class="rez-kicker">&#9654; CAREERS DESK</span>
+        <h1 class="rez-title">RÉSUMÉ, SIX WAYS</h1>
+        <p class="rez-deck">
+          One candidate, six editions — each résumé leads with the work that fits the desk
+          you&rsquo;re hiring for. Pick yours; they all open as PDF.
+        </p>
+      </header>
+
+      <div class="rez-grid">
+        {
+          RESUMES.map((r) => (
+            <a class={`rez-card${r.lead ? ' is-lead' : ''}`} href={r.file} target="_blank" rel="noopener noreferrer">
+              <div class="rc-top">
+                <span class="rc-n">{r.n}</span>
+                {r.lead && <span class="rc-flag">GENERAL READ</span>}
+                <span class="rc-dl">DOWNLOAD &#8599;</span>
+              </div>
+              <h2 class="rc-role">{r.role}</h2>
+              <p class="rc-focus">{r.focus}</p>
+              <div class="rc-leads">
+                <span class="rc-leads-lab">LEADS</span>
+                {r.leads.map((l) => <span class="rc-chip">{l}</span>)}
+              </div>
+            </a>
+          ))
+        }
+      </div>
+
+      <p class="rez-foot">
+        Not sure which? The <b>SWE · Backend</b> edition is the general read.
+        &middot; <a href={site.socials.github} target="_blank" rel="noopener noreferrer">GitHub</a>
+        &middot; <a href={site.socials.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn</a>
+        &middot; <a href={`mailto:${site.email}`}>Email</a>
+      </p>
+    </article>
+  </main>
+</Base>
+
+<style>
+  .rez {
+    --ink: #141414;
+    --cream: #f7f5f1;
+    --cream2: #efece4;
+    --red: #ed1c24;
+    --lime: #b4ff2e;
+    --gray: #928b80;
+    min-height: 100vh;
+    background: var(--cream);
+    background-image:
+      linear-gradient(rgba(20, 20, 20, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(20, 20, 20, 0.035) 1px, transparent 1px);
+    background-size: 26px 26px;
+    padding: clamp(70px, 12vh, 130px) clamp(14px, 4vw, 40px) 60px;
+    color: var(--ink);
+  }
+  .rez-sheet {
+    max-width: 1180px;
+    margin: 0 auto;
+    background: var(--cream);
+    border: 3px solid var(--ink);
+    box-shadow: 12px 12px 0 var(--ink);
+    padding: clamp(20px, 3vw, 40px) clamp(18px, 3vw, 44px) clamp(30px, 4vw, 52px);
+  }
+  .rez-back {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--red);
+    text-decoration: none;
+    margin-bottom: 16px;
+  }
+  .rez-back:hover { text-decoration: underline; }
+  .rez-folio {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gray);
+  }
+  .rez-folio .rf-mid { font-weight: 700; color: var(--ink); }
+  .rez-rule { border: none; border-top: 3px solid var(--ink); margin: 8px 0 0; }
+
+  .rez-head { padding: clamp(18px, 3vw, 30px) 0 clamp(16px, 2.4vw, 26px); }
+  .rez-kicker {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--red);
+  }
+  .rez-title {
+    font-family: 'Anton', sans-serif;
+    font-weight: 400;
+    font-size: clamp(2.6rem, 8vw, 5.4rem);
+    line-height: 0.86;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    margin: 8px 0 0;
+  }
+  .rez-deck {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: clamp(1.05rem, 1.7vw, 1.4rem);
+    font-style: italic;
+    line-height: 1.4;
+    max-width: 60ch;
+    margin: 14px 0 0;
+  }
+
+  .rez-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(14px, 1.8vw, 22px);
+    margin-top: 8px;
+  }
+  .rez-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--cream2);
+    border: 2.5px solid var(--ink);
+    box-shadow: 6px 6px 0 var(--ink);
+    padding: 16px 16px 18px;
+    text-decoration: none;
+    color: var(--ink);
+    transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease;
+  }
+  .rez-card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 9px 9px 0 var(--ink);
+    background: #fff;
+  }
+  .rez-card.is-lead { border-color: var(--red); box-shadow: 6px 6px 0 var(--red); }
+  .rez-card.is-lead:hover { box-shadow: 9px 9px 0 var(--red); }
+  .rc-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .rc-n { color: var(--red); }
+  .rc-flag {
+    background: var(--red);
+    color: var(--cream);
+    padding: 2px 6px;
+    letter-spacing: 0.1em;
+  }
+  .rc-dl { margin-left: auto; color: var(--gray); }
+  .rez-card:hover .rc-dl { color: var(--ink); }
+  .rc-role {
+    font-family: 'Anton', sans-serif;
+    font-weight: 400;
+    font-size: clamp(1.5rem, 2.4vw, 1.95rem);
+    line-height: 0.95;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    margin: 0;
+  }
+  .rc-focus {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 1rem;
+    line-height: 1.35;
+    margin: 8px 0 14px;
+    flex: 1;
+  }
+  .rc-leads {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding-top: 10px;
+    border-top: 1.5px solid rgba(20, 20, 20, 0.22);
+  }
+  .rc-leads-lab {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7.5px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    color: var(--gray);
+    margin-right: 2px;
+  }
+  .rc-chip {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    border: 1.5px solid var(--ink);
+    padding: 2px 6px;
+  }
+
+  .rez-foot {
+    margin-top: clamp(20px, 3vw, 32px);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--gray);
+    line-height: 1.7;
+  }
+  .rez-foot b { color: var(--ink); }
+  .rez-foot a { color: var(--red); text-decoration: none; }
+  .rez-foot a:hover { text-decoration: underline; }
+
+  @media (max-width: 900px) { .rez-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 560px) { .rez-grid { grid-template-columns: 1fr; } }
+</style>

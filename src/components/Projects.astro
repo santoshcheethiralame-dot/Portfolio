@@ -885,170 +885,214 @@ import Folio from './Folio.astro';
       };
       return o;
     }
-    // ---- CORRIDOR: a siren makes every car react at once and clump; a corridor
-    //      addresses each car so a clean centre lane opens ahead of the ambulance.
+    // ---- CORRIDOR: a broadcast siren makes every car react at once and clump; a
+    //      corridor addresses each car (a directional instruction, staggered) so a
+    //      clean centre lane opens ahead of the ambulance and it runs the route.
     function makeCorridor(cv) {
       var o = base(cv); var LIME = '#b4ff2e';
-      var CARS = [{ x: 0.30, home: -1 }, { x: 0.40, home: 1 }, { x: 0.50, home: -1 }, { x: 0.59, home: 1 }, { x: 0.68, home: -1 }, { x: 0.78, home: 1 }, { x: 0.87, home: -1 }];
+      var CARS = [{ x: 0.30, home: -1 }, { x: 0.395, home: 1 }, { x: 0.49, home: -1 }, { x: 0.585, home: 1 }, { x: 0.68, home: -1 }, { x: 0.775, home: 1 }, { x: 0.87, home: -1 }];
       function ease(t) { return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
       o.tick = function (now, dt) {
         o.advance(dt);
         var ctx = o.ctx, w = o.w, h = o.h; if (!ctx) return; ctx.clearRect(0, 0, w, h);
-        var pad = 12, roadTop = 34, roadBot = h - 28, midY = (roadTop + roadBot) / 2, lg = (roadBot - roadTop) / 2 * 0.72;
+        var pad = 12, roadTop = 40, roadBot = h - 30, midY = (roadTop + roadBot) / 2, lg = (roadBot - roadTop) / 2 * 0.7;
         function laneY(l) { return midY + l * lg; }
-        var cyc = 6.4, t = o.clk % cyc, siren = t < 3.2, ph = siren ? t / 3.2 : (t - 3.2) / 3.2;
-        var rx0 = pad + 6, rx1 = w - pad - 6, RW = rx1 - rx0, i;
-        ctx.fillStyle = 'rgba(255,255,255,.04)'; ctx.fillRect(pad, roadTop, w - pad * 2, roadBot - roadTop);
-        ctx.strokeStyle = 'rgba(255,255,255,.16)'; ctx.lineWidth = 1;
+        var cyc = 6.6, t = o.clk % cyc, siren = t < 3.3, ph = siren ? t / 3.3 : (t - 3.3) / 3.3;
+        var rx0 = pad + 6, rx1 = w - pad - 6, RW = rx1 - rx0, i, k;
+        ctx.fillStyle = 'rgba(255,255,255,.045)'; ctx.fillRect(pad, roadTop, w - pad * 2, roadBot - roadTop);
+        ctx.strokeStyle = 'rgba(255,255,255,.18)'; ctx.lineWidth = 1.5;
         ctx.beginPath(); ctx.moveTo(pad, roadTop); ctx.lineTo(w - pad, roadTop); ctx.moveTo(pad, roadBot); ctx.lineTo(w - pad, roadBot); ctx.stroke();
-        ctx.setLineDash([6, 6]); ctx.strokeStyle = 'rgba(255,255,255,.12)';
+        ctx.setLineDash([7, 7]); ctx.strokeStyle = 'rgba(255,255,255,.13)'; ctx.lineWidth = 1;
         ctx.beginPath(); ctx.moveTo(pad, (laneY(0) + laneY(-1)) / 2); ctx.lineTo(w - pad, (laneY(0) + laneY(-1)) / 2);
         ctx.moveTo(pad, (laneY(0) + laneY(1)) / 2); ctx.lineTo(w - pad, (laneY(0) + laneY(1)) / 2); ctx.stroke(); ctx.setLineDash([]);
-        var ambX = siren ? rx0 + RW * (0.06 + 0.15 * ph) : rx0 + RW * (0.21 + 0.73 * ease(ph));
+        var NJ = 11; ctx.strokeStyle = 'rgba(255,255,255,.22)'; ctx.lineWidth = 1;
+        for (i = 1; i < NJ; i++) { var jx = rx0 + RW * (i / NJ); ctx.beginPath(); ctx.moveTo(jx, roadTop - 3); ctx.lineTo(jx, roadTop); ctx.stroke(); }
+        var ambX = siren ? rx0 + RW * (0.05 + 0.16 * ph) : rx0 + RW * (0.21 + 0.74 * ease(ph));
         if (!siren) {
-          var op = ease(Math.min(1, ph * 1.4));
-          ctx.fillStyle = 'rgba(180,255,46,' + (0.14 * op).toFixed(3) + ')'; ctx.fillRect(ambX, laneY(0) - 8, rx1 - ambX, 16);
-          ctx.strokeStyle = 'rgba(180,255,46,' + (0.75 * op).toFixed(3) + ')'; ctx.lineWidth = 1.5; ctx.strokeRect(ambX + 0.5, laneY(0) - 8 + 0.5, rx1 - ambX - 1, 15);
+          var op = ease(Math.min(1, ph * 1.5));
+          ctx.fillStyle = 'rgba(180,255,46,' + (0.13 * op).toFixed(3) + ')'; ctx.fillRect(ambX, laneY(0) - 9, rx1 - ambX, 18);
+          ctx.strokeStyle = 'rgba(180,255,46,' + (0.7 * op).toFixed(3) + ')'; ctx.lineWidth = 1.5; ctx.strokeRect(ambX + 0.5, laneY(0) - 9 + 0.5, rx1 - ambX - 1, 17);
         }
-        if (siren) { for (var k = 0; k < 2; k++) { var pr = ((ph * 2) + k * 0.5) % 1; ctx.strokeStyle = 'rgba(237,28,36,' + (0.5 * (1 - pr)).toFixed(3) + ')'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(ambX, laneY(0), 6 + pr * 42, 0, 7); ctx.stroke(); } }
+        if (siren) { for (k = 0; k < 3; k++) { var pr = ((ph * 2) + k * 0.34) % 1; ctx.strokeStyle = 'rgba(237,28,36,' + (0.45 * (1 - pr)).toFixed(3) + ')'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(ambX, laneY(0), 8 + pr * 46, 0, 7); ctx.stroke(); } }
+        var flash = siren && Math.sin(o.clk * 9) > 0;
         for (i = 0; i < CARS.length; i++) {
-          var c = CARS[i], cx = rx0 + RW * c.x, lane;
+          var c = CARS[i], cx = rx0 + RW * c.x, lane, local = 0;
           if (siren) { var s = ease(Math.min(1, ph * 1.3)); lane = c.home * (1 - s); }
-          else { var trig = (ambX - rx0) / RW, local = Math.max(0, Math.min(1, (trig - (c.x - 0.16)) / 0.16)); lane = c.home * ease(local); }
-          var cy = laneY(lane), blocked = siren && Math.abs(lane) < 0.4;
-          ctx.fillStyle = blocked ? RED : 'rgba(255,255,255,.7)'; ctx.fillRect(cx - 7, cy - 4, 14, 8);
-          ctx.strokeStyle = 'rgba(10,10,10,.5)'; ctx.lineWidth = 1; ctx.strokeRect(cx - 6.5, cy - 3.5, 13, 7);
+          else { var trig = (ambX - rx0) / RW; local = Math.max(0, Math.min(1, (trig - (c.x - 0.17)) / 0.15)); lane = c.home * ease(local); }
+          var cy = laneY(lane), blocked = siren && Math.abs(lane) < 0.45;
+          ctx.fillStyle = blocked ? (flash ? '#ff5247' : RED) : 'rgba(255,255,255,.68)';
+          ctx.fillRect(cx - 8, cy - 4.5, 16, 9);
+          ctx.fillStyle = 'rgba(10,10,10,.35)'; ctx.fillRect(cx + 2, cy - 3.5, 4, 7);
+          ctx.strokeStyle = 'rgba(10,10,10,.5)'; ctx.lineWidth = 1; ctx.strokeRect(cx - 7.5, cy - 4, 15, 8);
+          if (!siren && local > 0.05) {
+            ctx.fillStyle = LIME; ctx.font = '700 8px "JetBrains Mono",monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(c.home < 0 ? '\u25b2' : '\u25bc', cx, c.home < 0 ? cy - 12 : cy + 12);
+          }
         }
-        ctx.fillStyle = RED; ctx.fillRect(ambX - 9, laneY(0) - 5, 18, 10);
-        ctx.fillStyle = '#fff'; ctx.fillRect(ambX - 1.5, laneY(0) - 3, 3, 6); ctx.fillRect(ambX - 4, laneY(0) - 1.5, 8, 3);
+        var ay = laneY(0);
+        ctx.fillStyle = 'rgba(255,255,255,.95)'; ctx.fillRect(ambX - 11, ay - 6, 22, 12);
+        ctx.fillStyle = RED; ctx.fillRect(ambX + 3, ay - 6, 8, 12);
+        ctx.strokeStyle = 'rgba(10,10,10,.5)'; ctx.lineWidth = 1; ctx.strokeRect(ambX - 11, ay - 6, 22, 12);
+        ctx.fillStyle = RED; ctx.fillRect(ambX - 6.5, ay - 1.5, 7, 3); ctx.fillRect(ambX - 3.5, ay - 4.5, 3, 9);
+        ctx.fillStyle = Math.sin(o.clk * 11) > 0 ? RED : LIME; ctx.fillRect(ambX - 2, ay - 9, 4, 3);
         ctx.font = '700 8px "JetBrains Mono",monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-        ctx.fillStyle = siren ? RED : LIME; ctx.fillText(siren ? '\u258d SIREN \u00b7 all react at once' : '\u25b6 CORRIDOR \u00b7 early, directional', pad, 26);
+        ctx.fillStyle = siren ? RED : LIME;
+        ctx.fillText(siren ? '\u258d SIREN \u00b7 all react at once' : '\u25b6 CORRIDOR \u00b7 each car addressed', pad, 26);
         ctx.textAlign = 'right'; ctx.fillStyle = siren ? 'rgba(255,255,255,.5)' : LIME;
         ctx.fillText(siren ? '20:22' : '13:25  \u221234%', w - pad, 26);
+        ctx.textAlign = 'left'; ctx.font = '600 7px "JetBrains Mono",monospace'; ctx.fillStyle = 'rgba(255,255,255,.4)';
+        ctx.fillText('5.8 KM \u00b7 11 JUNCTIONS', pad, roadBot + 14);
       };
       return o;
     }
 
-    // ---- BATCH: a barcode scans, a 0-100 score resolves, and its three sub-scores
-    //      open under it — honest both ways (a chip scores red, almonds lime).
+    // ---- BATCH: the result card — a barcode scans, a circular 0-100 gauge resolves,
+    //      three sub-scores open with their values, and one additive is called out.
+    //      Cycles a poor product and a good one so the scale reads honest both ways.
     function makeBatch(cv) {
       var o = base(cv); var LIME = '#b4ff2e';
-      var PROD = [{ score: 41, sub: [45, 30, 60], word: 'poor' }, { score: 96, sub: [92, 98, 99], word: 'good' }];
+      var PROD = [{ name: 'CHIPS', score: 41, sub: [45, 30, 60], word: 'POOR', add: 'E621 flavour enhancer', bad: true },
+                  { name: 'ALMONDS', score: 96, sub: [92, 98, 99], word: 'GOOD', add: 'no additives declared', bad: false }];
       var WID = [2, 1, 3, 1, 2, 1, 1, 3, 2, 1, 2, 3, 1, 1, 2, 1, 3, 2, 1, 2, 1, 3, 1, 2, 2, 1, 3, 1, 2, 1, 1, 2, 3, 1, 2];
       function ease(t) { return 1 - Math.pow(1 - t, 2.4); }
       o.tick = function (now, dt) {
         o.advance(dt);
         var ctx = o.ctx, w = o.w, h = o.h; if (!ctx) return; ctx.clearRect(0, 0, w, h);
-        var pad = 14, seg = 4.6, ix = Math.floor(o.clk / seg) % 2, t = o.clk % seg, P = PROD[ix];
-        var scanEnd = 1.1, col = P.score >= 60 ? LIME : RED;
-        var bx = pad, by = 15, bw = w - pad * 2, bh = 22, x = bx, wi = 0;
-        ctx.fillStyle = 'rgba(255,255,255,.75)';
+        var pad = 14, seg = 4.8, ix = Math.floor(o.clk / seg) % 2, t = o.clk % seg, P = PROD[ix];
+        var scanEnd = 1.0, col = P.score >= 60 ? LIME : RED;
+        var bx = pad, by = 13, bw = w - pad * 2, bh = 18, x = bx, wi = 0;
+        ctx.fillStyle = 'rgba(255,255,255,.7)';
         while (x < bx + bw - 3) { var ww = WID[wi % WID.length]; if (wi % 2 === 0) ctx.fillRect(x, by, ww, bh); x += ww + 1; wi++; }
-        if (t < scanEnd) {
-          var sp = t / scanEnd, sx = bx + bw * sp;
-          ctx.fillStyle = 'rgba(180,255,46,.12)'; ctx.fillRect(bx, by, bw * sp, bh);
-          ctx.strokeStyle = LIME; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(sx, by - 3); ctx.lineTo(sx, by + bh + 3); ctx.stroke();
-        }
+        if (t < scanEnd) { var sp = t / scanEnd, sx = bx + bw * sp; ctx.fillStyle = 'rgba(180,255,46,.12)'; ctx.fillRect(bx, by, bw * sp, bh); ctx.strokeStyle = LIME; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(sx, by - 3); ctx.lineTo(sx, by + bh + 3); ctx.stroke(); }
         var rev = Math.max(0, Math.min(1, (t - scanEnd) / 0.7)); if (rev <= 0) return;
         ctx.globalAlpha = rev;
-        var val = Math.round(P.score * ease(Math.min(1, (t - scanEnd) / 0.9)));
-        ctx.font = '400 36px "Anton", sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-        ctx.fillStyle = col; ctx.fillText(String(val), pad, 76);
-        var nw = ctx.measureText(String(val)).width;
-        ctx.font = '700 8px "JetBrains Mono",monospace'; ctx.fillStyle = col;
-        ctx.fillText('/100', pad + nw + 5, 68); ctx.fillText(P.word.toUpperCase(), pad + nw + 5, 78);
-        var labs = ['NUTRITION', 'PROCESSING', 'ADDITIVES'], rxx = pad + w * 0.42, rww = w - pad - (pad + w * 0.42), ry = 50, rh = 13, s;
+        var prog = ease(Math.min(1, (t - scanEnd) / 0.95));
+        var gcx = pad + 40, gcy = h * 0.60, gr = 30, A0 = Math.PI * 0.75, SW = Math.PI * 1.5;
+        ctx.lineWidth = 6; ctx.lineCap = 'round';
+        ctx.strokeStyle = 'rgba(255,255,255,.14)'; ctx.beginPath(); ctx.arc(gcx, gcy, gr, A0, A0 + SW); ctx.stroke();
+        ctx.strokeStyle = col; ctx.beginPath(); ctx.arc(gcx, gcy, gr, A0, A0 + SW * (P.score / 100) * prog); ctx.stroke();
+        ctx.lineCap = 'butt';
+        ctx.fillStyle = col; ctx.font = '400 26px "Anton",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(String(Math.round(P.score * prog)), gcx, gcy - 1);
+        ctx.font = '600 6.5px "JetBrains Mono",monospace'; ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fillText('/ 100', gcx, gcy + 13);
+        var rxx = pad + w * 0.44, rww = w - pad - (pad + w * 0.44);
+        ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+        ctx.font = '700 9px "JetBrains Mono",monospace'; ctx.fillStyle = 'rgba(255,255,255,.9)';
+        ctx.fillText(P.name, rxx, by + bh + 18);
+        var nmw = ctx.measureText(P.name).width, pillw = ctx.measureText(P.word).width + 12;
+        ctx.fillStyle = col; ctx.fillRect(rxx + nmw + 8, by + bh + 8, pillw, 13);
+        ctx.fillStyle = '#0a0a0a'; ctx.font = '700 8px "JetBrains Mono",monospace'; ctx.fillText(P.word, rxx + nmw + 14, by + bh + 17.5);
+        var labs = ['NUTRITION', 'PROCESSING', 'ADDITIVES'], ry = by + bh + 28, rh = 9, s;
         for (s = 0; s < 3; s++) {
-          var yy = ry + s * (rh + 7);
-          ctx.font = '600 7px "JetBrains Mono",monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-          ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.fillText(labs[s], rxx, yy - 2);
-          ctx.strokeStyle = 'rgba(255,255,255,.3)'; ctx.lineWidth = 1; ctx.strokeRect(rxx + 0.5, yy + 0.5, rww - 1, rh - 1);
-          var sv = P.sub[s] / 100 * ease(Math.min(1, (t - scanEnd) / 1.1));
-          ctx.fillStyle = P.sub[s] >= 60 ? LIME : RED; ctx.fillRect(rxx + 1.5, yy + 1.5, (rww - 3) * sv, rh - 3);
+          var yy = ry + s * (rh + 9), barw = rww - 24;
+          ctx.font = '600 6.5px "JetBrains Mono",monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = 'rgba(255,255,255,.55)';
+          ctx.fillText(labs[s], rxx, yy - 2);
+          ctx.strokeStyle = 'rgba(255,255,255,.28)'; ctx.lineWidth = 1; ctx.strokeRect(rxx + 0.5, yy + 0.5, barw - 1, rh - 1);
+          var sc = P.sub[s] >= 60 ? LIME : RED; ctx.fillStyle = sc; ctx.fillRect(rxx + 1.5, yy + 1.5, (barw - 3) * (P.sub[s] / 100 * prog), rh - 3);
+          ctx.textAlign = 'right'; ctx.font = '700 7px "JetBrains Mono",monospace'; ctx.fillText(String(Math.round(P.sub[s] * prog)), rxx + rww, yy + rh - 1);
         }
         ctx.globalAlpha = Math.max(0, Math.min(1, (rev - 0.4) / 0.6));
-        ctx.font = '600 7.5px "JetBrains Mono",monospace'; ctx.textAlign = 'left'; ctx.fillStyle = LIME;
-        ctx.fillText('\u2713 every claim carries its source', pad, h - 8);
-        ctx.textAlign = 'right'; ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fillText('open any part', w - pad, h - 8);
+        ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.font = '600 7px "JetBrains Mono",monospace';
+        ctx.fillStyle = P.bad ? RED : LIME; ctx.fillText((P.bad ? '\u26a0 ' : '\u2713 ') + P.add, pad, h - 8);
+        ctx.textAlign = 'right'; ctx.fillStyle = LIME; ctx.fillText('\u2713 sourced', w - pad, h - 8);
         ctx.globalAlpha = 1;
       };
       return o;
     }
 
-    // ---- HIGHWATER: durable writes stream in and ack (lime); the majority is killed
-    //      mid-flush and the acknowledged ones vanish. persistToMajority survives.
+    // ---- HIGHWATER: the mechanism is memory vs disk. Writes ack in memory (lime) while
+    //      the disk flush lags behind — that gap is the vulnerable window. Kill the
+    //      majority and every acked-but-unflushed write is lost. persistToMajority gates
+    //      the ack on the disk, so the rows stay in lockstep and nothing is lost.
     function makeHighwater(cv) {
       var o = base(cv); var LIME = '#b4ff2e';
-      var LOST = [2, 5, 6, 9, 11];
       o.tick = function (now, dt) {
         o.advance(dt);
         var ctx = o.ctx, w = o.w, h = o.h; if (!ctx) return; ctx.clearRect(0, 0, w, h);
-        var pad = 14, seg = 5.2, arm = Math.floor(o.clk / seg) % 2, t = o.clk % seg, majority = arm === 0;
-        var N = 14, gy = h * 0.42, bw = (w - pad * 2) / N, bh = 16, killT = 2.6, killed = t >= killT, k;
-        ctx.font = '700 8px "JetBrains Mono",monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-        ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.fillText('durability = "' + (majority ? 'majority' : 'persistToMajority') + '"', pad, 20);
-        ctx.font = '600 7px "JetBrains Mono",monospace'; ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.fillText('writes \u00b7 acknowledged', pad, gy - 5);
-        var appeared = Math.min(N, Math.floor((t / 2.0) * N));
-        for (k = 0; k < N; k++) {
-          if (k >= appeared) continue;
-          var xx = pad + k * bw, acked = (t - k / N * 2.0) > 0.25;
-          var isLost = majority && killed && LOST.indexOf(k) >= 0;
-          if (isLost) { var la = Math.max(0, 1 - (t - killT) / 0.6); if (la <= 0) continue; ctx.globalAlpha = la; ctx.fillStyle = RED; ctx.fillRect(xx + 1, gy, bw - 2, bh); ctx.globalAlpha = 1; continue; }
-          ctx.fillStyle = acked ? 'rgba(180,255,46,.85)' : 'rgba(255,255,255,.28)'; ctx.fillRect(xx + 1, gy, bw - 2, bh);
-          if (acked) { ctx.strokeStyle = 'rgba(180,255,46,.5)'; ctx.lineWidth = 1; ctx.strokeRect(xx + 1.5, gy + 0.5, bw - 3, bh - 1); }
+        var pad = 14, seg = 5.4, arm = Math.floor(o.clk / seg) % 2, t = o.clk % seg, majority = arm === 0;
+        var N = 16, bw = (w - pad * 2) / N, bh = 13, gy1 = h * 0.30, gy2 = gy1 + 24, killT = 2.8, killed = t >= killT, k;
+        ctx.font = '700 8px "JetBrains Mono",monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = 'rgba(255,255,255,.62)';
+        ctx.fillText('durability = "' + (majority ? 'majority' : 'persistToMajority') + '"', pad, 18);
+        var memPtr = Math.min(N, (t / 2.2) * N), diskPtr = Math.min(N, Math.max(0, (t - 0.9) / 2.2) * N);
+        if (!majority) memPtr = diskPtr;
+        var mem = Math.floor(memPtr), disk = Math.floor(diskPtr), queue = Math.max(0, mem - disk);
+        ctx.font = '600 7px "JetBrains Mono",monospace'; ctx.fillStyle = 'rgba(255,255,255,.42)';
+        ctx.fillText('MEMORY \u00b7 acknowledged', pad, gy1 - 4);
+        ctx.fillText('DISK \u00b7 flushed', pad, gy2 - 4);
+        for (k = 0; k < mem; k++) {
+          var xx = pad + k * bw, lost = majority && killed && k >= disk;
+          if (lost) { var la = Math.max(0, 1 - (t - killT) / 0.7); if (la <= 0) continue; ctx.globalAlpha = la; ctx.fillStyle = RED; ctx.fillRect(xx + 1, gy1 - (1 - la) * 12, bw - 2, bh); ctx.globalAlpha = 1; continue; }
+          ctx.fillStyle = 'rgba(180,255,46,.85)'; ctx.fillRect(xx + 1, gy1, bw - 2, bh);
+          ctx.strokeStyle = 'rgba(180,255,46,.5)'; ctx.lineWidth = 1; ctx.strokeRect(xx + 1.5, gy1 + 0.5, bw - 3, bh - 1);
+        }
+        for (k = 0; k < disk; k++) { var xd = pad + k * bw; ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fillRect(xd + 1, gy2, bw - 2, bh); }
+        if (queue > 0 && !killed) {
+          var qx0 = pad + disk * bw, qx1 = pad + mem * bw;
+          ctx.strokeStyle = 'rgba(237,28,36,.7)'; ctx.lineWidth = 1; ctx.setLineDash([2, 2]);
+          ctx.strokeRect(qx0 + 1, gy1 - 2, (qx1 - qx0) - 2, (gy2 + bh) - gy1 + 4); ctx.setLineDash([]);
+          ctx.fillStyle = RED; ctx.font = '600 7px "JetBrains Mono",monospace'; ctx.textAlign = 'center';
+          ctx.fillText('disk queue ' + queue, (qx0 + qx1) / 2, gy1 - 12);
         }
         if (killed) {
           var kx = pad + (w - pad * 2) * 0.62;
-          ctx.strokeStyle = RED; ctx.lineWidth = 2; ctx.setLineDash([4, 3]); ctx.beginPath(); ctx.moveTo(kx, gy - 12); ctx.lineTo(kx, gy + bh + 12); ctx.stroke(); ctx.setLineDash([]);
-          ctx.fillStyle = RED; ctx.font = '700 7px "JetBrains Mono",monospace'; ctx.textAlign = 'center'; ctx.fillText('KILL', kx, gy - 15); ctx.textAlign = 'left';
-          ctx.font = '400 15px "Anton", sans-serif'; ctx.textBaseline = 'alphabetic';
-          ctx.fillStyle = majority ? RED : LIME; ctx.fillText(majority ? '56 LOST' : '0 LOST', pad, h - 22);
-          ctx.font = '700 8px "JetBrains Mono",monospace'; ctx.fillStyle = majority ? RED : LIME;
-          ctx.fillText(majority ? 'NOT LINEARIZABLE' : 'LINEARIZABLE', pad, h - 9);
+          ctx.strokeStyle = RED; ctx.lineWidth = 2; ctx.setLineDash([4, 3]); ctx.beginPath(); ctx.moveTo(kx, gy1 - 12); ctx.lineTo(kx, gy2 + bh + 8); ctx.stroke(); ctx.setLineDash([]);
+          ctx.fillStyle = RED; ctx.font = '700 7px "JetBrains Mono",monospace'; ctx.textAlign = 'center'; ctx.fillText('\u2715 KILL MAJORITY', kx, gy1 - 15); ctx.textAlign = 'left';
+          var lostN = majority ? Math.round(56 * Math.min(1, (t - killT) / 0.8)) : 0;
+          ctx.font = '400 15px "Anton",sans-serif'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = majority ? RED : LIME; ctx.fillText(lostN + ' LOST', pad, h - 20);
+          ctx.font = '700 8px "JetBrains Mono",monospace'; ctx.fillStyle = majority ? RED : LIME; ctx.fillText(majority ? '\u2715 NOT LINEARIZABLE' : '\u2713 LINEARIZABLE', pad, h - 8);
         }
       };
       return o;
     }
 
-    // ---- LIFT: the treatment bar rises past control, then the money that was arriving
-    //      anyway is subtracted (red hatch), leaving only the lift the agent caused (lime).
+    // ---- LIFT: the ₹ waterfall behind the claim. Gross recovered, then the money that
+    //      was arriving anyway is subtracted (unearned), then billing that walked, then
+    //      cost — leaving only the net revenue the agent actually caused (lime).
     function makeLift(cv) {
       var o = base(cv); var LIME = '#b4ff2e';
       function ease(t) { return 1 - Math.pow(1 - t, 2.5); }
+      var DED = [{ i: 1, f: 0.32 }, { i: 2, f: 0.088 }, { i: 3, f: 0.007 }];
+      var LAB = ['GROSS', 'UNEARNED', 'WALKED', 'COST', 'NET'];
       o.tick = function (now, dt) {
         o.advance(dt);
         var ctx = o.ctx, w = o.w, h = o.h; if (!ctx) return; ctx.clearRect(0, 0, w, h);
-        var pad = 16, base0 = h - 28, top = 34, H = base0 - top, cyc = 5.4, t = o.clk % cyc;
-        var CTRL = 0.29, GROSS = 0.57, rise = Math.min(1, t / 1.7), sub = Math.max(0, Math.min(1, (t - 1.7) / 1.0)), d;
-        var bw = (w - pad * 2) * 0.24, cx = pad + (w - pad * 2) * 0.14, tx = pad + (w - pad * 2) * 0.56;
-        function barTop(f) { return base0 - H * f; }
-        ctx.strokeStyle = 'rgba(255,255,255,.18)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(pad, base0 + 0.5); ctx.lineTo(w - pad, base0 + 0.5); ctx.stroke();
-        var cf = CTRL * ease(rise);
-        ctx.fillStyle = 'rgba(255,255,255,.32)'; ctx.fillRect(cx, barTop(cf), bw, H * cf);
-        ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.strokeRect(cx + 0.5, barTop(cf) + 0.5, bw - 1, H * cf - 1);
-        ctx.font = '600 7px "JetBrains Mono",monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
-        ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.fillText('CONTROL', cx + bw / 2, base0 + 11);
-        var gf = GROSS * ease(rise), unearned = Math.min(gf, CTRL), caused = Math.max(0, gf - CTRL), uy = barTop(unearned);
-        ctx.fillStyle = LIME; ctx.fillRect(tx, barTop(gf), bw, H * caused);
-        if (sub < 1) { ctx.globalAlpha = 1 - sub; ctx.fillStyle = 'rgba(255,255,255,.3)'; ctx.fillRect(tx, uy, bw, H * unearned); ctx.globalAlpha = 1; }
-        if (sub > 0) {
-          ctx.save(); ctx.beginPath(); ctx.rect(tx, uy, bw, H * unearned); ctx.clip();
-          ctx.strokeStyle = 'rgba(237,28,36,' + (0.6 * sub).toFixed(3) + ')'; ctx.lineWidth = 1;
-          for (d = -H; d < bw + H; d += 5) { ctx.beginPath(); ctx.moveTo(tx + d, uy + H * unearned); ctx.lineTo(tx + d + H * unearned, uy); ctx.stroke(); }
+        var pad = 16, base0 = h - 26, top = 44, H = base0 - top, cyc = 6.2, t = o.clk % cyc, i, d;
+        var n = 5, gap = (w - pad * 2) / n, bw = gap * 0.56;
+        function bx(k) { return pad + gap * k + (gap - bw) / 2; }
+        function Y(f) { return base0 - H * f; }
+        ctx.strokeStyle = 'rgba(255,255,255,.16)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(pad, base0 + 0.5); ctx.lineTo(w - pad, base0 + 0.5); ctx.stroke();
+        var t0 = ease(Math.min(1, t / 0.9)), gh = H * t0;
+        ctx.fillStyle = 'rgba(255,255,255,.34)'; ctx.fillRect(bx(0), Y(t0), bw, gh);
+        ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.strokeRect(bx(0) + 0.5, Y(t0) + 0.5, bw - 1, gh - 1);
+        var startTop = 1.0, prevTop = 1.0, prevX = bx(0) + bw;
+        for (i = 0; i < DED.length; i++) {
+          var od = DED[i], appearT = 1.0 + i * 0.8, a = Math.max(0, Math.min(1, (t - appearT) / 0.6));
+          if (a <= 0) break;
+          var yy = Y(startTop), hh = H * od.f * a;
+          if (od.f * H < 3) hh = Math.max(hh, 2.5 * a);
+          ctx.strokeStyle = 'rgba(237,28,36,.6)'; ctx.setLineDash([3, 2]); ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(prevX, Y(startTop)); ctx.lineTo(bx(od.i), Y(startTop)); ctx.stroke(); ctx.setLineDash([]);
+          ctx.save(); ctx.beginPath(); ctx.rect(bx(od.i), yy, bw, hh); ctx.clip();
+          ctx.fillStyle = 'rgba(237,28,36,.14)'; ctx.fillRect(bx(od.i), yy, bw, hh);
+          ctx.strokeStyle = 'rgba(237,28,36,.7)'; ctx.lineWidth = 1;
+          for (d = -H; d < bw + H; d += 5) { ctx.beginPath(); ctx.moveTo(bx(od.i) + d, yy + hh); ctx.lineTo(bx(od.i) + d + hh, yy); ctx.stroke(); }
           ctx.restore();
+          ctx.strokeStyle = 'rgba(237,28,36,.6)'; ctx.lineWidth = 1; ctx.strokeRect(bx(od.i) + 0.5, yy + 0.5, bw - 1, Math.max(hh, 2) - 1);
+          prevX = bx(od.i) + bw; if (a >= 1) startTop -= od.f;
         }
-        ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 1; ctx.strokeRect(tx + 0.5, barTop(gf) + 0.5, bw - 1, H * gf - 1);
-        ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = '600 7px "JetBrains Mono",monospace'; ctx.textAlign = 'center'; ctx.fillText('TREATMENT', tx + bw / 2, base0 + 11);
-        if (caused > 0.001) {
-          var cyT = barTop(gf), cyB = barTop(CTRL);
-          ctx.strokeStyle = LIME; ctx.lineWidth = 1.5; ctx.beginPath();
-          ctx.moveTo(tx + bw + 4, cyT); ctx.lineTo(tx + bw + 9, cyT); ctx.lineTo(tx + bw + 9, cyB); ctx.lineTo(tx + bw + 4, cyB); ctx.stroke();
+        var netF = 0.585, netT = ease(Math.max(0, Math.min(1, (t - 3.4) / 0.9)));
+        if (netT > 0) {
+          ctx.strokeStyle = 'rgba(180,255,46,.5)'; ctx.setLineDash([3, 2]); ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(prevX, Y(netF)); ctx.lineTo(bx(4), Y(netF)); ctx.stroke(); ctx.setLineDash([]);
+          var nh = H * netF * netT; ctx.fillStyle = LIME; ctx.fillRect(bx(4), base0 - nh, bw, nh);
+          ctx.strokeStyle = 'rgba(180,255,46,.6)'; ctx.strokeRect(bx(4) + 0.5, base0 - nh + 0.5, bw - 1, nh - 1);
         }
-        ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.globalAlpha = Math.min(1, sub);
-        ctx.font = '700 8px "JetBrains Mono",monospace'; ctx.fillStyle = RED; ctx.fillText('\u2212 money arriving anyway', pad, 22); ctx.globalAlpha = 1;
-        ctx.textAlign = 'right'; ctx.font = '400 13px "Anton", sans-serif'; ctx.fillStyle = LIME;
-        var pp = (24.4 * ease(Math.max(0, Math.min(1, (t - 2.7) / 1.0)))).toFixed(1);
-        ctx.fillText('+' + pp + 'pp caused', w - pad, 24);
+        ctx.font = '600 6.5px "JetBrains Mono",monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+        for (i = 0; i < 5; i++) { ctx.fillStyle = i === 4 ? LIME : (i === 0 ? 'rgba(255,255,255,.6)' : 'rgba(237,28,36,.85)'); ctx.fillText(LAB[i], bx(i) + bw / 2, base0 + 11); }
+        ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.font = '600 7.5px "JetBrains Mono",monospace';
+        ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.fillText('subtract the money arriving anyway', pad, 20);
+        ctx.textAlign = 'right'; ctx.font = '400 13px "Anton",sans-serif'; ctx.fillStyle = LIME;
+        ctx.fillText('+' + (24.4 * netT).toFixed(1) + 'pp caused', w - pad, 22);
       };
       return o;
     }

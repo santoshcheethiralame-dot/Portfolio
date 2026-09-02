@@ -11,7 +11,7 @@ export const site = {
   location: 'Bengaluru, India',
   timezone: 'Asia/Kolkata',
   email: 'santoshcheethirala.me@gmail.com',
-  resume: '/Santosh_Cheethirala_Resume.pdf',
+  resume: '/resume',
   socials: {
     github: 'https://github.com/santoshcheethiralame-dot',
     linkedin: 'https://www.linkedin.com/in/santoshcheethirala/',
