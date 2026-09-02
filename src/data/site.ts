@@ -386,6 +386,123 @@ export const projects: Project[] = [
     outcome:
       'Textbooks give everyone the same picture; ShowMe draws you yours — a custom explainer in seconds instead of weeks.',
   },
+  {
+    slug: 'corridor',
+    name: 'Corridor',
+    oneLiner:
+      'An ambulance green-corridor that talks to each vehicle directly — early, directional, and different for every car — instead of one broadcast siren everyone reacts to at once.',
+    year: '2026',
+    role: 'Solo — hackathon',
+    status: 'Built · measured',
+    tags: ['Coordination', 'Realtime', 'Simulation'],
+    stack: ['Node.js (zero deps)', 'Web Audio (acoustic modem)', 'DeviceMotion / Orientation', 'Canvas'],
+    stats: [
+      { v: '−34.1%', l: 'Ambulance transit (5.8 km, 11 junctions)' },
+      { v: '100', l: 'Seeded runs per arm' },
+      { v: '0', l: 'Dependencies — npm install fetches nothing' },
+    ],
+    links: { github: 'https://github.com/santoshcheethiralame-dot/CORRIDOR' },
+    problem:
+      'A siren is a broadcast with no addressing. Everyone in earshot gets the identical signal at the identical instant and each decides independently what to do, so they all move into the same gaps at once and traffic clumps around the ambulance instead of parting. Yielding is a coordination failure, not a compliance failure.',
+    build:
+      'A corridor is the opposite object — early, directional, and different for every vehicle: “12 holds, 13 eases left, 14 takes the bus bay, 15 does nothing.” An assignment engine decides each vehicle’s move and three independent rings deliver it: a network ring, a phone-to-phone mesh, and — when both fail — an acoustic modem that rides the siren’s own sound, each ring surviving the one above it failing. Zero dependencies: npm install fetches nothing because there is nothing to fetch.',
+    highlights: [
+      'Measured −34.1% ambulance transit (20:22 → 13:25) over a real 5.8 km route with 11 junctions, 100 seeded runs per arm',
+      'The only variable between arms is what information reaches a driver — identical traffic, drivers and lights',
+      'Three-ring fallback: network → phone mesh → an acoustic modem that transmits assignments over the siren itself',
+      '334 assertions, including the ones only found on real hardware',
+    ],
+    outcome:
+      'A green corridor that opens ahead of the ambulance instead of clumping around it — the coordination argument, the engine, and the measurement in one repository.',
+  },
+  {
+    slug: 'batch',
+    name: 'Batch',
+    oneLiner:
+      'Scan a barcode and see what is actually in a product, what the label is arranged to hide, and what the evidence says — with every claim carrying its source.',
+    year: '2026',
+    role: 'Solo — design & build',
+    status: 'Shipped · live demo',
+    tags: ['Consumer', 'Transparency', 'Data'],
+    stack: ['Next.js', 'TypeScript', 'Open Food Facts', 'Europe PMC / FDA / CPSC', 'Gemini (photo fallback)', 'BarcodeDetector / WASM'],
+    stats: [
+      { v: '0–100', l: 'Score, every component openable' },
+      { v: '122', l: 'Tests — no network or key needed' },
+      { v: '0', l: 'Data sent anywhere — profile and shelf stay on device' },
+    ],
+    links: { github: 'https://github.com/santoshcheethiralame-dot/BATCH', demo: 'https://batchscan.vercel.app' },
+    problem:
+      'A packaged-food score you cannot interrogate is a score you should not trust — and front-of-pack claims like “low fat” or “high in protein” are legally defined numeric terms that products routinely fail while printing anyway. Indian packs bury additives as bare INS numbers inside function names that databases miss.',
+    build:
+      'Batch builds a 0–100 score from three individually openable sub-scores — nutrition (official Nutri-Score or a labelled approximation), NOVA processing, and every declared additive scored on its regulatory position rather than folklore — and shows the source for every claim, always. It recovers INS numbers from Indian ingredient text, adds sugar back together when it is split across names, checks front-of-pack claims against EU Regulation 1924/2006, and where no database has the barcode, transcribes the pack from a photo with Gemini, inventing nothing. Uncertainty is stated, not hidden; a gap is never a pass.',
+    highlights: [
+      'Never shows a composite score without its components, and carries a source for every claim',
+      'Calibrated over alarming — MSG is scored low because the trials failed to reproduce the scare; an app that is wrong and loud is dead',
+      'Catches real regulated-claim failures: a “low fat” biscuit at 17 g fat/100 g against a 3 g legal limit',
+      'Allergens shown first and never merged — “contains” and “may contain” stay separate facts; nothing is inferred',
+      'Profile and scan history live in the browser only — no accounts, nothing sent anywhere',
+    ],
+    outcome:
+      'The truth about everything you buy — a score you can open all the way down, with the receipts attached.',
+  },
+  {
+    slug: 'highwater',
+    name: 'highwater',
+    oneLiner:
+      'A Jepsen-style durability experiment on Couchbase — the first to show that a “majority”-acknowledged write can be acknowledged and then lost.',
+    year: '2026',
+    role: 'Solo — systems',
+    status: 'Built',
+    tags: ['Distributed systems', 'Jepsen', 'Correctness'],
+    stack: ['Go', 'gocbcore (patched)', 'DCP tap', 'Porcupine (linearizability)'],
+    stats: [
+      { v: '56', l: 'Acknowledged writes lost at “majority”' },
+      { v: '0', l: 'Lost at persistToMajority' },
+      { v: 'NOT', l: 'Linearizable — no valid total order exists' },
+    ],
+    links: { github: 'https://github.com/santoshcheethiralame-dot/HighWater' },
+    problem:
+      '`majority` durability promises a majority of nodes hold your write in memory — it says nothing about disk. Kill that majority before the flush completes and the write is gone; the documentation says so plainly, but nobody had shown it. Couchbase is one of the very few major distributed databases with no published Jepsen analysis.',
+    build:
+      'Rather than treat the database as a black box, highwater taps the DCP stream so it can watch a durable write arrive as a prepare followed by a commit or an abort — distinguishing “never prepared” from “prepared then aborted,” which a client cannot. It drives the cluster into the ambiguous window, kills the majority before the disk flush, and checks the result two independent ways: a direct value comparison and Porcupine, a general linearizability checker that knows nothing about durability levels. Both arms agree.',
+    highlights: [
+      'Caught 56 acknowledged writes lost at durability level “majority” (50 regressed, 6 absent), and 0 at persistToMajority',
+      'History proven NOT LINEARIZABLE by Porcupine, independently of the direct value comparison',
+      'Taps DCP prepare/commit/abort to separate “never prepared” from “prepared then aborted” — the half black-box chaos testing misses',
+      'Ships the gocbcore patch that made observing the ambiguous window possible',
+    ],
+    outcome:
+      'The missing Jepsen result for Couchbase: majority durability is a memory guarantee, and highwater is the experiment that makes the loss visible.',
+  },
+  {
+    slug: 'lift',
+    name: 'LIFT',
+    oneLiner:
+      'A revenue-recovery agent that reports what it caused — measured against a control arm left completely alone, with the cost of getting it charged against the same ledger.',
+    year: '2026',
+    role: 'Solo — hackathon',
+    status: 'Built · Razorpay Buildathon',
+    tags: ['Causal measurement', 'Fintech', 'Agents'],
+    stack: ['TypeScript', 'Node.js (zero runtime deps)', 'Counterfactual estimator'],
+    stats: [
+      { v: '+24.4pp', l: 'Mean causal lift (oracle +24.9pp)' },
+      { v: '30', l: 'Independent batches · 300 records each' },
+      { v: '127', l: 'Tests · ~15s, no network or key' },
+    ],
+    links: { github: 'https://github.com/santoshcheethiralame-dot/LIFT' },
+    problem:
+      'Every dunning tool reports how much it recovered; none subtract the money that was arriving anyway. Businesses with no automation already recover 20–31%, and Stripe Smart Retries audits at 25–35% — so a large share of every recovery figure in this market is money that was coming regardless, and nobody subtracts it.',
+    build:
+      'LIFT holds out a control arm that is left completely untouched and measures recovery against it, then charges the cost of acting and the billing that walked away to the same ledger — so the reported number is net caused revenue, not gross invoiced. A near-unbiased counterfactual estimator reports +24.4pp where the oracle truth is +24.9pp; the distribution over 30 batches is the claim, and a single seed is the thing you can watch run. Zero runtime dependencies.',
+    highlights: [
+      'Reports causal lift, not gross recovery: +24.4pp mean across 30 batches, oracle +24.9pp — nearly unbiased',
+      'Charges cost of acting and billing that walked to the same ledger, so the headline is net, not invoiced',
+      'Honest about variance — the demo seed runs nearly a full SD above the mean, and the README says so',
+      '127 tests in ~15s with no network, no API key, and zero runtime dependencies',
+    ],
+    outcome:
+      'A recovery agent you can trust the number from — because it subtracts the money that was arriving anyway, which is the whole project.',
+  },
 ];
 
 /* ------------------------------------------------------------------

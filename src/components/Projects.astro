@@ -207,12 +207,80 @@ import Folio from './Folio.astro';
           'Accessible by design: an extractable plain-text explanation for screen readers, and a static labelled frame under reduced-motion.'
         ],
         meta: { Role: 'Solo — design & build', Year: '2026', Type: 'Generative UI / edu' }
+      },
+      {
+        key: 'corridor', mono: 'C', idx: '10', name: 'CORRIDOR', label: 'corridor',
+        status: 'built', host: null,
+        github: 'https://github.com/santoshcheethiralame-dot/CORRIDOR',
+        tagline: 'An ambulance green-corridor that talks to each vehicle directly — early, directional, different for every car — instead of one broadcast siren everyone reacts to at once.',
+        blurb: 'The thumbnail is the thesis: a siren makes every car react at once and clump around the ambulance; a corridor addresses each car — hold, ease left, take the bus bay — and a clean lane opens ahead.',
+        stack: ['Node.js (0 deps)', 'Web Audio modem', 'DeviceMotion', 'Canvas'],
+        stats: [{ pre: '−', target: 34.1, decimals: 1, suf: '%', lab: 'Ambulance transit time' }, { target: 100, suf: '', lab: 'Seeded runs per arm' }],
+        overview: "A siren is a broadcast with no addressing: everyone in earshot gets the identical signal at the identical instant and each decides independently, so they all move into the same gaps at once and traffic clumps around the ambulance instead of parting. A corridor is the opposite object — early, directional, and different for every vehicle. An assignment engine decides each car’s move and three independent rings deliver it (network, a phone-to-phone mesh, and an acoustic modem that rides the siren itself), each surviving the one above it failing. Zero dependencies: npm install fetches nothing.",
+        highlights: [
+          'Measured −34.1% ambulance transit (20:22 → 13:25) on a real 5.8 km route, 11 junctions, 100 seeded runs per arm.',
+          'The only variable between arms is what information reaches a driver — identical traffic, drivers and lights.',
+          'Three-ring fallback: network → phone mesh → an acoustic modem that sends assignments over the siren’s own sound.',
+          '334 assertions, including the ones only found on real hardware.'
+        ],
+        meta: { Role: 'Solo — hackathon', Year: '2026', Type: 'Coordination / realtime' }
+      },
+      {
+        key: 'batch', mono: 'B', idx: '11', name: 'BATCH', label: 'batch',
+        status: 'live', host: 'batchscan.vercel.app',
+        github: 'https://github.com/santoshcheethiralame-dot/BATCH',
+        tagline: 'Scan a barcode and see what is actually in a product, what the label is arranged to hide, and what the evidence says — every claim carrying its source.',
+        blurb: 'The thumbnail is the product: a barcode scans, a 0–100 score resolves, and its three sub-scores — nutrition, processing, additives — open underneath, each honest both ways.',
+        stack: ['Next.js', 'TypeScript', 'Open Food Facts', 'Gemini (photo)'],
+        stats: [{ target: 0, suf: '–100', lab: 'Score, every part openable' }, { target: 122, suf: '', lab: 'Tests · no key needed' }],
+        overview: "A packaged-food score you cannot interrogate is a score you should not trust. Batch builds a 0–100 score from three individually openable sub-scores — nutrition (official Nutri-Score or a labelled approximation), NOVA processing, and every declared additive scored on its regulatory position rather than folklore — and shows the source for every claim, always. It recovers INS numbers Indian packs bury inside function names, adds sugar back together when it is split across names, checks front-of-pack claims against their legal definitions, and where no database has the barcode, transcribes the pack from a photo, inventing nothing. Calibrated over alarming: MSG is scored low because the trials failed to reproduce the scare.",
+        highlights: [
+          'Never shows a composite score without its components, and carries a source for every claim.',
+          'Catches real regulated-claim failures: a “low fat” biscuit at 17 g fat/100 g against a 3 g legal limit.',
+          'Allergens first, never merged — “contains” and “may contain” stay separate facts; nothing is inferred.',
+          'Profile and scan history live in the browser only — no accounts, nothing sent anywhere.'
+        ],
+        meta: { Role: 'Solo — design & build', Year: '2026', Type: 'Consumer / transparency' }
+      },
+      {
+        key: 'highwater', mono: 'H', idx: '12', name: 'HIGHWATER', label: 'highwater',
+        status: 'built', host: null,
+        github: 'https://github.com/santoshcheethiralame-dot/HighWater',
+        tagline: 'A Jepsen-style durability experiment on Couchbase — the first to show a “majority”-acknowledged write can be acknowledged and then lost.',
+        blurb: 'The thumbnail is the finding: durable writes stream in and ack, then the majority is killed mid-flush and the acknowledged ones vanish — 56 lost, not linearizable. persistToMajority loses none.',
+        stack: ['Go', 'gocbcore (patched)', 'DCP tap', 'Porcupine'],
+        stats: [{ target: 56, suf: '', lab: 'Acked writes lost at “majority”' }, { target: 0, suf: '', lab: 'Lost at persistToMajority' }],
+        overview: "`majority` durability promises a majority of nodes hold your write in memory — it says nothing about disk. Kill that majority before the flush completes and the write is gone; the docs say so, but nobody had shown it, and Couchbase is one of the very few major distributed databases with no published Jepsen analysis. Rather than treat the database as a black box, highwater taps the DCP stream to watch a durable write arrive as a prepare followed by a commit or an abort — separating “never prepared” from “prepared then aborted,” which a client cannot. It drives the cluster into the ambiguous window, kills the majority before the disk flush, and checks the result two independent ways that agree.",
+        highlights: [
+          'Caught 56 acknowledged writes lost at durability “majority” (50 regressed, 6 absent), and 0 at persistToMajority.',
+          'History proven NOT LINEARIZABLE by Porcupine, independently of the direct value comparison.',
+          'Taps DCP prepare/commit/abort to see the half black-box chaos testing misses.',
+          'Ships the gocbcore patch that made observing the ambiguous window possible.'
+        ],
+        meta: { Role: 'Solo — systems', Year: '2026', Type: 'Distributed systems / Jepsen' }
+      },
+      {
+        key: 'lift', mono: 'L', idx: '13', name: 'LIFT', label: 'lift',
+        status: 'built', host: null,
+        github: 'https://github.com/santoshcheethiralame-dot/LIFT',
+        tagline: 'A revenue-recovery agent that reports what it caused — measured against a control arm left completely alone, its own cost charged to the same ledger.',
+        blurb: 'The thumbnail is the whole argument: a treatment bar rises past control, then the money that was arriving anyway is subtracted away, leaving only the lift the agent actually caused.',
+        stack: ['TypeScript', 'Node.js (0 deps)', 'Counterfactual estimator'],
+        stats: [{ pre: '+', target: 24.4, decimals: 1, suf: 'pp', lab: 'Mean causal lift' }, { target: 30, suf: '', lab: 'Independent batches' }],
+        overview: "Every dunning tool reports how much it recovered; none subtract the money that was arriving anyway. Businesses with no automation already recover 20–31%, so a large share of every recovery figure in this market is money that was coming regardless. LIFT holds out a control arm left completely untouched, measures recovery against it, then charges the cost of acting and the billing that walked to the same ledger — so the headline is net caused revenue, not gross invoiced. A near-unbiased estimator reports +24.4pp where the oracle truth is +24.9pp; the distribution over 30 batches is the claim, and a single seed is the thing you can watch run.",
+        highlights: [
+          'Reports causal lift, not gross recovery: +24.4pp mean across 30 batches against an oracle of +24.9pp.',
+          'Charges cost of acting and billing that walked to the same ledger, so the number is net, not invoiced.',
+          'Honest about variance — the demo seed runs nearly a full SD above the mean, and says so.',
+          '127 tests in ~15s, no network, no API key, zero runtime dependencies.'
+        ],
+        meta: { Role: 'Solo — hackathon', Year: '2026', Type: 'Causal measurement / fintech' }
       }
     ];
 
     /* Display order is a presentation concern, not a data one — reorder here and the
        index numbers follow, so the entries above stay grouped however they read best. */
-    var ORDER = ['attest', 'showme', 'glassbox', 'gradient', 'untangle', 'tessera', 'terracrest', 'orbit', 'pesvcs'];
+    var ORDER = ['attest', 'showme', 'corridor', 'batch', 'highwater', 'lift', 'glassbox', 'gradient', 'untangle', 'tessera', 'terracrest', 'orbit', 'pesvcs'];
     PROJECTS = ORDER
       .map(function (k) { for (var i = 0; i < PROJECTS.length; i++) if (PROJECTS[i].key === k) return PROJECTS[i]; return null; })
       .filter(Boolean);
@@ -817,7 +885,175 @@ import Folio from './Folio.astro';
       };
       return o;
     }
-    var RENDER = { orbit: makeOrbit, glassbox: makeGlassbox, gradient: makeGradient, pesvcs: makePesVcs, tessera: makeTessera, terracrest: makeTerracrest, attest: makeAttest, untangle: makeUntangle, showme: makeShowMe };
+    // ---- CORRIDOR: a siren makes every car react at once and clump; a corridor
+    //      addresses each car so a clean centre lane opens ahead of the ambulance.
+    function makeCorridor(cv) {
+      var o = base(cv); var LIME = '#b4ff2e';
+      var CARS = [{ x: 0.30, home: -1 }, { x: 0.40, home: 1 }, { x: 0.50, home: -1 }, { x: 0.59, home: 1 }, { x: 0.68, home: -1 }, { x: 0.78, home: 1 }, { x: 0.87, home: -1 }];
+      function ease(t) { return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
+      o.tick = function (now, dt) {
+        o.advance(dt);
+        var ctx = o.ctx, w = o.w, h = o.h; if (!ctx) return; ctx.clearRect(0, 0, w, h);
+        var pad = 12, roadTop = 34, roadBot = h - 28, midY = (roadTop + roadBot) / 2, lg = (roadBot - roadTop) / 2 * 0.72;
+        function laneY(l) { return midY + l * lg; }
+        var cyc = 6.4, t = o.clk % cyc, siren = t < 3.2, ph = siren ? t / 3.2 : (t - 3.2) / 3.2;
+        var rx0 = pad + 6, rx1 = w - pad - 6, RW = rx1 - rx0, i;
+        ctx.fillStyle = 'rgba(255,255,255,.04)'; ctx.fillRect(pad, roadTop, w - pad * 2, roadBot - roadTop);
+        ctx.strokeStyle = 'rgba(255,255,255,.16)'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(pad, roadTop); ctx.lineTo(w - pad, roadTop); ctx.moveTo(pad, roadBot); ctx.lineTo(w - pad, roadBot); ctx.stroke();
+        ctx.setLineDash([6, 6]); ctx.strokeStyle = 'rgba(255,255,255,.12)';
+        ctx.beginPath(); ctx.moveTo(pad, (laneY(0) + laneY(-1)) / 2); ctx.lineTo(w - pad, (laneY(0) + laneY(-1)) / 2);
+        ctx.moveTo(pad, (laneY(0) + laneY(1)) / 2); ctx.lineTo(w - pad, (laneY(0) + laneY(1)) / 2); ctx.stroke(); ctx.setLineDash([]);
+        var ambX = siren ? rx0 + RW * (0.06 + 0.15 * ph) : rx0 + RW * (0.21 + 0.73 * ease(ph));
+        if (!siren) {
+          var op = ease(Math.min(1, ph * 1.4));
+          ctx.fillStyle = 'rgba(180,255,46,' + (0.14 * op).toFixed(3) + ')'; ctx.fillRect(ambX, laneY(0) - 8, rx1 - ambX, 16);
+          ctx.strokeStyle = 'rgba(180,255,46,' + (0.75 * op).toFixed(3) + ')'; ctx.lineWidth = 1.5; ctx.strokeRect(ambX + 0.5, laneY(0) - 8 + 0.5, rx1 - ambX - 1, 15);
+        }
+        if (siren) { for (var k = 0; k < 2; k++) { var pr = ((ph * 2) + k * 0.5) % 1; ctx.strokeStyle = 'rgba(237,28,36,' + (0.5 * (1 - pr)).toFixed(3) + ')'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(ambX, laneY(0), 6 + pr * 42, 0, 7); ctx.stroke(); } }
+        for (i = 0; i < CARS.length; i++) {
+          var c = CARS[i], cx = rx0 + RW * c.x, lane;
+          if (siren) { var s = ease(Math.min(1, ph * 1.3)); lane = c.home * (1 - s); }
+          else { var trig = (ambX - rx0) / RW, local = Math.max(0, Math.min(1, (trig - (c.x - 0.16)) / 0.16)); lane = c.home * ease(local); }
+          var cy = laneY(lane), blocked = siren && Math.abs(lane) < 0.4;
+          ctx.fillStyle = blocked ? RED : 'rgba(255,255,255,.7)'; ctx.fillRect(cx - 7, cy - 4, 14, 8);
+          ctx.strokeStyle = 'rgba(10,10,10,.5)'; ctx.lineWidth = 1; ctx.strokeRect(cx - 6.5, cy - 3.5, 13, 7);
+        }
+        ctx.fillStyle = RED; ctx.fillRect(ambX - 9, laneY(0) - 5, 18, 10);
+        ctx.fillStyle = '#fff'; ctx.fillRect(ambX - 1.5, laneY(0) - 3, 3, 6); ctx.fillRect(ambX - 4, laneY(0) - 1.5, 8, 3);
+        ctx.font = '700 8px "JetBrains Mono",monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+        ctx.fillStyle = siren ? RED : LIME; ctx.fillText(siren ? '\u258d SIREN \u00b7 all react at once' : '\u25b6 CORRIDOR \u00b7 early, directional', pad, 26);
+        ctx.textAlign = 'right'; ctx.fillStyle = siren ? 'rgba(255,255,255,.5)' : LIME;
+        ctx.fillText(siren ? '20:22' : '13:25  \u221234%', w - pad, 26);
+      };
+      return o;
+    }
+
+    // ---- BATCH: a barcode scans, a 0-100 score resolves, and its three sub-scores
+    //      open under it — honest both ways (a chip scores red, almonds lime).
+    function makeBatch(cv) {
+      var o = base(cv); var LIME = '#b4ff2e';
+      var PROD = [{ score: 41, sub: [45, 30, 60], word: 'poor' }, { score: 96, sub: [92, 98, 99], word: 'good' }];
+      var WID = [2, 1, 3, 1, 2, 1, 1, 3, 2, 1, 2, 3, 1, 1, 2, 1, 3, 2, 1, 2, 1, 3, 1, 2, 2, 1, 3, 1, 2, 1, 1, 2, 3, 1, 2];
+      function ease(t) { return 1 - Math.pow(1 - t, 2.4); }
+      o.tick = function (now, dt) {
+        o.advance(dt);
+        var ctx = o.ctx, w = o.w, h = o.h; if (!ctx) return; ctx.clearRect(0, 0, w, h);
+        var pad = 14, seg = 4.6, ix = Math.floor(o.clk / seg) % 2, t = o.clk % seg, P = PROD[ix];
+        var scanEnd = 1.1, col = P.score >= 60 ? LIME : RED;
+        var bx = pad, by = 15, bw = w - pad * 2, bh = 22, x = bx, wi = 0;
+        ctx.fillStyle = 'rgba(255,255,255,.75)';
+        while (x < bx + bw - 3) { var ww = WID[wi % WID.length]; if (wi % 2 === 0) ctx.fillRect(x, by, ww, bh); x += ww + 1; wi++; }
+        if (t < scanEnd) {
+          var sp = t / scanEnd, sx = bx + bw * sp;
+          ctx.fillStyle = 'rgba(180,255,46,.12)'; ctx.fillRect(bx, by, bw * sp, bh);
+          ctx.strokeStyle = LIME; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(sx, by - 3); ctx.lineTo(sx, by + bh + 3); ctx.stroke();
+        }
+        var rev = Math.max(0, Math.min(1, (t - scanEnd) / 0.7)); if (rev <= 0) return;
+        ctx.globalAlpha = rev;
+        var val = Math.round(P.score * ease(Math.min(1, (t - scanEnd) / 0.9)));
+        ctx.font = '400 36px "Anton", sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+        ctx.fillStyle = col; ctx.fillText(String(val), pad, 76);
+        var nw = ctx.measureText(String(val)).width;
+        ctx.font = '700 8px "JetBrains Mono",monospace'; ctx.fillStyle = col;
+        ctx.fillText('/100', pad + nw + 5, 68); ctx.fillText(P.word.toUpperCase(), pad + nw + 5, 78);
+        var labs = ['NUTRITION', 'PROCESSING', 'ADDITIVES'], rxx = pad + w * 0.42, rww = w - pad - (pad + w * 0.42), ry = 50, rh = 13, s;
+        for (s = 0; s < 3; s++) {
+          var yy = ry + s * (rh + 7);
+          ctx.font = '600 7px "JetBrains Mono",monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+          ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.fillText(labs[s], rxx, yy - 2);
+          ctx.strokeStyle = 'rgba(255,255,255,.3)'; ctx.lineWidth = 1; ctx.strokeRect(rxx + 0.5, yy + 0.5, rww - 1, rh - 1);
+          var sv = P.sub[s] / 100 * ease(Math.min(1, (t - scanEnd) / 1.1));
+          ctx.fillStyle = P.sub[s] >= 60 ? LIME : RED; ctx.fillRect(rxx + 1.5, yy + 1.5, (rww - 3) * sv, rh - 3);
+        }
+        ctx.globalAlpha = Math.max(0, Math.min(1, (rev - 0.4) / 0.6));
+        ctx.font = '600 7.5px "JetBrains Mono",monospace'; ctx.textAlign = 'left'; ctx.fillStyle = LIME;
+        ctx.fillText('\u2713 every claim carries its source', pad, h - 8);
+        ctx.textAlign = 'right'; ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fillText('open any part', w - pad, h - 8);
+        ctx.globalAlpha = 1;
+      };
+      return o;
+    }
+
+    // ---- HIGHWATER: durable writes stream in and ack (lime); the majority is killed
+    //      mid-flush and the acknowledged ones vanish. persistToMajority survives.
+    function makeHighwater(cv) {
+      var o = base(cv); var LIME = '#b4ff2e';
+      var LOST = [2, 5, 6, 9, 11];
+      o.tick = function (now, dt) {
+        o.advance(dt);
+        var ctx = o.ctx, w = o.w, h = o.h; if (!ctx) return; ctx.clearRect(0, 0, w, h);
+        var pad = 14, seg = 5.2, arm = Math.floor(o.clk / seg) % 2, t = o.clk % seg, majority = arm === 0;
+        var N = 14, gy = h * 0.42, bw = (w - pad * 2) / N, bh = 16, killT = 2.6, killed = t >= killT, k;
+        ctx.font = '700 8px "JetBrains Mono",monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+        ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.fillText('durability = "' + (majority ? 'majority' : 'persistToMajority') + '"', pad, 20);
+        ctx.font = '600 7px "JetBrains Mono",monospace'; ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.fillText('writes \u00b7 acknowledged', pad, gy - 5);
+        var appeared = Math.min(N, Math.floor((t / 2.0) * N));
+        for (k = 0; k < N; k++) {
+          if (k >= appeared) continue;
+          var xx = pad + k * bw, acked = (t - k / N * 2.0) > 0.25;
+          var isLost = majority && killed && LOST.indexOf(k) >= 0;
+          if (isLost) { var la = Math.max(0, 1 - (t - killT) / 0.6); if (la <= 0) continue; ctx.globalAlpha = la; ctx.fillStyle = RED; ctx.fillRect(xx + 1, gy, bw - 2, bh); ctx.globalAlpha = 1; continue; }
+          ctx.fillStyle = acked ? 'rgba(180,255,46,.85)' : 'rgba(255,255,255,.28)'; ctx.fillRect(xx + 1, gy, bw - 2, bh);
+          if (acked) { ctx.strokeStyle = 'rgba(180,255,46,.5)'; ctx.lineWidth = 1; ctx.strokeRect(xx + 1.5, gy + 0.5, bw - 3, bh - 1); }
+        }
+        if (killed) {
+          var kx = pad + (w - pad * 2) * 0.62;
+          ctx.strokeStyle = RED; ctx.lineWidth = 2; ctx.setLineDash([4, 3]); ctx.beginPath(); ctx.moveTo(kx, gy - 12); ctx.lineTo(kx, gy + bh + 12); ctx.stroke(); ctx.setLineDash([]);
+          ctx.fillStyle = RED; ctx.font = '700 7px "JetBrains Mono",monospace'; ctx.textAlign = 'center'; ctx.fillText('KILL', kx, gy - 15); ctx.textAlign = 'left';
+          ctx.font = '400 15px "Anton", sans-serif'; ctx.textBaseline = 'alphabetic';
+          ctx.fillStyle = majority ? RED : LIME; ctx.fillText(majority ? '56 LOST' : '0 LOST', pad, h - 22);
+          ctx.font = '700 8px "JetBrains Mono",monospace'; ctx.fillStyle = majority ? RED : LIME;
+          ctx.fillText(majority ? 'NOT LINEARIZABLE' : 'LINEARIZABLE', pad, h - 9);
+        }
+      };
+      return o;
+    }
+
+    // ---- LIFT: the treatment bar rises past control, then the money that was arriving
+    //      anyway is subtracted (red hatch), leaving only the lift the agent caused (lime).
+    function makeLift(cv) {
+      var o = base(cv); var LIME = '#b4ff2e';
+      function ease(t) { return 1 - Math.pow(1 - t, 2.5); }
+      o.tick = function (now, dt) {
+        o.advance(dt);
+        var ctx = o.ctx, w = o.w, h = o.h; if (!ctx) return; ctx.clearRect(0, 0, w, h);
+        var pad = 16, base0 = h - 28, top = 34, H = base0 - top, cyc = 5.4, t = o.clk % cyc;
+        var CTRL = 0.29, GROSS = 0.57, rise = Math.min(1, t / 1.7), sub = Math.max(0, Math.min(1, (t - 1.7) / 1.0)), d;
+        var bw = (w - pad * 2) * 0.24, cx = pad + (w - pad * 2) * 0.14, tx = pad + (w - pad * 2) * 0.56;
+        function barTop(f) { return base0 - H * f; }
+        ctx.strokeStyle = 'rgba(255,255,255,.18)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(pad, base0 + 0.5); ctx.lineTo(w - pad, base0 + 0.5); ctx.stroke();
+        var cf = CTRL * ease(rise);
+        ctx.fillStyle = 'rgba(255,255,255,.32)'; ctx.fillRect(cx, barTop(cf), bw, H * cf);
+        ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.strokeRect(cx + 0.5, barTop(cf) + 0.5, bw - 1, H * cf - 1);
+        ctx.font = '600 7px "JetBrains Mono",monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+        ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.fillText('CONTROL', cx + bw / 2, base0 + 11);
+        var gf = GROSS * ease(rise), unearned = Math.min(gf, CTRL), caused = Math.max(0, gf - CTRL), uy = barTop(unearned);
+        ctx.fillStyle = LIME; ctx.fillRect(tx, barTop(gf), bw, H * caused);
+        if (sub < 1) { ctx.globalAlpha = 1 - sub; ctx.fillStyle = 'rgba(255,255,255,.3)'; ctx.fillRect(tx, uy, bw, H * unearned); ctx.globalAlpha = 1; }
+        if (sub > 0) {
+          ctx.save(); ctx.beginPath(); ctx.rect(tx, uy, bw, H * unearned); ctx.clip();
+          ctx.strokeStyle = 'rgba(237,28,36,' + (0.6 * sub).toFixed(3) + ')'; ctx.lineWidth = 1;
+          for (d = -H; d < bw + H; d += 5) { ctx.beginPath(); ctx.moveTo(tx + d, uy + H * unearned); ctx.lineTo(tx + d + H * unearned, uy); ctx.stroke(); }
+          ctx.restore();
+        }
+        ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 1; ctx.strokeRect(tx + 0.5, barTop(gf) + 0.5, bw - 1, H * gf - 1);
+        ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = '600 7px "JetBrains Mono",monospace'; ctx.textAlign = 'center'; ctx.fillText('TREATMENT', tx + bw / 2, base0 + 11);
+        if (caused > 0.001) {
+          var cyT = barTop(gf), cyB = barTop(CTRL);
+          ctx.strokeStyle = LIME; ctx.lineWidth = 1.5; ctx.beginPath();
+          ctx.moveTo(tx + bw + 4, cyT); ctx.lineTo(tx + bw + 9, cyT); ctx.lineTo(tx + bw + 9, cyB); ctx.lineTo(tx + bw + 4, cyB); ctx.stroke();
+        }
+        ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.globalAlpha = Math.min(1, sub);
+        ctx.font = '700 8px "JetBrains Mono",monospace'; ctx.fillStyle = RED; ctx.fillText('\u2212 money arriving anyway', pad, 22); ctx.globalAlpha = 1;
+        ctx.textAlign = 'right'; ctx.font = '400 13px "Anton", sans-serif'; ctx.fillStyle = LIME;
+        var pp = (24.4 * ease(Math.max(0, Math.min(1, (t - 2.7) / 1.0)))).toFixed(1);
+        ctx.fillText('+' + pp + 'pp caused', w - pad, 24);
+      };
+      return o;
+    }
+
+    var RENDER = { orbit: makeOrbit, glassbox: makeGlassbox, gradient: makeGradient, pesvcs: makePesVcs, tessera: makeTessera, terracrest: makeTerracrest, attest: makeAttest, untangle: makeUntangle, showme: makeShowMe, corridor: makeCorridor, batch: makeBatch, highwater: makeHighwater, lift: makeLift };
 
     /* section visibility gate — when the projects section is off-screen and no
        case study is open, both rAF loops stop scheduling entirely */
