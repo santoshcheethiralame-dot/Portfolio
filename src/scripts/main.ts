@@ -346,21 +346,58 @@ function initStopThePress(lenis: { stop: () => void; start: () => void }) {
   document.addEventListener('visibilitychange', () => { if (document.hidden) release(); });
 }
 
-/** Pause the CSS marquees/tickers while their section is off-screen — the
- *  compositor otherwise animates them for the whole session. The class (not an
- *  inline style) keeps the stylesheet hover-pause rules working on-screen.
+/** Pause every infinite CSS animation while its element is off-screen. Chromium
+ *  quietly throttles animations nobody can see; Safari and Firefox keep servicing
+ *  them, and the dozen loops on this page (tickers, the stack cat, the contact cat,
+ *  heartbeats) cost those engines half their frame rate. The class (not an inline
+ *  style) keeps the stylesheet hover-pause rules working on-screen. Animations that
+ *  start later (class toggles) are picked up from animationstart.
  *  (The hero's .mq-track is owned by the hero engine, which can also see the
  *  edition occluding the sticky hero — something a plain IO can't.) */
-function pauseOffscreenMarquees() {
+function pauseOffscreenAnimations() {
   if (!('IntersectionObserver' in window)) return;
-  const tracks = $$('.edition .ticker-track, .ph-ticker-track');
-  if (!tracks.length) return;
   const io = new IntersectionObserver(
     (entries) =>
       entries.forEach((en) => en.target.classList.toggle('mq-offstage', !en.isIntersecting)),
     { rootMargin: '60px 0px' }
   );
-  tracks.forEach((t) => io.observe(t));
+  // An SVG part (<path>, <g>) has no CSS box of its own, and engines disagree on
+  // whether it intersects; the outermost <svg> is observed and its verdict is
+  // applied to the parts animating inside it.
+  const parts = new Map<Element, Element[]>();
+  const io2 = new IntersectionObserver(
+    (entries) =>
+      entries.forEach((en) => (parts.get(en.target) || []).forEach((p) => p.classList.toggle('mq-offstage', !en.isIntersecting))),
+    { rootMargin: '60px 0px' }
+  );
+  const watched = new WeakSet<Element>();
+  const watch = (el: Element | null) => {
+    if (!el || watched.has(el) || el.classList.contains('mq-track')) return;
+    watched.add(el);
+    if (el instanceof SVGElement && el.ownerSVGElement) {
+      let root: SVGSVGElement = el.ownerSVGElement;
+      while (root.ownerSVGElement) root = root.ownerSVGElement;
+      const list = parts.get(root);
+      if (list) list.push(el);
+      else { parts.set(root, [el]); io2.observe(root); }
+      return;
+    }
+    io.observe(el);
+  };
+  const infinite = (a: Animation) => {
+    const t = a.effect && a.effect.getTiming ? a.effect.getTiming() : null;
+    return !!t && t.iterations === Infinity;
+  };
+  const targetOf = (a: Animation) => (a.effect as KeyframeEffect | null)?.target ?? null;
+  $$('.edition .ticker-track, .ph-ticker-track').forEach(watch);
+  if (typeof document.getAnimations === 'function') {
+    document.getAnimations().forEach((a) => { if (infinite(a)) watch(targetOf(a)); });
+  }
+  document.addEventListener('animationstart', (e) => {
+    const el = e.target as Element;
+    if (watched.has(el) || typeof el.getAnimations !== 'function') return;
+    if (el.getAnimations().some((a) => infinite(a) && (a as CSSAnimation).animationName === e.animationName)) watch(el);
+  }, true);
 }
 
 export function initAnimations() {
@@ -368,7 +405,7 @@ export function initAnimations() {
   startClock();
   initEmailCopy();
   initGridWake();
-  pauseOffscreenMarquees();
+  pauseOffscreenAnimations();
 
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (reduced) {
@@ -404,20 +441,29 @@ export function initAnimations() {
   // Print-physics consumers read it from CSS (headline plates slip apart under
   // fast scroll and snap back into register at rest). The rAF is self-stopping:
   // it only runs while the signal is decaying toward zero.
+  // Written to the four headlines that read it (the misregistration rule in
+  // global.css), not to <html>: a custom property on the root is inherited by every
+  // element, so each scroll frame restyled the whole document.
   let pv = 0;
   let pvTarget = 0;
   let pvRaf = 0;
-  const docStyle = document.documentElement.style;
+  let pvLast = '';
+  const pvHosts = $$('.li-title, .edition .masthead-title, .experience .exp-title, #stack .ld-head');
+  const setPv = (v: string) => {
+    if (v === pvLast) return;
+    pvLast = v;
+    pvHosts.forEach((el) => el.style.setProperty('--press-vel', v));
+  };
   const pvTick = () => {
     pv += (pvTarget - pv) * 0.16;
     pvTarget *= 0.84; // the press settles
     if (Math.abs(pv) < 0.004 && Math.abs(pvTarget) < 0.004) {
       pv = 0;
-      docStyle.setProperty('--press-vel', '0');
+      setPv('0');
       pvRaf = 0;
       return;
     }
-    docStyle.setProperty('--press-vel', pv.toFixed(3));
+    setPv(pv.toFixed(3));
     pvRaf = requestAnimationFrame(pvTick);
   };
   lenis.on('scroll', (l: { velocity: number }) => {

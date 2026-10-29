@@ -552,6 +552,12 @@ import { site } from '../data/site';
     mix-blend-mode: multiply;
     background: repeating-linear-gradient(0deg, rgba(10, 10, 10, 0.6) 0 1px, transparent 1px 3px);
   }
+  /* Over the rain canvas, which redraws every frame, multiply makes Gecko re-composite
+     a blend group per frame. At 0.06 effective alpha of near-black, normal blending
+     lands within one colour level of multiply, so those engines use it. */
+  :global(html.nc) .cat-scan {
+    mix-blend-mode: normal;
+  }
   .hp-photo-tag {
     position: absolute;
     bottom: 10px;
@@ -929,6 +935,26 @@ import { site } from '../data/site';
         l1.textContent = L1;
         fit(l1, L1, col);
         fit(l2, L2, col); // measures via the hidden span — does NOT disturb l2's decode content
+        // The hero is exactly one screen tall, and a width-fitted name on a short
+        // screen (a laptop, or Safari with its taller toolbar) left the teaser too
+        // little room: its last rows printed past the card's border. Only then, give
+        // the name back exactly the overflow, so screens that already fit are untouched.
+        const teaser = document.getElementById('teaser');
+        const name = l1.parentElement as HTMLElement;
+        if (teaser && name) {
+          // the last row against the card's inner edge (scrollHeight would also count
+          // the offset paper-stack pseudo-elements, which are meant to stick out)
+          const last = teaser.lastElementChild as HTMLElement | null;
+          const cs = getComputedStyle(teaser);
+          const inner = teaser.getBoundingClientRect().bottom - parseFloat(cs.borderBottomWidth) - parseFloat(cs.paddingBottom);
+          const over = last ? last.getBoundingClientRect().bottom - inner : 0;
+          const nameH = name.getBoundingClientRect().height;
+          if (over > 1 && nameH > 0) {
+            const k = Math.max(0.35, (nameH - over - 2) / nameH);
+            l1.style.fontSize = parseFloat(l1.style.fontSize) * k + 'px';
+            l2.style.fontSize = parseFloat(l2.style.fontSize) * k + 'px';
+          }
+        }
       }
       function runName() { layoutName(); }
       // the wordmark cypher: HOLD until the page has actually revealed (main.ts removes

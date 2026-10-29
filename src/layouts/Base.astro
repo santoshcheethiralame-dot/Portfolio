@@ -31,6 +31,19 @@ const personLD = JSON.stringify({
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script is:inline>
+      // Engine class, set before first paint. A few effects (the SVG paper grain,
+      // multiply-blended scanlines) are cheap in Chromium but repaint-heavy in Gecko
+      // and WebKit; those engines get pixel-equivalent bitmap versions via html.nc.
+      // Every browser on iOS is WebKit, whatever its name (CriOS, EdgiOS, FxiOS).
+      try {
+        var ua = navigator.userAgent;
+        var uad = navigator.userAgentData;
+        var blink = (uad && uad.brands && uad.brands.some(function (b) { return /Chromium/i.test(b.brand); })) ||
+          (/\b(Chrome|Chromium|Edg)\//.test(ua) && !/CriOS|EdgiOS|FxiOS|Firefox\//.test(ua));
+        if (!blink) document.documentElement.classList.add('nc', /Firefox\//.test(ua) && !/FxiOS/.test(ua) ? 'eng-gecko' : 'eng-webkit');
+      } catch (e) {}
+    </script>
     <title>{title}</title>
     <meta name="description" content={description} />
     {canonical && <link rel="canonical" href={canonical} />}

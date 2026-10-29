@@ -198,7 +198,7 @@ const year = new Date().getFullYear(); // colophon stays current per build
       12px 12px 0 var(--ink);
 
     /* noise grain + a faint ledger grid so the sheet reads as ruled press paper */
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E"),
+    background-image: var(--press-grain),
       linear-gradient(rgba(20, 20, 20, 0.05) 1px, transparent 1px),
       linear-gradient(90deg, rgba(20, 20, 20, 0.05) 1px, transparent 1px);
     background-size: 300px 300px, var(--grid-size) var(--grid-size), var(--grid-size) var(--grid-size);
@@ -1373,15 +1373,30 @@ const year = new Date().getFullYear(); // colophon stays current per build
       /* ---------- lime press-tick (reading-position cue) ---------- */
       const pressTick = edition.querySelector<HTMLElement>('#pressTick');
       const articleFlow = edition.querySelector<HTMLElement>('.article-flow');
+      // measured only while the article is near the viewport (the tick is clamped
+      // at its ends otherwise), and written only when it moves
+      let articleNear = true;
+      let lastTickTop = '';
       function placeTick() {
-        if (!pressTick || !articleFlow) return;
+        if (!pressTick || !articleFlow || !articleNear) return;
         if (getComputedStyle(pressTick).display === 'none') return;
         const ar = articleFlow.getBoundingClientRect();
         const viewH = window.innerHeight;
         const articleTop = ar.top; const articleBot = ar.bottom;
         const p = clamp((viewH - articleTop) / (articleBot - articleTop + viewH), 0, 1);
         const travel = articleFlow.clientHeight - pressTick.offsetHeight;
-        pressTick.style.top = (p * travel).toFixed(1) + 'px';
+        const top = (p * travel).toFixed(1) + 'px';
+        if (top !== lastTickTop) { lastTickTop = top; pressTick.style.top = top; }
+      }
+      if (articleFlow && typeof IntersectionObserver !== 'undefined') {
+        new IntersectionObserver(function (es) {
+          es.forEach(function (e) {
+            const was = articleNear;
+            articleNear = true; // one last placement on the way out pins the tick at its end
+            if (was !== e.isIntersecting || e.isIntersecting) placeTick();
+            articleNear = e.isIntersecting;
+          });
+        }, { rootMargin: '25% 0px' }).observe(articleFlow);
       }
 
       /* ---------- STDERR live-edits ---------- */
@@ -1409,15 +1424,24 @@ const year = new Date().getFullYear(); // colophon stays current per build
         if (catFig) {
           // develop the cat from B/W to full colour as it's scrolled into reading
           // position — --cat-c (0..1) tracks where the figure sits in the viewport
+          // Only measured while the figure is near the viewport, and only written when
+          // the value moves: --cat-c sits at 0 or 1 for most of the page, and every
+          // write re-ran the photo's filter and halftone blend on each scroll frame.
           let ctick = false;
+          let catNear = true;
+          let lastC = '';
           const updCat = function () {
             ctick = false;
             const r = catFig.getBoundingClientRect();
             const vh = window.innerHeight || 1;
             const p = Math.max(0, Math.min(1, (vh * 0.85 - r.top) / (vh * 0.5)));
-            catFig.style.setProperty('--cat-c', p.toFixed(3));
+            const c = p.toFixed(3);
+            if (c !== lastC) { lastC = c; catFig.style.setProperty('--cat-c', c); }
           };
-          const onCat = function () { if (!ctick) { ctick = true; requestAnimationFrame(updCat); } };
+          const onCat = function () { if (catNear && !ctick) { ctick = true; requestAnimationFrame(updCat); } };
+          new IntersectionObserver(function (es) {
+            es.forEach(function (e) { catNear = e.isIntersecting; requestAnimationFrame(updCat); });
+          }, { rootMargin: '50% 0px' }).observe(catFig);
           window.addEventListener('scroll', onCat, { passive: true });
           const L = (window as unknown as { __lenis?: { on?: (e: string, cb: () => void) => void } }).__lenis;
           if (L && L.on) L.on('scroll', onCat);

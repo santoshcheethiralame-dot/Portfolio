@@ -92,6 +92,20 @@
   /* lime — scramble phase only */
 }
 
+/* Gecko and WebKit re-run the SVG feTurbulence filter above on repaint, which
+   halved their frame rate wherever the grain sat under anything animated. They get
+   Chromium's own rasterisation of that SVG instead, at 1x and 2x, stored losslessly:
+   identical over black and white, within one colour level over the paper colours.
+   (html.nc is set by the engine check in Base.astro.) */
+:root.nc { --press-grain: url("/img/grain@1x.png"); }
+@supports (background-image: -webkit-image-set(url("/img/grain@1x.png") 1x)) {
+  :root.nc { --press-grain: -webkit-image-set(url("/img/grain@1x.png") 1x, url("/img/grain@2x.png") 2x); }
+}
+@supports (background-image: image-set(url("/img/grain@1x.png") 1x)) {
+  :root.nc { --press-grain: image-set(url("/img/grain@1x.png") 1x, url("/img/grain@2x.png") 2x); }
+}
+
+
 *,
 *::before,
 *::after {
@@ -762,7 +776,7 @@ html.press-held #press-stamp {
 }
 
 /* ---------- Motion primitives ---------- */
-/* marquee tracks paused while off-screen (class toggled by an IO in main.ts) */
+/* infinite animations paused while off-screen (class toggled by an IO in main.ts) */
 .mq-offstage {
   animation-play-state: paused !important;
 }
@@ -1721,6 +1735,12 @@ html.cover-on #contact:has(#lt-call.is-open) {
 #stack .cat .kitty .tail {
   transform-origin: 74px 60px;
   animation: ld-tail 2.6s ease-in-out infinite;
+}
+
+/* the cat is fixed to the viewport but transparent outside the stack, so an
+   observer always sees it; rest the tail while nobody can see it */
+#stack .cat:not(.in-view) .kitty .tail {
+  animation-play-state: paused;
 }
 
 @keyframes ld-tail {
@@ -3342,6 +3362,13 @@ body.li-cs-open {
 .lt-contact .catpix {
   position: relative;
   width: clamp(140px, 18vw, 196px);
+}
+
+/* WebKit can't composite the breathing transform inside the SVG, so each frame
+   repainted the layer holding the whole contact sheet; its own layer keeps the
+   repaint to the cat. (Chromium composites it already; html.nc is set in Base.) */
+:root.nc .lt-contact .catpix {
+  will-change: transform;
 }
 
 .lt-contact .catpix svg {

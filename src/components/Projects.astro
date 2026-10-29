@@ -1298,19 +1298,34 @@ import Folio from './Folio.astro';
       var y = window.scrollY; vel = y - lastScroll; lastScroll = y;
     }, { passive: true });
 
+    // Reads first, then writes, and only what changed. The hatch offset lives on the
+    // section (only .li-card-head reads it) instead of <html>, where every write
+    // restyled the whole document; and interleaving each card's rect read with the
+    // previous card's --g write forced a fresh layout per card, every frame.
+    var hatchHost = document.getElementById('projects') || document.documentElement;
+    var lastHatch = '', lastTitle = '';
+    var lastG = {};
     function uiFrame() {
       if (!sectionLive()) { uiOn = false; return; }
-      document.documentElement.style.setProperty('--li-hatch', (lastScroll * 0.45 % 200) + 'px');
-      var vc = window.innerHeight * 0.5;
+      var vh = window.innerHeight, vc = vh * 0.5;
+      var gs = [];
       PROJECTS.forEach(function (p) {
         var card = cardByKey[p.key]; if (card.style.display === 'none') return;
         var rc = card.getBoundingClientRect(), cc = rc.top + rc.height * 0.5;
-        var d = Math.min(1, Math.abs(cc - vc) / (window.innerHeight * 0.7));
-        card.querySelector('.li-idx').style.setProperty('--g', (1 - d).toFixed(3));
+        var d = Math.min(1, Math.abs(cc - vc) / (vh * 0.7));
+        gs.push([p.key, card, (1 - d).toFixed(3)]);
+      });
+      var hatch = (lastScroll * 0.45 % 200) + 'px';
+      if (hatch !== lastHatch) { lastHatch = hatch; hatchHost.style.setProperty('--li-hatch', hatch); }
+      gs.forEach(function (g) {
+        if (lastG[g[0]] === g[2]) return;
+        lastG[g[0]] = g[2];
+        g[1].querySelector('.li-idx').style.setProperty('--g', g[2]);
       });
       squash += (Math.max(-60, Math.min(60, vel)) - squash) * 0.25; vel *= 0.8;
       var k = squash * 0.0016;
-      if (titleWrap) titleWrap.style.transform = 'scaleY(' + (1 - k).toFixed(4) + ') scaleX(' + (1 + k * 0.7).toFixed(4) + ')';
+      var title = 'scaleY(' + (1 - k).toFixed(4) + ') scaleX(' + (1 + k * 0.7).toFixed(4) + ')';
+      if (titleWrap && title !== lastTitle) { lastTitle = title; titleWrap.style.transform = title; }
       requestAnimationFrame(uiFrame);
     }
     function startUi() {
@@ -1318,7 +1333,7 @@ import Folio from './Folio.astro';
     }
     startUi();
     if (REDUCED) {
-      document.documentElement.style.setProperty('--li-hatch', '0px');
+      (document.getElementById('projects') || document.documentElement).style.setProperty('--li-hatch', '0px');
       PROJECTS.forEach(function (p) { cardByKey[p.key].querySelector('.li-idx').style.setProperty('--g', '0.6'); });
     }
 
