@@ -1,24 +1,84 @@
 ---
-import { research, lineupScenario, experience } from '../data/site';
+import {
+  research,
+  corrections,
+  culpritCase,
+  attributionJobs,
+  localization,
+  instrumentChecks,
+  experience,
+} from '../data/site';
 
 /* ------------------------------------------------------------------
    Research — "The Research Desk". A broadsheet spread in the Daily
-   Cheethirala: the lead study carries a working leave-one-out console,
-   the rest run as secondary columns. Content is data-driven from
-   site.ts (research / lineupScenario); nothing is hardcoded here.
+   Cheethirala. A corrections box runs across the top; the lead study
+   carries a console over a real subset lattice, two studies run as
+   columns with their own bench instruments, and the work in progress
+   runs as an ink band with a live simulator.
 
-   Disclosure is enforced by the data: a study with `results: false`
-   renders no figures at all, only a "developing story" stamp.
+   Content is data-driven from site.ts. A study with `results: false`
+   renders only its headline, deck and body: no figures, no widget.
 
-   Every node is rendered server-side so the scoped <style> applies —
-   the JS only toggles classes, and there is no rAF or canvas.
+   Every node is rendered server-side so the scoped <style> applies.
+   The scripts only toggle classes, set text and set inline styles, and
+   they are event-driven: no rAF, no canvas, no timers.
    ------------------------------------------------------------------ */
 
-const [lead, ...rest] = research;
-const scenario = lineupScenario;
-// The lab affiliation is carried by the studies themselves; everything
-// else that used to live in Experience survives as the "also" strip.
+const byId = Object.fromEntries(research.map((s) => [s.id, s]));
+const culprit = byId.culprit;
+const precise = byId.precise;
+const instrument = byId.instrument;
+const mm = byId.missingmass;
 const also = experience.filter((e) => !e.foldedIntoResearch);
+
+/* ---- the subset lattice for study 01 (sizes 0–3, then the full context) ---- */
+const letters = culpritCase.passages.map((p) => p.id);
+function combos(k: number, start = 0, acc = ''): string[] {
+  if (acc.length === k) return [acc];
+  const out: string[] = [];
+  for (let i = start; i < letters.length; i++) out.push(...combos(k, i + 1, acc + letters[i]));
+  return out;
+}
+const LW = 1000;
+const rowY = [34, 104, 174, 244];
+const levels = [0, 1, 2, 3].map((k) => combos(k));
+const nodes = levels.flatMap((row, k) =>
+  row.map((key, i) => ({
+    key: key || '∅',
+    id: key,
+    x: Math.round(((i + 1) * LW) / (row.length + 1)),
+    y: rowY[k],
+    size: k,
+  }))
+);
+const fullNode = { id: letters.join(''), key: letters.join(''), x: LW / 2, y: 330, size: 6 };
+const pos = Object.fromEntries([...nodes, fullNode].map((n) => [n.id, n]));
+const suff = new Set(culpritCase.sufficient);
+const mins = new Set(culpritCase.minimal);
+const edges = culpritCase.violations.map(([a, b]) => ({ a, b, A: pos[a], B: pos[b] }));
+
+/* ---- localization heatmap for study 03 ---- */
+const loc = localization;
+const locCells = loc.layers.flatMap((layer, r) =>
+  loc.strengths.map((strength, c) => ({
+    layer,
+    strength,
+    real: loc.real[r][c],
+    random: loc.random[r][c],
+    primary: layer === loc.primary.layer && strength === loc.primary.strength,
+  }))
+);
+const pct = (v: number) => Math.round(v * 100);
+
+/* ---- fixed jitter for the eight restart "darts" in study 02 ---- */
+const darts = [
+  [0.0, 0.0], [0.9, 0.35], [-0.7, 0.6], [0.3, -0.95],
+  [-0.85, -0.4], [0.55, 0.85], [-0.2, -0.65], [0.95, -0.3],
+];
+
+/* ---- the simulator grid for study 04 ---- */
+const MM_N = 40;
+const MM_K = 12;
 ---
 
 <section class="section research" id="research">
@@ -26,154 +86,442 @@ const also = experience.filter((e) => !e.foldedIntoResearch);
     <span class="kicker">research</span>
     <h2 class="h2 rd-title" data-fade>The <em class="rd-em">Research</em> Desk</h2>
     <p class="rd-lede" data-fade>
-      Two questions I'm chasing at <b>PESU Intelligence Labs</b>: when a RAG system is wrong,
-      <b>which passage caused it</b> — and when a model explains itself, is that
-      <b>introspection or confabulation</b>?
+      I test the tools we use to <b>explain and audit language models</b> against answers that are
+      already known. Three papers under review and one study in progress. Each takes a check the field
+      trusts and measures whether it <b>measures what it claims to</b>.
     </p>
   </div>
 
   <div class="rd-sheet">
     <div class="rd-folio">
       <span>VOL. PES1UG24CS127 · <b>THE RESEARCH DESK</b></span>
-      <span class="rd-folio-c">{research.length} STUDIES</span>
+      <span class="rd-folio-c">{research.length} STUDIES · 3 UNDER REVIEW</span>
       <span>BENGALURU · 2026</span>
     </div>
 
-    <!-- ================= LEAD STUDY ================= -->
-    <article class="rd-lead">
-      <div class="rd-kicker">▶ STUDY No.{lead.no} · {lead.kicker}</div>
-      <h3 class="rd-headline">{lead.headline}</h3>
-      <p class="rd-deck">{lead.deck}</p>
-      <div class="rd-byline">
-        <span class="rd-stamp">{lead.name}</span>
-        <span>Santosh Cheethirala · PESU Intelligence Labs</span>
-        <span class="rd-stamp rd-stamp--dev">{lead.status}</span>
-        {lead.links?.github && (
-          <a class="rd-src" href={lead.links.github} target="_blank" rel="noopener">SOURCE ↗</a>
-        )}
+    <!-- ================= CORRECTIONS ================= -->
+    <aside class="rd-corr" aria-label="Corrections and clarifications">
+      <div class="rd-corr-h">
+        <span class="rd-corr-t">Corrections <i>&amp;</i> Clarifications</span>
+        <span class="rd-corr-s">What the field’s checks reported, and what measurement found</span>
       </div>
+      <ol class="rd-corr-list">
+        {corrections.map((c, i) => (
+          <li class={c.pending ? 'is-pending' : ''}>
+            <span class="rd-corr-n">{String(i + 1).padStart(2, '0')} · {c.desk}</span>
+            <p>{c.text}</p>
+          </li>
+        ))}
+      </ol>
+    </aside>
 
-      <!-- ============ THE CONSOLE ============ -->
-      <section class="rd-console" data-console aria-label="Leave-one-out attribution console">
-        <div class="rd-c-head">
-          <span>▶ THE LINEUP — <span class="lime">LEAVE-ONE-OUT ORACLE</span></span>
-          <span class="rd-c-q">QUERIES: <span class="lime" data-qc>1</span> · REMOVED: <span class="lime" data-rc>0</span></span>
+    <!-- ================= STUDY 01 — LEAD ================= -->
+    {culprit && (
+      <article class="rd-lead" id="study-culprit">
+        <div class="rd-kicker">▶ STUDY No.{culprit.no} · {culprit.kicker}</div>
+        <h3 class="rd-headline">{culprit.headline}</h3>
+        <p class="rd-deck">{culprit.deck}</p>
+        <div class="rd-byline">
+          <span class="rd-stamp">{culprit.name}</span>
+          <span>{culprit.byline}</span>
+          <span class="rd-stamp rd-stamp--dev">{culprit.status}</span>
         </div>
+        <p class="rd-paper">PAPER · <i>{culprit.title}</i></p>
 
-        <div class="rd-c-task">
-          <p class="rd-c-question">
-            <b>Q:</b> {scenario.question}<br />
-            <span class="dim">GOLD ANSWER: <b class="ok">{scenario.gold}</b> · {scenario.chunks.length} retrieved passages in context</span>
-          </p>
-          <div class="rd-c-ans is-wrong" data-ansbox>
-            <span class="lab">MODEL ANSWER</span>
-            <span class="val" data-ansval>{scenario.wrong}</span>
-            <span class="tag" data-anstag>✗ WRONG</span>
-          </div>
-        </div>
+        {culprit.results && (
+          <section class="rd-console" data-culprit aria-label="Subset lattice console">
+            <div class="rd-c-head">
+              <span>▶ THE LINEUP · <span class="lime">EVERY SUBSET, QUERIED</span></span>
+              <span class="rd-c-q">
+                IN CONTEXT: <span class="lime" data-incount>0</span>/6 · MINIMAL SETS FOUND:
+                <span class="lime" data-found>0</span>/{culpritCase.minimal.length}
+              </span>
+            </div>
 
-        <div class="rd-stage">
-          <div class="rd-rules" aria-hidden="true"></div>
-          <div class="rd-lineup" data-lineup>
-            {scenario.chunks.map((c) => (
-              <button
-                class="rd-chunk"
-                type="button"
-                data-chunk
-                data-id={c.id}
-                data-asserts={c.assertsWrong ? '1' : '0'}
-                data-gold={c.isGold ? '1' : '0'}
-                aria-pressed="false"
-                aria-label={`Remove passage ${c.id} from context`}
-              >
-                <span class={`rd-badge rd-badge--${c.role}`}>{c.badge}</span>
-                <span class="rd-cid">{c.id}</span>
-                <span class="rd-ctext">{c.text}</span>
-                <span class="rd-sal">
-                  <span class="rd-sal-l">APPARENT SALIENCE</span>
-                  <span class="rd-sal-b"><i style={`width:${c.salience}%`}></i></span>
+            <div class="rd-c-task">
+              <p class="rd-c-question">
+                <b>Q:</b> {culpritCase.question}<br />
+                <span class="dim">
+                  GOLD: <b class="ok">{culpritCase.gold}</b> · FULL-CONTEXT ANSWER:
+                  <b class="bad">{culpritCase.wrong}</b> · {culpritCase.dataset} · {culpritCase.model}
                 </span>
-              </button>
-            ))}
+              </p>
+              <div class="rd-c-ans is-none" data-ansbox>
+                <span class="lab">MODEL ANSWER, FROM THIS CONTEXT</span>
+                <span class="val" data-ansval>—</span>
+                <span class="tag" data-anstag>NO CONTEXT</span>
+              </div>
+            </div>
+
+            <div class="rd-stage">
+              <div class="rd-lineup" data-lineup>
+                {culpritCase.passages.map((p) => (
+                  <button
+                    class={`rd-chunk${p.gold ? ' is-gold' : ''}`}
+                    type="button"
+                    data-chunk={p.id}
+                    aria-pressed="false"
+                    aria-label={`Passage ${p.id}: ${p.label}. Add to context`}
+                  >
+                    <span class="rd-cid">PASSAGE {p.id}{p.gold && <b class="rd-goldtag">GOLD</b>}</span>
+                    <span class="rd-ctext">{p.label}</span>
+                    <span class="rd-cact" aria-hidden="true"><span class="add">+ ADD</span><span class="rm">− REMOVE</span></span>
+                  </button>
+                ))}
+              </div>
+              <p class="rd-stage-cap">
+                BUILD A CONTEXT · FIND THE SMALLEST SETS THAT MAKE THE MODEL REPEAT “{culpritCase.wrong.toUpperCase()}”
+              </p>
+            </div>
+
+            <div class="rd-lattice-wrap">
+              <svg class="rd-lattice" viewBox={`0 0 ${LW} 362`} role="img" aria-label="Subset lattice: every queried subset of the six passages">
+                {rowY.map((y, k) => (
+                  <text class="rd-lt-row" x="6" y={y + 4}>SIZE {k}</text>
+                ))}
+                <text class="rd-lt-row" x="6" y={fullNode.y + 4}>SIZE 6</text>
+                <line class="rd-lt-gap" x1="70" y1="288" x2={LW - 10} y2="288" />
+                <text class="rd-lt-gapt" x={LW / 2} y="284" text-anchor="middle">SIZES 4–5 NOT QUERIED IN THIS RUN</text>
+                {edges.map((e) => (
+                  <line class="rd-lt-edge" data-edge={`${e.a}-${e.b}`} x1={e.A.x} y1={e.A.y} x2={e.B.x} y2={e.B.y} />
+                ))}
+                {[...nodes, fullNode].map((n) => (
+                  <g
+                    class={`rd-lt-node${suff.has(n.id) ? ' is-suff' : ''}${mins.has(n.id) ? ' is-minset' : ''}${n.size === 6 ? ' is-full' : ''}`}
+                    data-node={n.id}
+                  >
+                    <circle cx={n.x} cy={n.y} r={n.size === 6 ? 24 : n.size === 3 ? 17 : 19} />
+                    <text x={n.x} y={n.y + 3.5} text-anchor="middle">{n.key}</text>
+                  </g>
+                ))}
+              </svg>
+              <div class="rd-lt-key" aria-hidden="true">
+                <span><i class="k-suff"></i>REPEATS THE ERROR</span>
+                <span><i class="k-no"></i>DOES NOT</span>
+                <span><i class="k-min"></i>MINIMAL SUFFICIENT SET</span>
+                <span><i class="k-edge"></i>VIOLATION: ADDING A PASSAGE BREAKS IT</span>
+                <span><i class="k-cur"></i>YOUR CONTEXT</span>
+              </div>
+            </div>
+
+            <div class="rd-verdict">
+              <p class="rd-v-txt" data-verdict aria-live="polite"></p>
+              <div class="rd-v-btns">
+                <button class="rd-btn" type="button" data-full>Full context</button>
+                <button class="rd-btn" type="button" data-reveal>Fill the lattice</button>
+                <button class="rd-btn rd-btn--pri" type="button" data-reset>Reset</button>
+              </div>
+            </div>
+
+            <p class="rd-honest">
+              <b>Real data.</b> This is Figure 1 of the paper: one HotpotQA error by {culpritCase.model}, first
+              run, subsets up to three passages plus the full context. Passage texts are summarised, and
+              answers are shown only where the paper states them.
+            </p>
+          </section>
+        )}
+
+        <div class="rd-body">
+          <div class="rd-flow">
+            {culprit.body.map((p, i) => <p class={i === 0 ? 'has-dropcap' : ''} set:html={p} />)}
           </div>
-          <p class="rd-stage-cap">CLICK A PASSAGE TO REMOVE IT · CLICK AGAIN TO RESTORE · THE MODEL RE-ANSWERS EACH TIME</p>
+          <aside class="rd-side">
+            {culprit.results && culprit.figures && (
+              <div class="rd-box">
+                <div class="rd-box-head">// THE FINDING</div>
+                {culprit.figures.map((f) => (
+                  <div class="rd-stat">
+                    <div class="rd-stat-v">{f.v}{f.note && <span class="ci">{f.note}</span>}</div>
+                    <div class="rd-stat-l" set:html={f.l} />
+                  </div>
+                ))}
+                {culprit.source && <div class="rd-srcline">{culprit.source}</div>}
+              </div>
+            )}
+          </aside>
         </div>
 
-        <div class="rd-verdict">
-          <p class="rd-v-txt" data-verdict aria-live="polite">Pick the passage you think caused the wrong answer.</p>
-          <div class="rd-v-btns">
-            <button class="rd-btn" type="button" data-reveal>Reveal true roles</button>
-            <button class="rd-btn rd-btn--pri" type="button" data-reset>Reset</button>
-          </div>
-        </div>
-
-        <p class="rd-honest">
-          <b>Worked example.</b> The mechanism shown — exact leave-one-out over the retrieved set — is the
-          benchmark's real oracle. This particular scenario is hand-built for legibility. The figures below
-          are from the paper.
-        </p>
-      </section>
-
-      <div class="rd-body">
-        <div class="rd-flow">
-          {lead.body.map((p, i) => (
-            <p class={i === 0 ? 'has-dropcap' : ''} set:html={p} />
-          ))}
-        </div>
-
-        <aside class="rd-side">
-          {lead.results && lead.figures && (
-            <div class="rd-box">
-              <div class="rd-box-head">// THE FINDING</div>
-              {lead.figures.map((f) => (
-                <div class="rd-stat">
-                  <div class="rd-stat-v">{f.v}{f.note && <span class="ci">{f.note}</span>}</div>
-                  <div class="rd-stat-l" set:html={f.l} />
+        {culprit.results && (
+          <div class="rd-jobs">
+            <div class="rd-jobs-h">
+              <span class="rd-jobs-t">Three jobs, three verdicts</span>
+              <span class="rd-jobs-s">Scoring a method on its top pick only tests the first job</span>
+            </div>
+            <div class="rd-jobs-row">
+              {attributionJobs.map((j, i) => (
+                <div class="rd-job">
+                  <div class="rd-job-top">
+                    <span class="rd-job-n">JOB {i + 1}</span>
+                    <span class={`rd-verd rd-verd--${j.verdict.toLowerCase()}`}>{j.verdict}</span>
+                  </div>
+                  <div class="rd-job-name">{j.job}</div>
+                  {[j.a, j.b].map((x, xi) => (
+                    <div class={`rd-jbar${xi === 1 ? ' is-base' : ''}`}>
+                      <div class="rd-jbar-t"><b>{x.v}%</b> {x.l}</div>
+                      <div class="rd-jbar-b"><i style={`width:${x.v}%`}></i></div>
+                    </div>
+                  ))}
                 </div>
               ))}
-              {lead.source && <div class="rd-srcline">{lead.source}</div>}
+            </div>
+          </div>
+        )}
+      </article>
+    )}
+
+    <!-- ================= STUDIES 02 + 03 ================= -->
+    <div class="rd-row2">
+      {precise && (
+        <article class="rd-sub" id="study-precise">
+          <div class="rd-kicker">▶ STUDY No.{precise.no} · {precise.kicker}</div>
+          <h3 class="rd-sub-head">{precise.headline}</h3>
+          <p class="rd-sub-deck">{precise.deck}</p>
+          <div class="rd-byline rd-byline--tight">
+            <span class="rd-stamp">{precise.name}</span>
+            <span class="rd-stamp rd-stamp--dev">{precise.status}</span>
+          </div>
+          <p class="rd-paper">PAPER · <i>{precise.title}</i></p>
+
+          {precise.results && (
+            <section class="rd-bench" data-precise aria-label="Precision versus trueness bench">
+              <div class="rd-c-head">
+                <span>▶ THE BENCH · <span class="lime">SHRINK ONE NORM GAIN</span></span>
+                <span class="rd-c-q" data-pt-mode>STANDARDISED</span>
+              </div>
+              <div class="rd-pt">
+                <svg class="rd-board" viewBox="-110 -110 220 220" role="img" aria-label="Target: eight restarts of the fit against the true weights">
+                  {[100, 75, 50, 25].map((r) => <circle class="ring" r={r} />)}
+                  <circle class="bull" r="9" />
+                  <line class="cross" x1="-104" y1="0" x2="104" y2="0" />
+                  <line class="cross" x1="0" y1="-104" x2="0" y2="104" />
+                  <text class="bull-t" x="0" y="24" text-anchor="middle">TRUE WEIGHTS</text>
+                  {darts.map(([dx, dy]) => (
+                    <circle class="dart" r="5.5" data-dart data-dx={dx} data-dy={dy} cx="0" cy="0" />
+                  ))}
+                </svg>
+                <dl class="rd-checks">
+                  <div class="rd-check">
+                    <dt>Test accuracy</dt>
+                    <dd><span data-pt-acc>0.998</span><b class="pass" data-pt-acc-v>PASS</b></dd>
+                  </div>
+                  <div class="rd-check">
+                    <dt>Restart agreement</dt>
+                    <dd><span data-pt-agr>0.995</span><b class="pass" data-pt-agr-v>PASS</b></dd>
+                  </div>
+                  <div class="rd-check rd-check--bar">
+                    <dt>Share on one near-constant coordinate</dt>
+                    <dd><span data-pt-share>0.0%</span><span class="rd-sharebar"><i data-pt-sharebar></i></span></dd>
+                  </div>
+                  <div class="rd-check rd-check--truth">
+                    <dt>Alignment with the true weights</dt>
+                    <dd><span data-pt-aln>0.995</span><b class="pass" data-pt-aln-v>TRUE</b></dd>
+                  </div>
+                </dl>
+              </div>
+              <div class="rd-pt-ctl">
+                <label class="rd-pt-l" for="rd-gain">
+                  GAIN MULTIPLIER <b data-pt-c>c = 1</b>
+                </label>
+                <input id="rd-gain" class="rd-range" type="range" min="0" max="50" step="1" value="0" data-pt-range aria-describedby="rd-gain-cap" />
+                <div class="rd-pt-ticks" aria-hidden="true"><span>1</span><span>10⁻¹</span><span>10⁻²</span><span>10⁻³</span><span>10⁻⁴</span><span>10⁻⁵</span></div>
+                <button class="rd-btn rd-btn--ink" type="button" data-pt-std aria-pressed="true">Standardise coordinates: ON</button>
+              </div>
+              <p class="rd-verdict-s" data-pt-verdict aria-live="polite"></p>
+              <p class="rd-honest" id="rd-gain-cap">
+                <b>Illustrative.</b> The share follows the paper’s Proposition 1 (odds grow as 1/c²), pinned to its
+                gain intervention: half the direction is on the coordinate at c = 10⁻², at least 0.999 at
+                10⁻⁵, and below 0.006 at every dose without standardisation. A fit fails when alignment is
+                below 0.95.
+              </p>
+            </section>
+          )}
+
+          {precise.body.map((p) => <p class="rd-sub-p" set:html={p} />)}
+
+          {precise.results && precise.figures && (
+            <div class="rd-minis">
+              {precise.figures.map((f) => (
+                <div class="rd-mini">
+                  <div class="rd-mini-v">{f.v}</div>
+                  <div class="rd-mini-l" set:html={f.l} />
+                </div>
+              ))}
             </div>
           )}
-        </aside>
-      </div>
-    </article>
-
-    <!-- ================= SECONDARY STUDIES ================= -->
-    <div class="rd-row2">
-      {rest.map((s) => (
-        <article class="rd-sub">
-          <div class="rd-kicker">▶ STUDY No.{s.no} · {s.kicker}</div>
-          <h3 class="rd-sub-head">{s.headline}</h3>
-          <p class="rd-sub-deck">{s.deck}</p>
-          {s.body.map((p) => <p class="rd-sub-p" set:html={p} />)}
-
-          {s.id === 'dragnet' && (
-            <figure class="rd-minifig">
-              <div class="rd-setbars" aria-hidden="true">
-                <i class="gone" style="height:40%"></i><i class="on" style="height:78%"></i>
-                <i class="gone" style="height:30%"></i><i class="on" style="height:64%"></i>
-                <i class="gone" style="height:52%"></i><i class="gone" style="height:35%"></i>
-              </div>
-              <figcaption class="rd-mini-cap">SCHEMATIC — candidate set pruned to the minimal sufficient pair</figcaption>
-            </figure>
-          )}
-          {s.id === 'mirror' && (
-            <figure class="rd-minifig">
-              <div class="rd-kl" aria-hidden="true"><span></span></div>
-              <figcaption class="rd-mini-cap">
-                SCHEMATIC — injection strength vs. KL divergence.
-                <b class="warn">No results published — study in progress.</b>
-              </figcaption>
-            </figure>
-          )}
-
-          <div class="rd-byline rd-byline--tight">
-            <span class="rd-stamp">{s.name}</span>
-            <span class="rd-stamp rd-stamp--dev">{s.status}</span>
-          </div>
+          {precise.source && <div class="rd-srcline rd-srcline--flat">{precise.source}</div>}
         </article>
-      ))}
+      )}
+
+      {instrument && (
+        <article class="rd-sub" id="study-instrument">
+          <div class="rd-kicker">▶ STUDY No.{instrument.no} · {instrument.kicker}</div>
+          <h3 class="rd-sub-head">{instrument.headline}</h3>
+          <p class="rd-sub-deck">{instrument.deck}</p>
+          <div class="rd-byline rd-byline--tight">
+            <span class="rd-stamp">{instrument.name}</span>
+            <span class="rd-stamp rd-stamp--dev">{instrument.status}</span>
+          </div>
+          <p class="rd-paper">PAPER · <i>{instrument.title}</i></p>
+
+          {instrument.results && (
+            <section class="rd-bench" data-instrument aria-label="Concept-injection instrument audit">
+              <div class="rd-c-head">
+                <span>▶ THE AUDIT · <span class="lime">THREE ASSUMPTIONS</span></span>
+                <span class="rd-c-q">NO REGIME HELD ALL THREE</span>
+              </div>
+              <div class="rd-gauges">
+                {instrumentChecks.map((c) => (
+                  <div class="rd-gauge">
+                    <div class="rd-gauge-top">
+                      <span class="rd-gauge-k">{c.k}</span>
+                      <span class="rd-gauge-x">✗ BREAKS</span>
+                    </div>
+                    <div class="rd-gauge-q">{c.q}</div>
+                    <div class="rd-gauge-v">{c.v}</div>
+                    <div class="rd-gauge-f">{c.fail}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div class="rd-heat-wrap">
+                <div class="rd-heat-h">
+                  <span>WHICH SENTENCE WAS INJECTED? · LLAMA-3.1-8B · 10 OPTIONS, CHANCE 10%</span>
+                  <div class="rd-seg" role="group" aria-label="Show accuracy for">
+                    <button type="button" class="is-on" data-heat-mode="real" aria-pressed="true">Concept vector</button>
+                    <button type="button" data-heat-mode="random" aria-pressed="false">Random, same norm</button>
+                    <button type="button" data-heat-mode="gap" aria-pressed="false">Difference</button>
+                  </div>
+                </div>
+                <div class="rd-heat" style={`--cols:${loc.strengths.length}`}>
+                  <span class="rd-heat-corner">LAYER ↓ · STRENGTH →</span>
+                  {loc.strengths.map((s) => <span class="rd-heat-col">α {s}</span>)}
+                  {loc.layers.map((layer) => (
+                    <>
+                      <span class="rd-heat-row">L{layer}</span>
+                      {locCells
+                        .filter((c) => c.layer === layer)
+                        .map((c) => (
+                          <span
+                            class={`rd-cell${c.primary ? ' is-primary' : ''}`}
+                            data-cell
+                            data-real={c.real}
+                            data-random={c.random}
+                            style={`--v:${c.real}`}
+                          >
+                            <b data-cell-v>{pct(c.real)}%</b>
+                            {c.primary && <em>FILED</em>}
+                          </span>
+                        ))}
+                    </>
+                  ))}
+                </div>
+                <p class="rd-verdict-s rd-verdict-s--light" data-heat-verdict aria-live="polite">
+                  The concept vector looks like it works: <b>97%</b> in the filed cell. Now switch to random vectors.
+                </p>
+              </div>
+              <p class="rd-honest">
+                <b>Real data.</b> Table 2 of the paper: 600 trials per cell and arm. “Random” is a direction of the
+                same norm carrying no concept.
+              </p>
+            </section>
+          )}
+
+          {instrument.body.map((p) => <p class="rd-sub-p" set:html={p} />)}
+          {instrument.source && <div class="rd-srcline rd-srcline--flat">{instrument.source}</div>}
+        </article>
+      )}
     </div>
+
+    <!-- ================= STUDY 04 — WORK IN PROGRESS ================= -->
+    {mm && (
+      <article class="rd-band" id="study-missingmass">
+        <div class="rd-band-text">
+          <div class="rd-kicker rd-kicker--lime">▶ STUDY No.{mm.no} · {mm.kicker}</div>
+          <h3 class="rd-band-head">{mm.headline}</h3>
+          <p class="rd-band-deck">{mm.deck}</p>
+          <div class="rd-byline rd-byline--tight rd-byline--ink">
+            <span class="rd-stamp rd-stamp--lime">{mm.name}</span>
+            <span>{mm.byline}</span>
+            <span class="rd-stamp rd-stamp--cream">{mm.status}</span>
+            {mm.links?.github && (
+              <a class="rd-src rd-src--lime" href={mm.links.github} target="_blank" rel="noopener">SOURCE ↗</a>
+            )}
+          </div>
+          {mm.body.map((p) => <p class="rd-band-p" set:html={p} />)}
+          {mm.results && mm.figures && (
+            <div class="rd-minis rd-minis--ink">
+              {mm.figures.map((f) => (
+                <div class="rd-mini">
+                  <div class="rd-mini-v">{f.v}</div>
+                  <div class="rd-mini-l" set:html={f.l} />
+                </div>
+              ))}
+            </div>
+          )}
+          {mm.source && <div class="rd-srcline rd-srcline--ink">{mm.source}</div>}
+        </div>
+
+        {mm.results && (
+          <section class="rd-sim" data-mm aria-label="Capture–recapture simulator">
+            <div class="rd-c-head rd-c-head--lime">
+              <span>▶ THE SIMULATOR · <span class="ink">{MM_N} PLANTED FAILURE MODES</span></span>
+              <span class="rd-c-q">SOME ARE MUCH HARDER TO FIND</span>
+            </div>
+            <div class="rd-sim-body">
+              <div class="rd-sim-grid" style={`--n:${MM_N}`} aria-hidden="true">
+                <span class="rd-sim-lab">FOUND BY</span>
+                {Array.from({ length: MM_N }, (_, i) => <span class="rd-sim-freq" data-mm-freq={i}></span>)}
+                {Array.from({ length: MM_K }, (_, r) => (
+                  <>
+                    <span class="rd-sim-lab" data-mm-runlab={r}>RUN {r + 1}</span>
+                    {Array.from({ length: MM_N }, (_, i) => <span class="rd-sim-c" data-mm-c={`${r}-${i}`}></span>)}
+                  </>
+                ))}
+                <span class="rd-sim-lab">FINDABILITY</span>
+                {Array.from({ length: MM_N }, (_, i) => <span class="rd-sim-p" data-mm-p={i}><i></i></span>)}
+              </div>
+
+              <div class="rd-sim-read">
+                <div class="rd-sim-stat">
+                  <span class="k">RUNS</span><span class="v" data-mm-k>0</span>
+                </div>
+                <div class="rd-sim-stat">
+                  <span class="k">FAILURE MODES FOUND</span><span class="v" data-mm-s>0</span>
+                </div>
+                <div class="rd-sim-stat">
+                  <span class="k">FOUND BY ONE RUN ONLY</span><span class="v" data-mm-q1>0</span>
+                </div>
+                <div class="rd-sim-meter">
+                  <div class="k">COVERAGE · ESTIMATED <b data-mm-chat>—</b> · TRUE <b data-mm-ctrue>—</b></div>
+                  <div class="rd-meter"><i class="est" data-mm-cbar></i><i class="tru" data-mm-tbar></i></div>
+                </div>
+                <div class="rd-sim-meter">
+                  <div class="k">HOW MANY EXIST · LOWER BOUND <b data-mm-chao>—</b> · TRUE <b data-mm-ntrue>{MM_N}</b></div>
+                  <div class="rd-meter"><i class="est" data-mm-nbar></i><i class="tru" style="left:100%"></i></div>
+                </div>
+                <div class="rd-sim-meter">
+                  <div class="k">NEW FINDS FROM <span data-mm-m>K</span> MORE RUNS · PREDICTED <b data-mm-dhat>—</b> · EXPECTED <b data-mm-dtrue>—</b></div>
+                </div>
+              </div>
+            </div>
+            <div class="rd-verdict rd-verdict--lime">
+              <p class="rd-v-txt" data-mm-verdict aria-live="polite">Run the audit. Each run finds each failure mode with its own probability.</p>
+              <div class="rd-v-btns">
+                <button class="rd-btn rd-btn--lime" type="button" data-mm-run>Run an audit</button>
+                <button class="rd-btn" type="button" data-mm-run5>+5 runs</button>
+                <button class="rd-btn" type="button" data-mm-reveal aria-pressed="false">Show what was missed</button>
+                <button class="rd-btn" type="button" data-mm-new>New model</button>
+              </div>
+            </div>
+            <p class="rd-honest rd-honest--ink">
+              <b>Simulated in your browser.</b> These are toy numbers, not the study’s results. It uses the same
+              estimators as the repo’s library: Chao–Jost coverage, bias-corrected Chao2 as a lower bound, and
+              the Chao et al. extrapolation for new finds.
+            </p>
+          </section>
+        )}
+      </article>
+    )}
 
     <!-- ================= ALSO ON THE RECORD ================= -->
     {also.length > 0 && (
@@ -189,6 +537,8 @@ const also = experience.filter((e) => !e.foldedIntoResearch);
       </div>
     )}
   </div>
+
+  <script type="application/json" id="rd-culprit-data" set:html={JSON.stringify(culpritCase)} />
 </section>
 
 <style>
@@ -240,7 +590,7 @@ const also = experience.filter((e) => !e.foldedIntoResearch);
   .rd-em { font-style: normal; color: transparent; -webkit-text-stroke: 2px #fff; }
   .rd-lede {
     margin: 16px 0 0;
-    max-width: 64ch;
+    max-width: 66ch;
     font-family: var(--fm);
     font-size: 12.5px;
     letter-spacing: 0.04em;
@@ -271,11 +621,36 @@ const also = experience.filter((e) => !e.foldedIntoResearch);
   .rd-folio b { color: var(--bink); font-weight: 700; }
   .rd-folio-c { color: var(--bred); font-weight: 700; }
 
+  /* ============================================================ CORRECTIONS */
+  .rd-corr {
+    border: 2px solid var(--bink);
+    background: var(--bcream2);
+    margin-bottom: 26px;
+  }
+  .rd-corr-h {
+    display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 16px;
+    padding: 8px 12px; border-bottom: 2px solid var(--bink); background: var(--bink); color: var(--bcream);
+  }
+  .rd-corr-t { font-family: var(--fd); font-size: 1.25rem; text-transform: uppercase; letter-spacing: 0.03em; }
+  .rd-corr-t i { font-family: var(--fi); font-style: italic; text-transform: none; color: var(--blime); }
+  .rd-corr-s { font-family: var(--fm); font-size: 8.5px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(247, 245, 241, 0.6); }
+  .rd-corr-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); }
+  .rd-corr-list li { padding: 11px 12px 13px; }
+  .rd-corr-list li + li { border-left: 1px solid rgba(20, 20, 20, 0.25); }
+  .rd-corr-n {
+    display: block; font-family: var(--fm); font-size: 8.5px; font-weight: 700;
+    letter-spacing: 0.16em; text-transform: uppercase; color: var(--bred); margin-bottom: 5px;
+  }
+  .rd-corr-list p { margin: 0; font-size: 0.98rem; line-height: 1.38; }
+  .rd-corr-list li.is-pending p { font-style: italic; color: #4a4640; }
+  .rd-corr-list li.is-pending .rd-corr-n { color: var(--bink); }
+
   /* ---- article furniture ---- */
   .rd-kicker {
     font-family: var(--fm); font-size: 9px; font-weight: 700;
     letter-spacing: 0.2em; text-transform: uppercase; color: var(--bred); margin-bottom: 9px;
   }
+  .rd-kicker--lime { color: var(--blime); }
   .rd-headline {
     font-family: var(--fd); font-weight: 500;
     font-size: clamp(1.8rem, 5vw, 3.8rem); line-height: 0.9;
@@ -283,7 +658,7 @@ const also = experience.filter((e) => !e.foldedIntoResearch);
   }
   .rd-deck {
     font-family: var(--fi); font-style: italic;
-    font-size: clamp(1rem, 1.6vw, 1.25rem); line-height: 1.4; margin-top: 12px; max-width: 64ch;
+    font-size: clamp(1rem, 1.6vw, 1.25rem); line-height: 1.4; margin-top: 12px; max-width: 66ch;
   }
   .rd-byline {
     display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
@@ -292,77 +667,78 @@ const also = experience.filter((e) => !e.foldedIntoResearch);
     letter-spacing: 0.1em; text-transform: uppercase; color: var(--bgray);
   }
   .rd-byline--tight { border-bottom: none; padding-bottom: 0; }
+  .rd-byline--ink { color: rgba(247, 245, 241, 0.6); }
   .rd-stamp {
     background: var(--bred); color: var(--bcream); border: 2px solid var(--bink);
     box-shadow: 2px 2px 0 var(--bink); padding: 3px 7px; letter-spacing: 0.14em;
   }
   .rd-stamp--dev { background: var(--bink); color: var(--blime); }
+  .rd-stamp--lime { background: var(--blime); color: var(--bink); border-color: var(--blime); box-shadow: none; }
+  .rd-stamp--cream { background: transparent; color: var(--bcream); border-color: var(--bcream); box-shadow: none; }
   .rd-src { color: var(--bred); border-bottom: 1px solid currentColor; }
   .rd-src:hover { color: var(--bink); }
+  .rd-src--lime { color: var(--blime); }
+  .rd-src--lime:hover { color: var(--bcream); }
+  .rd-paper {
+    margin: 10px 0 0; font-family: var(--fm); font-size: 9px; letter-spacing: 0.1em;
+    color: var(--bgray); line-height: 1.6;
+  }
+  .rd-paper i { font-family: var(--fi); font-size: 1.32em; letter-spacing: 0; color: var(--bink); }
 
-  /* ============================================================ CONSOLE */
-  .rd-console {
+  /* ============================================================ CONSOLE (shared) */
+  .rd-console, .rd-bench {
     border: 3px solid var(--bink); box-shadow: 8px 8px 0 var(--bink);
     background: var(--bink); margin: 18px 0 0;
   }
   .rd-c-head {
-    display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    display: flex; align-items: center; justify-content: space-between; gap: 6px 12px; flex-wrap: wrap;
     padding: 9px 12px; color: var(--bcream); border-bottom: 3px solid var(--bcream);
     font-family: var(--fm); font-size: 9px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
   }
   .rd-c-head .lime { color: var(--blime); }
   .rd-c-q { color: rgba(247, 245, 241, 0.6); }
+  .rd-c-head--lime { background: var(--blime); color: var(--bink); border-bottom-color: var(--bink); }
+  .rd-c-head--lime .ink { color: var(--bink); }
+  .rd-c-head--lime .rd-c-q { color: rgba(20, 20, 20, 0.6); }
 
   .rd-c-task {
     background: var(--bcream2); padding: 12px; border-bottom: 3px solid var(--bink);
-    display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center;
+    display: grid; grid-template-columns: 1fr minmax(220px, auto); gap: 12px; align-items: center;
   }
   .rd-c-question { font-family: var(--fm); font-size: 10.5px; line-height: 1.65; letter-spacing: 0.02em; margin: 0; }
   .rd-c-question .dim { color: var(--bgray); }
   .rd-c-question .ok { color: var(--bok); }
+  .rd-c-question .bad { color: var(--bred); }
   .rd-c-ans { text-align: right; font-family: var(--fm); display: block; }
   .rd-c-ans .lab { display: block; font-size: 7.5px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--bgray); }
-  .rd-c-ans .val { display: block; font-family: var(--fd); font-size: 2.2rem; line-height: 1; margin-top: 2px; }
+  .rd-c-ans .val { display: block; font-family: var(--fd); font-size: clamp(1.5rem, 2.6vw, 2.2rem); line-height: 1.05; margin-top: 2px; }
   .rd-c-ans .tag { display: block; font-size: 8px; font-weight: 700; letter-spacing: 0.14em; margin-top: 3px; }
   .rd-c-ans.is-wrong .val, .rd-c-ans.is-wrong .tag { color: var(--bred); }
   .rd-c-ans.is-right .val, .rd-c-ans.is-right .tag { color: var(--bok); }
+  .rd-c-ans.is-other .val, .rd-c-ans.is-other .tag { color: var(--bink); }
+  .rd-c-ans.is-none .val, .rd-c-ans.is-none .tag { color: var(--bgray); }
 
-  .rd-stage { position: relative; background: var(--bcream); padding: 20px 12px 12px; border-bottom: 3px solid var(--bink); }
-  .rd-rules {
-    position: absolute; inset: 20px 12px 38px; pointer-events: none;
-    background-image: repeating-linear-gradient(180deg, rgba(20, 20, 20, 0.14) 0 1px, transparent 1px 26px);
-  }
-  .rd-lineup { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .rd-stage { position: relative; background: var(--bcream); padding: 18px 12px 12px; border-bottom: 3px solid var(--bink); }
+  .rd-lineup { position: relative; display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
 
   .rd-chunk {
     position: relative; text-align: left; cursor: pointer; background: var(--bcream2);
     border: 2.5px solid var(--bink); box-shadow: 4px 4px 0 var(--bink); padding: 9px;
-    font: inherit; color: inherit; display: flex; flex-direction: column; gap: 6px; min-height: 132px;
-    transition: transform 0.13s ease, box-shadow 0.13s ease, opacity 0.13s ease;
+    font: inherit; color: inherit; display: flex; flex-direction: column; gap: 6px; min-height: 104px;
+    transition: transform 0.13s ease, box-shadow 0.13s ease, background 0.13s ease;
   }
   .rd-chunk:hover { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--bink); }
   .rd-chunk:focus-visible { outline: 3px solid var(--bred); outline-offset: 2px; }
-  .rd-cid { font-family: var(--fm); font-size: 8px; font-weight: 700; letter-spacing: 0.14em; color: var(--bred); }
-  .rd-ctext { font-family: var(--fi); font-size: 0.86rem; line-height: 1.35; }
-  .rd-sal { margin-top: auto; }
-  .rd-sal-l { display: block; font-family: var(--fm); font-size: 6.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--bgray); }
-  .rd-sal-b { display: block; height: 6px; border: 1.5px solid var(--bink); background: var(--bcream); margin-top: 3px; position: relative; }
-  .rd-sal-b i { position: absolute; inset: 0 auto 0 0; background: var(--bink); display: block; }
-
-  .rd-chunk.is-out { opacity: 0.45; background: repeating-linear-gradient(45deg, var(--bcream2) 0 5px, rgba(20, 20, 20, 0.14) 5px 9px); }
-  .rd-chunk.is-out .rd-ctext { text-decoration: line-through; }
-
-  .rd-badge {
-    position: absolute; top: -11px; right: -9px; z-index: 2;
-    font-family: var(--fm); font-size: 7px; font-weight: 700; letter-spacing: 0.1em;
-    padding: 3px 6px; border: 2px solid var(--bink); box-shadow: 2px 2px 0 var(--bink);
-    background: var(--bink); color: var(--bcream); opacity: 0; transition: opacity 0.18s ease;
-  }
-  .rd-console.is-revealed .rd-badge { opacity: 1; }
-  .rd-badge--causal { background: var(--bred); color: var(--bcream); }
-  .rd-badge--misleading { background: var(--blime); color: var(--bink); }
-  .rd-badge--gold { background: var(--bok); color: #fff; }
-  .rd-badge--inert { background: var(--bgray); color: var(--bink); }
+  .rd-cid { font-family: var(--fm); font-size: 8px; font-weight: 700; letter-spacing: 0.14em; color: var(--bred); display: flex; gap: 6px; align-items: center; }
+  .rd-goldtag { background: var(--bok); color: #fff; padding: 1px 4px; font-size: 6.5px; letter-spacing: 0.14em; }
+  .rd-ctext { font-family: var(--fi); font-size: 0.95rem; line-height: 1.3; }
+  .rd-cact { margin-top: auto; font-family: var(--fm); font-size: 7.5px; font-weight: 700; letter-spacing: 0.14em; color: var(--bgray); }
+  .rd-cact .rm { display: none; }
+  .rd-chunk.is-in { background: var(--bink); color: var(--bcream); transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--bred); }
+  .rd-chunk.is-in .rd-cid { color: var(--blime); }
+  .rd-chunk.is-in .rd-cact { color: var(--blime); }
+  .rd-chunk.is-in .rd-cact .add { display: none; }
+  .rd-chunk.is-in .rd-cact .rm { display: inline; }
 
   .rd-stage-cap {
     position: relative; margin: 12px 0 0;
@@ -370,8 +746,36 @@ const also = experience.filter((e) => !e.foldedIntoResearch);
     letter-spacing: 0.12em; text-transform: uppercase; color: var(--bgray);
   }
 
+  /* ---- the lattice ---- */
+  .rd-lattice-wrap { background: var(--bcream); border-bottom: 3px solid var(--bink); padding: 10px 12px 12px; }
+  .rd-lattice { display: block; width: 100%; height: auto; }
+  .rd-lt-row { font-family: var(--fm); font-size: 10px; font-weight: 700; letter-spacing: 0.12em; fill: var(--bgray); }
+  .rd-lt-gap { stroke: var(--bgray); stroke-width: 1; stroke-dasharray: 3 5; }
+  .rd-lt-gapt { font-family: var(--fm); font-size: 9px; font-weight: 700; letter-spacing: 0.14em; fill: var(--bgray); }
+  .rd-lt-edge { stroke: var(--bred); stroke-width: 2.5; opacity: 0; transition: opacity 0.2s ease; }
+  .rd-lt-edge.is-on { opacity: 1; }
+  .rd-lt-node circle { fill: var(--bcream); stroke: rgba(20, 20, 20, 0.28); stroke-width: 1.5; stroke-dasharray: 2 3; transition: fill 0.15s ease, stroke 0.15s ease; }
+  .rd-lt-node text { font-family: var(--fm); font-size: 10px; font-weight: 700; fill: rgba(20, 20, 20, 0.35); }
+  .rd-lt-node.is-full text { font-size: 9.5px; }
+  .rd-lt-node.is-seen circle { stroke: var(--bink); stroke-dasharray: none; fill: #fff; }
+  .rd-lt-node.is-seen text { fill: var(--bink); }
+  .rd-lt-node.is-seen.is-suff circle { fill: var(--bred); stroke: var(--bink); }
+  .rd-lt-node.is-seen.is-suff text { fill: #fff; }
+  .rd-lt-node.is-seen.is-minset circle { stroke-width: 5; }
+  .rd-lt-node.is-cur circle { stroke: var(--blime); stroke-width: 7; stroke-dasharray: none; paint-order: stroke; }
+  .rd-lt-node.is-cur.is-seen.is-minset circle { stroke: var(--blime); }
+
+  .rd-lt-key { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 6px; font-family: var(--fm); font-size: 7.5px; font-weight: 700; letter-spacing: 0.12em; color: var(--bgray); }
+  .rd-lt-key span { display: inline-flex; align-items: center; gap: 6px; }
+  .rd-lt-key i { display: inline-block; width: 11px; height: 11px; border-radius: 50%; border: 1.5px solid var(--bink); }
+  .rd-lt-key .k-suff { background: var(--bred); }
+  .rd-lt-key .k-no { background: #fff; }
+  .rd-lt-key .k-min { background: var(--bred); border-width: 3.5px; }
+  .rd-lt-key .k-edge { width: 18px; height: 0; border-radius: 0; border: none; border-top: 2.5px solid var(--bred); }
+  .rd-lt-key .k-cur { background: var(--bcream); border: 3.5px solid var(--blime); }
+
   .rd-verdict { background: var(--bink); color: var(--bcream); padding: 12px; display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; }
-  .rd-v-txt { font-family: var(--fm); font-size: 10px; line-height: 1.6; letter-spacing: 0.03em; margin: 0; }
+  .rd-v-txt { font-family: var(--fm); font-size: 10px; line-height: 1.65; letter-spacing: 0.03em; margin: 0; min-height: 3.3em; }
   .rd-v-txt b { color: var(--blime); }
   .rd-v-txt .warn { color: var(--bred2); font-weight: 700; }
   .rd-v-btns { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -381,8 +785,13 @@ const also = experience.filter((e) => !e.foldedIntoResearch);
     cursor: pointer; transition: background 0.12s, color 0.12s;
   }
   .rd-btn:hover { background: var(--bcream); color: var(--bink); }
+  .rd-btn:focus-visible { outline: 3px solid var(--blime); outline-offset: 2px; }
   .rd-btn--pri { background: var(--bred); border-color: var(--bred); }
   .rd-btn--pri:hover { background: var(--bred2); color: var(--bcream); }
+  .rd-btn--lime { background: var(--blime); border-color: var(--blime); color: var(--bink); }
+  .rd-btn--lime:hover { background: var(--bcream); border-color: var(--bcream); }
+  .rd-btn--ink { color: var(--bcream); border-color: var(--bcream); }
+  .rd-btn--ink[aria-pressed='false'] { color: var(--blime); border-color: var(--blime); }
 
   .rd-honest {
     margin: 0; font-family: var(--fm); font-size: 7.5px; letter-spacing: 0.1em;
@@ -390,11 +799,13 @@ const also = experience.filter((e) => !e.foldedIntoResearch);
     background: var(--bcream2); border-top: 2px dashed rgba(20, 20, 20, 0.35); line-height: 1.6;
   }
   .rd-honest b { color: var(--bink); }
+  .rd-honest--ink { background: #1f1f1f; border-top-color: rgba(247, 245, 241, 0.25); color: rgba(247, 245, 241, 0.55); }
+  .rd-honest--ink b { color: var(--blime); }
 
   /* ---- lead body + sidebar ---- */
-  .rd-body { display: grid; grid-template-columns: 1fr minmax(260px, 330px); gap: 0 clamp(20px, 2.6vw, 40px); padding-top: 18px; }
+  .rd-body { display: grid; grid-template-columns: 1fr minmax(260px, 330px); gap: 0 clamp(20px, 2.6vw, 40px); padding-top: 22px; }
   .rd-flow { padding-right: clamp(16px, 2vw, 26px); border-right: 1px solid var(--bink); }
-  .rd-flow p { font-size: 1.02rem; line-height: 1.75; text-align: justify; margin: 0 0 0.9em; }
+  .rd-flow p { font-size: 1.04rem; line-height: 1.72; text-align: justify; hyphens: auto; margin: 0 0 0.9em; }
   .rd-flow p.has-dropcap::first-letter {
     font-family: var(--fd); font-size: 3.4em; line-height: 0.75; float: left; margin: 5px 8px -2px 0;
   }
@@ -407,38 +818,172 @@ const also = experience.filter((e) => !e.foldedIntoResearch);
   .rd-stat { padding: 12px 10px; border-bottom: 1px solid rgba(20, 20, 20, 0.18); }
   .rd-stat:last-of-type { border-bottom: none; }
   .rd-stat-v { font-family: var(--fd); font-size: 2.1rem; line-height: 1; color: var(--bred); }
-  .rd-stat-v .ci { font-family: var(--fm); font-size: 0.32em; color: var(--bgray); letter-spacing: 0.04em; margin-left: 6px; }
+  .rd-stat-v .ci { font-family: var(--fm); font-size: 0.3em; color: var(--bgray); letter-spacing: 0.04em; margin-left: 6px; }
   .rd-stat-l { font-family: var(--fm); font-size: 8.5px; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1.55; margin-top: 6px; }
   .rd-stat-l b { color: var(--bink); font-weight: 700; }
   .rd-srcline {
     font-family: var(--fm); font-size: 7.5px; letter-spacing: 0.1em; text-transform: uppercase;
     color: var(--bgray); padding: 7px 10px; border-top: 1px dashed rgba(20, 20, 20, 0.3); line-height: 1.5;
   }
+  .rd-srcline--flat { padding: 8px 0 0; margin-top: 12px; }
+  .rd-srcline--ink { color: rgba(247, 245, 241, 0.5); border-top-color: rgba(247, 245, 241, 0.25); padding: 8px 0 0; margin-top: 14px; }
 
-  /* ---- secondary studies ---- */
+  /* ---- three jobs scorecard ---- */
+  .rd-jobs { margin-top: 18px; border: 2px solid var(--bink); background: var(--bcream2); box-shadow: 5px 5px 0 var(--bink); }
+  .rd-jobs-h {
+    display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 16px;
+    padding: 8px 12px; border-bottom: 2px solid var(--bink);
+  }
+  .rd-jobs-t { font-family: var(--fd); font-size: 1.3rem; text-transform: uppercase; letter-spacing: 0.02em; }
+  .rd-jobs-s { font-family: var(--fm); font-size: 8.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--bgray); }
+  .rd-jobs-row { display: grid; grid-template-columns: repeat(3, 1fr); }
+  .rd-job { padding: 12px; }
+  .rd-job + .rd-job { border-left: 1px solid rgba(20, 20, 20, 0.25); }
+  .rd-job-top { display: flex; justify-content: space-between; align-items: center; }
+  .rd-job-n { font-family: var(--fm); font-size: 8.5px; font-weight: 700; letter-spacing: 0.16em; color: var(--bgray); }
+  .rd-verd { font-family: var(--fm); font-size: 8.5px; font-weight: 700; letter-spacing: 0.16em; padding: 3px 7px; border: 2px solid var(--bink); box-shadow: 2px 2px 0 var(--bink); }
+  .rd-verd--works { background: var(--bok); color: #fff; }
+  .rd-verd--capped { background: var(--blime); color: var(--bink); }
+  .rd-verd--fails { background: var(--bred); color: var(--bcream); }
+  .rd-job-name { font-family: var(--fd); font-size: 1.5rem; text-transform: uppercase; line-height: 1; margin: 8px 0 10px; }
+  .rd-jbar + .rd-jbar { margin-top: 8px; }
+  .rd-jbar-t { font-family: var(--fm); font-size: 8.5px; letter-spacing: 0.04em; line-height: 1.45; }
+  .rd-jbar-t b { font-family: var(--fd); font-size: 1.35rem; font-weight: 400; letter-spacing: 0.01em; color: var(--bred); margin-right: 4px; }
+  .rd-jbar.is-base .rd-jbar-t b { color: var(--bink); }
+  .rd-jbar-b { height: 8px; border: 1.5px solid var(--bink); background: var(--bcream); margin-top: 3px; position: relative; }
+  .rd-jbar-b i { position: absolute; inset: 0 auto 0 0; background: var(--bred); display: block; }
+  .rd-jbar.is-base .rd-jbar-b i { background: repeating-linear-gradient(45deg, var(--bink) 0 2px, var(--bcream) 2px 5px); }
+
+  /* ============================================================ SECONDARY STUDIES */
   .rd-row2 {
     display: grid; grid-template-columns: 1fr 1fr; gap: 0 clamp(20px, 2.6vw, 40px);
-    padding-top: 22px; margin-top: 20px; border-top: 3px solid var(--bink);
+    padding-top: 24px; margin-top: 26px; border-top: 3px solid var(--bink);
   }
+  .rd-sub { min-width: 0; }
   .rd-sub + .rd-sub { border-left: 1px solid var(--bink); padding-left: clamp(18px, 2.2vw, 32px); }
-  .rd-sub-head { font-family: var(--fd); font-weight: 500; font-size: clamp(1.3rem, 2.6vw, 2rem); line-height: 0.95; text-transform: uppercase; margin: 8px 0 0; }
-  .rd-sub-deck { font-family: var(--fi); font-style: italic; font-size: 1rem; line-height: 1.45; margin: 9px 0 0; }
-  .rd-sub-p { font-size: 0.96rem; line-height: 1.7; margin: 10px 0 0; }
-  .rd-minifig { margin: 12px 0 0; border: 2px solid var(--bink); box-shadow: 4px 4px 0 var(--bink); background: var(--bcream2); padding: 12px; }
-  .rd-setbars { display: flex; align-items: flex-end; gap: 5px; height: 56px; }
-  .rd-setbars i { flex: 1; background: var(--bink); display: block; }
-  .rd-setbars i.on { background: var(--bred); }
-  .rd-setbars i.gone { background: repeating-linear-gradient(45deg, var(--bcream2) 0 3px, rgba(20, 20, 20, 0.25) 3px 5px); }
-  .rd-kl { height: 14px; border: 2px solid var(--bink); background: var(--bcream); position: relative; overflow: hidden; }
-  .rd-kl span { position: absolute; left: 0; top: 0; bottom: 0; width: 38%; background: var(--blime); border-right: 2px solid var(--bink); }
-  .rd-mini-cap {
-    font-family: var(--fm); font-size: 7.5px; font-weight: 700; letter-spacing: 0.12em;
-    text-transform: uppercase; color: var(--bgray); margin-top: 8px; line-height: 1.55;
+  .rd-sub-head { font-family: var(--fd); font-weight: 500; font-size: clamp(1.5rem, 2.8vw, 2.4rem); line-height: 0.95; text-transform: uppercase; margin: 8px 0 0; }
+  .rd-sub-deck { font-family: var(--fi); font-style: italic; font-size: 1.08rem; line-height: 1.42; margin: 9px 0 0; }
+  .rd-sub-p { font-size: 1rem; line-height: 1.68; margin: 12px 0 0; }
+
+  /* ---- the precision / trueness bench ---- */
+  .rd-pt { background: var(--bcream); display: grid; grid-template-columns: minmax(150px, 42%) 1fr; gap: 14px; padding: 14px 12px; align-items: center; border-bottom: 3px solid var(--bink); }
+  .rd-board { width: 100%; height: auto; display: block; }
+  .rd-board .ring { fill: none; stroke: rgba(20, 20, 20, 0.35); stroke-width: 1.2; }
+  .rd-board .ring:first-child { fill: var(--bcream2); stroke: var(--bink); stroke-width: 2.5; }
+  .rd-board .cross { stroke: rgba(20, 20, 20, 0.15); stroke-width: 1; }
+  .rd-board .bull { fill: var(--bok); }
+  .rd-board .bull-t { font-family: var(--fm); font-size: 7.5px; font-weight: 700; letter-spacing: 0.14em; fill: var(--bok); }
+  .rd-board .dart { fill: var(--bred); stroke: var(--bink); stroke-width: 1.5; transition: cx 0.18s ease, cy 0.18s ease; }
+  .rd-checks { margin: 0; display: grid; gap: 7px; }
+  .rd-check { border: 2px solid var(--bink); background: var(--bcream2); padding: 6px 8px; }
+  .rd-check dt { font-family: var(--fm); font-size: 7.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--bgray); }
+  .rd-check dd { margin: 3px 0 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; font-family: var(--fd); font-size: 1.45rem; line-height: 1; }
+  .rd-check dd b { font-family: var(--fm); font-size: 8px; letter-spacing: 0.14em; padding: 3px 6px; border: 2px solid var(--bink); }
+  .rd-check dd b.pass { background: var(--bok); color: #fff; }
+  .rd-check dd b.fail { background: var(--bred); color: var(--bcream); }
+  .rd-check--truth { border-width: 3px; box-shadow: 3px 3px 0 var(--bink); }
+  .rd-check--bar dd { justify-content: flex-start; }
+  .rd-sharebar { flex: 1; height: 10px; border: 1.5px solid var(--bink); background: var(--bcream); position: relative; }
+  .rd-sharebar i { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--bred); display: block; }
+  .rd-pt-ctl { background: var(--bink); padding: 12px; display: grid; grid-template-columns: 1fr auto; gap: 6px 14px; align-items: center; }
+  .rd-pt-l { grid-column: 1 / -1; font-family: var(--fm); font-size: 8.5px; font-weight: 700; letter-spacing: 0.14em; color: rgba(247, 245, 241, 0.7); }
+  .rd-pt-l b { color: var(--blime); margin-left: 6px; }
+  .rd-range { width: 100%; accent-color: var(--blime); grid-column: 1; margin: 0; }
+  .rd-pt-ticks { grid-column: 1; grid-row: 3; display: flex; justify-content: space-between; font-family: var(--fm); font-size: 7.5px; color: rgba(247, 245, 241, 0.5); letter-spacing: 0.04em; }
+  .rd-pt-ctl .rd-btn { grid-column: 2; grid-row: 2 / span 2; }
+  .rd-verdict-s { margin: 0; background: var(--bink); color: var(--bcream); padding: 0 12px 12px; font-family: var(--fm); font-size: 9.5px; line-height: 1.6; letter-spacing: 0.03em; min-height: 3.2em; }
+  .rd-verdict-s b { color: var(--blime); }
+  .rd-verdict-s .warn { color: var(--bred2); font-weight: 700; }
+  .rd-verdict-s--light { background: transparent; color: var(--bink); padding: 10px 0 0; min-height: 0; }
+  .rd-verdict-s--light b { color: var(--bred); }
+
+  .rd-minis { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-top: 14px; border: 2px solid var(--bink); background: var(--bcream2); }
+  .rd-mini { padding: 10px; border-bottom: 1px solid rgba(20, 20, 20, 0.2); }
+  .rd-mini:nth-child(odd) { border-right: 1px solid rgba(20, 20, 20, 0.2); }
+  .rd-mini:nth-last-child(-n + 2) { border-bottom: none; }
+  .rd-mini-v { font-family: var(--fd); font-size: 1.75rem; line-height: 1; color: var(--bred); }
+  .rd-mini-l { font-family: var(--fm); font-size: 8px; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1.5; margin-top: 5px; }
+  .rd-mini-l b { font-weight: 700; }
+
+  /* ---- the instrument audit ---- */
+  .rd-gauges { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--bcream); border-bottom: 3px solid var(--bink); }
+  .rd-gauge { padding: 10px; }
+  .rd-gauge + .rd-gauge { border-left: 2px solid var(--bink); }
+  .rd-gauge-top { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+  .rd-gauge-k { font-family: var(--fd); font-size: 1.3rem; letter-spacing: 0.03em; }
+  .rd-gauge-x { font-family: var(--fm); font-size: 7px; font-weight: 700; letter-spacing: 0.12em; background: var(--bred); color: var(--bcream); padding: 2px 5px; }
+  .rd-gauge-q { font-family: var(--fi); font-style: italic; font-size: 0.92rem; line-height: 1.25; margin-top: 4px; min-height: 2.5em; }
+  .rd-gauge-v { font-family: var(--fd); font-size: 1.75rem; color: var(--bred); line-height: 1; margin-top: 6px; }
+  .rd-gauge-f { font-family: var(--fm); font-size: 7.5px; letter-spacing: 0.05em; text-transform: uppercase; line-height: 1.5; margin-top: 5px; }
+
+  .rd-heat-wrap { background: var(--bcream2); padding: 12px; }
+  .rd-heat-h { display: flex; justify-content: space-between; align-items: center; gap: 8px 12px; flex-wrap: wrap; font-family: var(--fm); font-size: 8px; font-weight: 700; letter-spacing: 0.12em; color: var(--bgray); margin-bottom: 10px; }
+  .rd-seg { display: inline-flex; border: 2px solid var(--bink); }
+  .rd-seg button { font-family: var(--fm); font-size: 8px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; background: var(--bcream); color: var(--bink); border: none; padding: 6px 8px; cursor: pointer; }
+  .rd-seg button + button { border-left: 2px solid var(--bink); }
+  .rd-seg button.is-on { background: var(--bink); color: var(--blime); }
+  .rd-seg button:focus-visible { outline: 3px solid var(--bred); outline-offset: 1px; }
+  .rd-heat { display: grid; grid-template-columns: auto repeat(var(--cols), 1fr); gap: 4px; }
+  .rd-heat-corner, .rd-heat-col, .rd-heat-row { font-family: var(--fm); font-size: 8px; font-weight: 700; letter-spacing: 0.1em; color: var(--bgray); display: flex; align-items: center; }
+  .rd-heat-col { justify-content: center; }
+  .rd-heat-corner { font-size: 6.5px; padding-right: 6px; }
+  .rd-cell {
+    position: relative; height: 38px; display: flex; align-items: center; justify-content: center;
+    border: 2px solid var(--bink);
+    background: color-mix(in srgb, var(--bred) calc(var(--v) * 100%), var(--bcream));
+    transition: background 0.2s ease;
   }
-  .rd-mini-cap .warn { color: var(--bred); }
+  .rd-cell b { font-family: var(--fd); font-weight: 400; font-size: 1.15rem; color: var(--bink); }
+  .rd-cell.is-dark b { color: #fff; }
+  .rd-cell.is-neg { background: repeating-linear-gradient(45deg, var(--bcream) 0 4px, rgba(20, 20, 20, 0.12) 4px 7px); }
+  .rd-cell.is-primary { outline: 3px solid var(--bink); outline-offset: 2px; box-shadow: 0 0 0 5px var(--blime); }
+  .rd-cell em { position: absolute; top: -9px; right: -6px; font-family: var(--fm); font-style: normal; font-size: 6.5px; font-weight: 700; letter-spacing: 0.12em; background: var(--bink); color: var(--blime); padding: 2px 4px; }
+
+  /* ============================================================ WORK-IN-PROGRESS BAND */
+  .rd-band {
+    margin-top: 28px; background: var(--bink); color: var(--bcream);
+    border: 3px solid var(--bink); box-shadow: 8px 8px 0 var(--bred);
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.12fr); gap: clamp(18px, 2.6vw, 36px);
+    padding: clamp(16px, 2.4vw, 30px);
+  }
+  .rd-band-head { font-family: var(--fd); font-weight: 500; font-size: clamp(1.9rem, 4vw, 3.4rem); line-height: 0.9; text-transform: uppercase; margin: 0; color: var(--bcream); }
+  .rd-band-deck { font-family: var(--fi); font-style: italic; font-size: clamp(1rem, 1.5vw, 1.2rem); line-height: 1.42; margin: 12px 0 0; }
+  .rd-band-p { font-size: 1rem; line-height: 1.68; margin: 12px 0 0; color: rgba(247, 245, 241, 0.88); }
+  .rd-band-p :global(em) { color: var(--blime); }
+  .rd-minis--ink { background: #1f1f1f; border-color: rgba(247, 245, 241, 0.4); }
+  .rd-minis--ink .rd-mini { border-color: rgba(247, 245, 241, 0.2); }
+  .rd-minis--ink .rd-mini-v { color: var(--blime); }
+  .rd-minis--ink .rd-mini-l { color: rgba(247, 245, 241, 0.75); }
+  .rd-minis--ink .rd-mini-l b { color: var(--bcream); }
+
+  .rd-sim { border: 3px solid var(--blime); background: var(--bink); align-self: start; }
+  .rd-sim-body { padding: 12px; display: grid; gap: 14px; }
+  .rd-sim-grid { display: grid; grid-template-columns: auto repeat(var(--n), minmax(0, 1fr)); gap: 2px; align-items: center; }
+  .rd-sim-lab { font-family: var(--fm); font-size: 6.5px; font-weight: 700; letter-spacing: 0.1em; color: rgba(247, 245, 241, 0.45); padding-right: 6px; white-space: nowrap; }
+  .rd-sim-lab.is-live { color: var(--blime); }
+  .rd-sim-c { aspect-ratio: 1; border-radius: 50%; background: rgba(247, 245, 241, 0.08); transform: scale(0.45); transition: transform 0.15s ease, background 0.15s ease; }
+  .rd-sim-c.is-hit { background: var(--bcream); transform: scale(1); }
+  .rd-sim-c.is-hit.is-single { background: var(--bred2); }
+  .rd-sim-c.is-miss { background: transparent; box-shadow: inset 0 0 0 1px rgba(247, 245, 241, 0.12); }
+  .rd-sim-freq { font-family: var(--fm); font-size: 7px; font-weight: 700; text-align: center; color: rgba(247, 245, 241, 0.7); min-height: 1em; }
+  .rd-sim-freq.is-single { color: var(--bred2); }
+  .rd-sim-p { height: 22px; position: relative; border-bottom: 1px solid rgba(247, 245, 241, 0.2); opacity: 0; transition: opacity 0.2s ease; }
+  .rd-sim-p i { position: absolute; left: 15%; right: 15%; bottom: 0; height: 0; background: var(--bcream); display: block; }
+  .rd-sim-p.is-missed i { background: repeating-linear-gradient(45deg, var(--blime) 0 2px, transparent 2px 4px); }
+  .rd-sim.is-revealed .rd-sim-p { opacity: 1; }
+  .rd-sim-read { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .rd-sim-stat { border: 1.5px solid rgba(247, 245, 241, 0.3); padding: 6px 8px; }
+  .rd-sim-stat .k, .rd-sim-meter .k { display: block; font-family: var(--fm); font-size: 7px; font-weight: 700; letter-spacing: 0.12em; color: rgba(247, 245, 241, 0.55); }
+  .rd-sim-stat .v { display: block; font-family: var(--fd); font-size: 1.7rem; line-height: 1.05; color: var(--bcream); }
+  .rd-sim-meter { grid-column: 1 / -1; }
+  .rd-sim-meter .k b { color: var(--blime); font-weight: 700; margin: 0 2px; }
+  .rd-meter { position: relative; height: 12px; margin-top: 5px; border: 1.5px solid rgba(247, 245, 241, 0.5); }
+  .rd-meter .est { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--blime); display: block; transition: width 0.2s ease; }
+  .rd-meter .tru { position: absolute; top: -5px; bottom: -5px; width: 3px; margin-left: -1.5px; left: 0; background: var(--bred2); display: block; transition: left 0.2s ease; }
+  .rd-verdict--lime { border-top: 3px solid var(--blime); }
 
   /* ---- also strip ---- */
-  .rd-also { margin-top: 24px; border-top: 3px solid var(--bink); padding-top: 12px; }
+  .rd-also { margin-top: 28px; border-top: 3px solid var(--bink); padding-top: 12px; }
   .rd-also-h { font-family: var(--fd); font-weight: 500; font-size: 1.15rem; text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 9px; }
   .rd-also-row { display: flex; flex-wrap: wrap; gap: 8px; }
   .rd-chip {
@@ -449,6 +994,14 @@ const also = experience.filter((e) => !e.foldedIntoResearch);
   .rd-chip b { color: var(--bred); }
 
   /* ---- responsive ---- */
+  @media (max-width: 1180px) {
+    .rd-corr-list { grid-template-columns: 1fr 1fr; }
+    .rd-corr-list li:nth-child(3) { border-left: none; }
+    .rd-corr-list li:nth-child(n + 3) { border-top: 1px solid rgba(20, 20, 20, 0.25); }
+    .rd-row2 { grid-template-columns: 1fr; }
+    .rd-sub + .rd-sub { border-left: none; padding-left: 0; border-top: 3px solid var(--bink); padding-top: 22px; margin-top: 26px; }
+    .rd-band { grid-template-columns: 1fr; }
+  }
   @media (max-width: 980px) {
     .rd-lineup { grid-template-columns: repeat(3, 1fr); }
   }
@@ -456,127 +1009,473 @@ const also = experience.filter((e) => !e.foldedIntoResearch);
     .rd-body { grid-template-columns: 1fr; }
     .rd-flow { border-right: none; padding-right: 0; }
     .rd-side { padding-left: 0; padding-top: 16px; }
-    .rd-row2 { grid-template-columns: 1fr; }
-    .rd-sub + .rd-sub { border-left: none; padding-left: 0; border-top: 1px solid var(--bink); padding-top: 16px; margin-top: 16px; }
     .rd-c-task { grid-template-columns: 1fr; }
     .rd-c-ans { text-align: left; }
+    .rd-jobs-row { grid-template-columns: 1fr; }
+    .rd-job + .rd-job { border-left: none; border-top: 1px solid rgba(20, 20, 20, 0.25); }
   }
   @media (max-width: 620px) {
-    .rd-lineup { grid-template-columns: 1fr; }
+    .rd-corr-list { grid-template-columns: 1fr; }
+    .rd-corr-list li + li { border-left: none; border-top: 1px solid rgba(20, 20, 20, 0.25); }
+    .rd-lineup { grid-template-columns: 1fr 1fr; }
     .rd-chunk { min-height: 0; }
-    .rd-rules { display: none; }
     .rd-verdict { grid-template-columns: 1fr; }
     .rd-sheet { box-shadow: 8px 8px 0 var(--bink); border-width: 4px; }
+    .rd-pt { grid-template-columns: 1fr; }
+    .rd-board { max-width: 240px; margin: 0 auto; }
+    .rd-pt-ctl { grid-template-columns: 1fr; }
+    .rd-pt-ctl .rd-btn { grid-column: 1; grid-row: auto; }
+    .rd-gauges { grid-template-columns: 1fr; }
+    .rd-gauge + .rd-gauge { border-left: none; border-top: 2px solid var(--bink); }
+    .rd-gauge-q { min-height: 0; }
+    .rd-minis { grid-template-columns: 1fr; }
+    .rd-mini:nth-child(odd) { border-right: none; }
+    .rd-mini:nth-last-child(2) { border-bottom: 1px solid rgba(20, 20, 20, 0.2); }
+    .rd-sim-read { grid-template-columns: 1fr 1fr; }
+    .rd-sim-stat:first-child { grid-column: 1 / -1; }
+    .rd-lt-key { font-size: 7px; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .rd-chunk, .rd-badge { transition: none; }
+    .rd-chunk, .rd-lt-edge, .rd-lt-node circle, .rd-board .dart, .rd-cell, .rd-sim-c, .rd-meter .est, .rd-meter .tru, .rd-sim-p { transition: none; }
   }
 </style>
 
 <script>
-  // The Research Desk console — event-driven only. No rAF, no canvas, no timers.
+  // The Research Desk's four instruments. Event-driven only: no rAF, no canvas, no timers.
+
+  /* ===================== 01 · the subset lattice ===================== */
   (function () {
     'use strict';
     try {
-      var root = document.querySelector('[data-console]');
-      if (!root) return;
+      var root = document.querySelector('[data-culprit]');
+      var dataEl = document.getElementById('rd-culprit-data');
+      if (!root || !dataEl) return;
+      var D = JSON.parse(dataEl.textContent || '{}');
+      var ALL = D.passages.map(function (p: { id: string }) { return p.id; }).join('');
+      var suff: Record<string, boolean> = {};
+      D.sufficient.forEach(function (k: string) { suff[k] = true; });
+      var mins: string[] = D.minimal;
+      var viol: string[][] = D.violations;
 
-      var chunks = Array.prototype.slice.call(root.querySelectorAll('[data-chunk]'));
-      var ansBox = root.querySelector('[data-ansbox]');
-      var ansVal = root.querySelector('[data-ansval]');
-      var ansTag = root.querySelector('[data-anstag]');
-      var verdict = root.querySelector('[data-verdict]');
-      var qcEl = root.querySelector('[data-qc]');
-      var rcEl = root.querySelector('[data-rc]');
-      var revealBtn = root.querySelector('[data-reveal]');
-      var resetBtn = root.querySelector('[data-reset]');
-      if (!ansVal || !verdict) return;
+      var chunks = Array.prototype.slice.call(root.querySelectorAll('[data-chunk]')) as HTMLElement[];
+      var nodes: Record<string, Element> = {};
+      Array.prototype.forEach.call(root.querySelectorAll('[data-node]'), function (n: Element) {
+        nodes[n.getAttribute('data-node') || ''] = n;
+      });
+      var edges: Record<string, Element> = {};
+      Array.prototype.forEach.call(root.querySelectorAll('[data-edge]'), function (e: Element) {
+        edges[e.getAttribute('data-edge') || ''] = e;
+      });
+      var ansBox = root.querySelector('[data-ansbox]') as HTMLElement;
+      var ansVal = root.querySelector('[data-ansval]') as HTMLElement;
+      var ansTag = root.querySelector('[data-anstag]') as HTMLElement;
+      var verdict = root.querySelector('[data-verdict]') as HTMLElement;
+      var inCount = root.querySelector('[data-incount]') as HTMLElement;
+      var foundEl = root.querySelector('[data-found]') as HTMLElement;
+      var revealBtn = root.querySelector('[data-reveal]') as HTMLElement;
 
-      var GOLD = ansVal.textContent ? '' : '';
-      var goldAnswer = root.querySelector('.rd-c-question .ok');
-      var GOLD_TXT = goldAnswer ? (goldAnswer.textContent || '').trim() : '1921';
-      var WRONG_TXT = (ansVal.textContent || '').trim();
-
-      var queries = 1;
-      var triedSingle = false;
+      var selected: Record<string, boolean> = {};
+      var seen: Record<string, boolean> = {};
+      var found: Record<string, boolean> = {};
       var revealed = false;
+      var prevKey = '';
 
-      function isOut(el) { return el.classList.contains('is-out'); }
+      function keyOf(): string {
+        return ALL.split('').filter(function (c) { return selected[c]; }).join('');
+      }
+      function fmt(k: string): string { return '{' + k.split('').join(', ') + '}'; }
+      function queried(k: string): boolean { return k.length <= D.bound || k === ALL; }
+      function nFound(): number { return mins.filter(function (m) { return found[m]; }).length; }
+      function subsetOf(a: string, b: string): boolean {
+        return a.split('').every(function (c) { return b.indexOf(c) >= 0; });
+      }
+
+      function paint() {
+        Object.keys(nodes).forEach(function (k) {
+          var n = nodes[k];
+          n.classList.toggle('is-seen', revealed || !!seen[k] || (k === '' && !!seen['']));
+        });
+        viol.forEach(function (v) {
+          var e = edges[v[0] + '-' + v[1]];
+          if (e) e.classList.toggle('is-on', revealed || (!!seen[v[0]] && !!seen[v[1]]));
+        });
+      }
+
+      function setAns(val: string, tag: string, cls: string) {
+        ansVal.textContent = val;
+        ansTag.textContent = tag;
+        ansBox.className = 'rd-c-ans ' + cls;
+      }
 
       function update() {
-        var removed = chunks.filter(isOut);
-        var stillAsserts = chunks.some(function (c) { return c.dataset.asserts === '1' && !isOut(c); });
-        var goldGone = chunks.some(function (c) { return c.dataset.gold === '1' && isOut(c); });
+        var k = keyOf();
+        var size = k.length;
+        if (queried(k)) seen[k] = true;
 
-        var correct = false, val, tag;
-        if (stillAsserts) { val = WRONG_TXT; tag = '✗ WRONG'; }
-        else if (goldGone) { val = 'unknown'; tag = '✗ NO EVIDENCE'; }
-        else { val = GOLD_TXT; tag = '✓ CORRECT'; correct = true; }
+        Object.keys(nodes).forEach(function (nk) { nodes[nk].classList.toggle('is-cur', nk === k); });
+        chunks.forEach(function (c) {
+          var on = !!selected[c.dataset.chunk || ''];
+          c.classList.toggle('is-in', on);
+          c.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+        inCount.textContent = String(size);
 
-        ansVal.textContent = val;
-        if (ansTag) ansTag.textContent = tag;
-        if (ansBox) ansBox.className = 'rd-c-ans ' + (correct ? 'is-right' : 'is-wrong');
-        if (qcEl) qcEl.textContent = String(queries);
-        if (rcEl) rcEl.textContent = String(removed.length);
-
-        var msg;
-        if (correct) {
-          msg = '<b>● ANSWER RECOVERED.</b> It took removing <b>two</b> passages at once. Neither alone was ' +
-                'sufficient — responsibility here is a <b>coalition</b>, not a culprit. ' +
-                '<span class="warn">That is the finding: 27–53% of real RAG failures have no single culprit.</span>';
-        } else if (removed.length === 1) {
-          triedSingle = true;
-          var only = removed[0];
-          if (only.dataset.gold === '1') {
-            msg = 'You removed the only passage carrying the correct date. The answer stays wrong — now for a different reason.';
-          } else if (only.dataset.asserts === '1') {
-            msg = 'Still wrong. Removing <b>' + only.dataset.id + '</b> alone is not enough — something else is still asserting ' + WRONG_TXT + '. Try removing another.';
+        var msg = '';
+        var wasNew = false;
+        if (!queried(k)) {
+          setAns('?', 'NOT QUERIED IN THIS RUN', 'is-none');
+          msg = 'This run stopped at three passages, so sets of four or five were <b>never queried</b>. The paper’s main runs query all 63 subsets of every error.';
+        } else if (size === 0) {
+          setAns('—', 'NO CONTEXT', 'is-none');
+          msg = 'Add passages to the context. Find the <b>smallest sets</b> that make the model repeat “' + D.wrong + '”. There are three.';
+        } else if (suff[k]) {
+          setAns(D.wrong, '✗ REPEATS THE ERROR', 'is-wrong');
+          if (k === ALL) {
+            msg = 'The full context: the model’s original wrong answer. Now take it apart. Which passage is <b>the culprit</b>?';
+          } else if (mins.indexOf(k) >= 0) {
+            wasNew = !found[k];
+            found[k] = true;
+            msg = '<b>' + fmt(k) + '</b> repeats the error, and no smaller set does: a <b>minimal sufficient set</b>. Found ' + nFound() + ' of ' + mins.length + '.';
+            if (nFound() === mins.length) {
+              msg = 'All three: <b>{A, B}, {B, C}, {B, E}</b>. B is in every one but can’t do it alone, and A, C or E can each complete it. ' +
+                '<span class="warn">A ranking that names one culprit can’t describe this.</span> In the study, 59% of errors have more than one minimal set.';
+            }
           } else {
-            msg = 'Nothing changed. <b>' + only.dataset.id + '</b> is among the most salient passages on the board — and it is ' +
-                  'entirely innocent. It is <span class="warn">misleading</span>: it looks responsible without being causal.';
+            var inner = mins.filter(function (m) { return subsetOf(m, k); });
+            msg = 'Repeats the error, but it contains a smaller set that already does: <b>' + inner.map(fmt).join(', ') + '</b>. Not minimal.';
           }
-        } else if (removed.length === 0) {
-          msg = triedSingle
-            ? 'Back to the full context. Try removing <b>two</b> passages at once.'
-            : 'Pick the passage you think caused the wrong answer.';
         } else {
-          msg = 'Still wrong with <b>' + removed.length + '</b> passages removed. Keep going — or reveal the true roles.';
+          var known = D.answers[k];
+          var broke = viol.filter(function (v) { return v[1] === k; });
+          if (known && known === D.gold) setAns(known, '✓ CORRECT', 'is-right');
+          else if (known) setAns(known, '✗ A DIFFERENT WRONG ANSWER', 'is-other');
+          else setAns('≠ ' + D.wrong, 'DOES NOT REPEAT THE ERROR', 'is-none');
+
+          if (broke.length) {
+            var base = broke[0][0];
+            var added = k.split('').filter(function (c) { return base.indexOf(c) < 0; })[0];
+            if (known && known === D.gold) {
+              msg = '<b>' + fmt(base) + '</b> repeated the error. Add ' + added + ', the gold article, and the model gets it right: “' + known + '”. Removing evidence of the error isn’t the only way to fix it.';
+            } else if (known) {
+              msg = '<b>' + fmt(base) + '</b> repeated the error. Add ' + added + ', another cyclone article, and the answer becomes “' + known + '”. ' +
+                '<span class="warn">Adding a passage broke a sufficient set.</span> 63% of errors have a violation like this.';
+            } else {
+              msg = '<b>' + fmt(base) + '</b> repeated the error, and adding ' + added + ' stops it. Support is <b>not monotone</b>, which is the one condition under which leave-one-out is exact.';
+            }
+          } else if (size === 1) {
+            msg = 'No single passage repeats this error, not even the film’s own article. That holds for <b>49%</b> of the 603 errors in the study. Try pairs.';
+          } else {
+            msg = fmt(k) + ' doesn’t repeat the error. Keep looking.';
+          }
+        }
+        if (revealed && !wasNew && msg.indexOf('Found') < 0 && size === 0) {
+          msg = 'The lattice up to three passages: <b>filled</b> nodes repeat the error, <b>ringed</b> ones are minimal, red edges are violations.';
         }
         verdict.innerHTML = msg;
+        foundEl.textContent = String(nFound());
+        prevKey = k;
+        paint();
       }
 
       chunks.forEach(function (c) {
         c.addEventListener('click', function () {
-          var out = !isOut(c);
-          c.classList.toggle('is-out', out);
-          c.setAttribute('aria-pressed', out ? 'true' : 'false');
-          queries++;
+          var id = c.dataset.chunk || '';
+          selected[id] = !selected[id];
           update();
         });
       });
-
-      if (revealBtn) {
-        revealBtn.addEventListener('click', function () {
-          revealed = !revealed;
-          root.classList.toggle('is-revealed', revealed);
-          revealBtn.textContent = revealed ? 'Hide true roles' : 'Reveal true roles';
-          if (revealed) {
-            verdict.innerHTML = 'True roles, assigned by <b>exact leave-one-out</b> — not by a heuristic. The two ' +
-              '<b>causal</b> passages are jointly responsible; the <b>misleading</b> one is the salient decoy ' +
-              'every attribution method reaches for first.';
-          }
-        });
-      }
-
-      if (resetBtn) {
-        resetBtn.addEventListener('click', function () {
-          chunks.forEach(function (c) { c.classList.remove('is-out'); c.setAttribute('aria-pressed', 'false'); });
-          queries = 1; triedSingle = false;
+      // clicking a lattice node loads that subset
+      Object.keys(nodes).forEach(function (k) {
+        var n = nodes[k] as HTMLElement & SVGElement;
+        n.style.cursor = 'pointer';
+        n.addEventListener('click', function () {
+          selected = {};
+          k.split('').forEach(function (c) { selected[c] = true; });
           update();
         });
+      });
+      var fullBtn = root.querySelector('[data-full]');
+      if (fullBtn) fullBtn.addEventListener('click', function () {
+        selected = {};
+        ALL.split('').forEach(function (c) { selected[c] = true; });
+        update();
+      });
+      if (revealBtn) revealBtn.addEventListener('click', function () {
+        revealed = !revealed;
+        revealBtn.textContent = revealed ? 'Hide the lattice' : 'Fill the lattice';
+        paint();
+        if (revealed) verdict.innerHTML = 'The lattice up to three passages: <b>filled</b> nodes repeat the error, <b>ringed</b> ones are minimal, red edges are violations, where adding one passage stops the error.';
+      });
+      var resetBtn = root.querySelector('[data-reset]');
+      if (resetBtn) resetBtn.addEventListener('click', function () {
+        selected = {}; seen = {}; found = {}; revealed = false;
+        if (revealBtn) revealBtn.textContent = 'Fill the lattice';
+        update();
+      });
+      void prevKey;
+      update();
+    } catch (e) { /* console enhancement failed silently: markup stays readable */ }
+  })();
+
+  /* ===================== 02 · precision vs trueness ===================== */
+  (function () {
+    'use strict';
+    try {
+      var root = document.querySelector('[data-precise]');
+      if (!root) return;
+      var q = function (s: string) { return root!.querySelector(s) as HTMLElement; };
+      var range = q('[data-pt-range]') as HTMLInputElement;
+      var stdBtn = q('[data-pt-std]');
+      var darts = Array.prototype.slice.call(root.querySelectorAll('[data-dart]')) as SVGCircleElement[];
+      var standardise = true;
+
+      function setCheck(valSel: string, vSel: string, val: string, ok: boolean, okTxt: string, badTxt: string) {
+        q(valSel).textContent = val;
+        var b = q(vSel);
+        b.textContent = ok ? okTxt : badTxt;
+        b.className = ok ? 'pass' : 'fail';
       }
 
+      function update() {
+        var lc = -Number(range.value) / 10; // log10 of the gain multiplier
+        var c = Math.pow(10, lc);
+        // Proposition 1: odds(share) scale as 1/c^2. Pinned so the share is 1/2 at c = 1e-2.
+        var odds = 1e-4 / (c * c);
+        var s = standardise ? odds / (1 + odds) : 0.0004;
+        var agree = standardise ? 0.995 + 0.005 * s - 1.0 * s * (1 - s) : 0.995;
+        var align = Math.max(0.016, 0.995 * Math.sqrt(1 - s));
+        var acc = 0.998;
+
+        q('[data-pt-c]').textContent = lc === 0 ? 'c = 1' : 'c = 10^' + lc.toFixed(1);
+        setCheck('[data-pt-acc]', '[data-pt-acc-v]', acc.toFixed(3), true, 'PASS', 'FAIL');
+        setCheck('[data-pt-agr]', '[data-pt-agr-v]', agree.toFixed(3), agree >= 0.9, 'PASS', 'DIPS');
+        setCheck('[data-pt-aln]', '[data-pt-aln-v]', align.toFixed(3), align >= 0.95, 'TRUE', 'NOT TRUE');
+        var sharePct = s * 100;
+        q('[data-pt-share]').textContent = (sharePct < 0.1 ? sharePct.toFixed(2) : sharePct < 99.9 ? sharePct.toFixed(1) : Math.min(99.999, sharePct).toFixed(3)) + '%';
+        q('[data-pt-sharebar]').style.width = Math.min(100, sharePct) + '%';
+        q('[data-pt-mode]').textContent = standardise ? 'STANDARDISED' : 'RAW COORDINATES';
+
+        // darts: the cluster's distance from the bullseye is the angle to the true weights,
+        // its spread is how much restarts disagree
+        var theta = Math.acos(Math.min(1, align));
+        var r = 92 * theta / (Math.PI / 2);
+        var ang = -0.75; // up and to the right
+        var cx = r * Math.cos(ang), cy = r * Math.sin(ang);
+        var spread = 4 + 70 * (1 - agree);
+        darts.forEach(function (d) {
+          var dx = Number(d.dataset.dx), dy = Number(d.dataset.dy);
+          d.setAttribute('cx', (cx + dx * spread).toFixed(1));
+          d.setAttribute('cy', (cy + dy * spread).toFixed(1));
+        });
+
+        var v = q('[data-pt-verdict]');
+        if (!standardise) {
+          v.innerHTML = 'Without standardisation the near-constant coordinate never takes more than <b>0.04%</b> of the direction, at any gain. The fit stays on target.';
+        } else if (align >= 0.95) {
+          v.innerHTML = 'A healthy layer: the restarts land on the true weights and agree. <b>Precise and true.</b> Now drag the gain toward zero.';
+        } else if (agree < 0.9) {
+          v.innerHTML = 'Midway: the direction is sliding onto the shrinking coordinate, and the restarts scatter as it goes.';
+        } else {
+          v.innerHTML = 'Accuracy passes. Restarts agree. <span class="warn">The direction is ' + Math.min(99.999, s * 100).toFixed(s > 0.999 ? 3 : 1) + '% on one coordinate the model barely reads</span>, so it misses the weights. <b>Precise, not true.</b>';
+        }
+      }
+
+      range.addEventListener('input', update);
+      stdBtn.addEventListener('click', function () {
+        standardise = !standardise;
+        stdBtn.setAttribute('aria-pressed', standardise ? 'true' : 'false');
+        stdBtn.textContent = 'Standardise coordinates: ' + (standardise ? 'ON' : 'OFF');
+        update();
+      });
       update();
-    } catch (e) { /* console enhancement failed silently — markup stays readable */ }
+    } catch (e) { /* noop */ }
+  })();
+
+  /* ===================== 03 · localization: real vs random ===================== */
+  (function () {
+    'use strict';
+    try {
+      var root = document.querySelector('[data-instrument]');
+      if (!root) return;
+      var cells = Array.prototype.slice.call(root.querySelectorAll('[data-cell]')) as HTMLElement[];
+      var btns = Array.prototype.slice.call(root.querySelectorAll('[data-heat-mode]')) as HTMLElement[];
+      var verdict = root.querySelector('[data-heat-verdict]') as HTMLElement;
+      var MSG: Record<string, string> = {
+        real: 'The concept vector looks like it works: <b>97%</b> in the filed cell. Now switch to random vectors.',
+        random: 'Random directions carry no concept, and still reach <b>92%</b> in the same cell. The readout registers that <i>something</i> was injected.',
+        gap: 'What the concept adds is the difference: about <b>4 points</b> in the filed cell, near zero in most others. Hatched cells are where random did as well or better.',
+      };
+      function show(mode: string) {
+        cells.forEach(function (c) {
+          var real = Number(c.dataset.real), rnd = Number(c.dataset.random);
+          var v = mode === 'real' ? real : mode === 'random' ? rnd : real - rnd;
+          var b = c.querySelector('[data-cell-v]') as HTMLElement;
+          if (mode === 'gap') {
+            var pts = Math.round(v * 100);
+            b.textContent = (pts > 0 ? '+' : pts < 0 ? '−' : '±') + Math.abs(pts);
+            c.style.setProperty('--v', String(Math.max(0, Math.min(1, v / 0.3))));
+            c.classList.toggle('is-neg', v <= 0);
+            c.classList.toggle('is-dark', v / 0.3 > 0.55);
+          } else {
+            b.textContent = Math.round(v * 100) + '%';
+            c.style.setProperty('--v', String(v));
+            c.classList.remove('is-neg');
+            c.classList.toggle('is-dark', v > 0.55);
+          }
+        });
+        btns.forEach(function (b) {
+          var on = b.dataset.heatMode === mode;
+          b.classList.toggle('is-on', on);
+          b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+        verdict.innerHTML = MSG[mode];
+      }
+      btns.forEach(function (b) { b.addEventListener('click', function () { show(b.dataset.heatMode || 'real'); }); });
+      show('real');
+    } catch (e) { /* noop */ }
+  })();
+
+  /* ===================== 04 · capture–recapture simulator ===================== */
+  (function () {
+    'use strict';
+    try {
+      var root = document.querySelector('[data-mm]') as HTMLElement;
+      if (!root) return;
+      var N = root.querySelectorAll('[data-mm-freq]').length;
+      var KMAX = root.querySelectorAll('[data-mm-runlab]').length;
+      var q = function (s: string) { return root.querySelector(s) as HTMLElement; };
+
+      function mulberry32(a: number) {
+        return function () {
+          a |= 0; a = (a + 0x6d2b79f5) | 0;
+          var t = Math.imul(a ^ (a >>> 15), 1 | a);
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+      var seed = 20261022;
+      var rand = mulberry32(seed);
+      var p: number[] = [];
+      var hist: number[][] = []; // hist[run][item] = 0/1
+      var order: number[] = []; // items in order of first discovery
+      var revealed = false;
+
+      function gauss() {
+        var u = 1 - rand(), v = rand();
+        return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+      }
+      function newWorld() {
+        rand = mulberry32(seed++);
+        // uneven detectability: logit-normal, mean findability about 0.18
+        p = [];
+        for (var i = 0; i < N; i++) {
+          var z = -1.9 + 1.6 * gauss();
+          p.push(1 / (1 + Math.exp(-z)));
+        }
+        hist = []; order = [];
+        render();
+      }
+      function runOnce() {
+        if (hist.length >= KMAX) return;
+        var row: number[] = [];
+        for (var i = 0; i < N; i++) {
+          var hit = rand() < p[i] ? 1 : 0;
+          row.push(hit);
+          if (hit && order.indexOf(i) < 0) order.push(i);
+        }
+        hist.push(row);
+        render();
+      }
+
+      function stats() {
+        var K = hist.length;
+        var freq: number[] = [];
+        for (var i = 0; i < N; i++) {
+          var f = 0;
+          for (var r = 0; r < K; r++) f += hist[r][i];
+          freq.push(f);
+        }
+        var S = 0, Q1 = 0, Q2 = 0, U = 0;
+        freq.forEach(function (f) { if (f > 0) S++; if (f === 1) Q1++; if (f === 2) Q2++; U += f; });
+        var res: Record<string, number> = { K: K, S: S, Q1: Q1, Q2: Q2, U: U };
+        // true coverage: share of total detection mass held by items already found
+        var tot = 0, got = 0;
+        p.forEach(function (pi, i) { tot += pi; if (freq[i] > 0) got += pi; });
+        res.Ctrue = got / tot;
+        if (K >= 2 && U > 0) {
+          var a = K - 1;
+          var term = Q2 > 0 ? (a * Q1) / (a * Q1 + 2 * Q2) : Q1 > 0 ? (a * (Q1 - 1)) / (a * (Q1 - 1) + 2) : 0;
+          res.Chat = 1 - (Q1 / U) * term; // Chao–Jost incidence coverage
+          var Q0 = Q2 > 0 ? (a / K) * (Q1 * Q1) / (2 * Q2) : (a / K) * (Q1 * (Q1 - 1)) / 2;
+          res.chao2 = S + Q0; // bias-corrected Chao2 when Q2 = 0
+          var m = K;
+          res.dhat = Q0 > 0 ? Q0 * (1 - Math.pow(1 - Q1 / (K * Q0 + Q1), m)) : 0;
+          var dtrue = 0;
+          p.forEach(function (pi, i) { if (freq[i] === 0) dtrue += 1 - Math.pow(1 - pi, m); });
+          res.dtrue = dtrue;
+        }
+        return { res: res, freq: freq };
+      }
+
+      function render() {
+        var st = stats(), s = st.res, freq = st.freq;
+        var K = s.K;
+        // columns are failure modes in order of discovery; unfound ones fill the right-hand side
+        var cols = order.slice();
+        for (var i = 0; i < N; i++) if (cols.indexOf(i) < 0) cols.push(i);
+        for (var c = 0; c < N; c++) {
+          var item = cols[c];
+          var f = freq[item];
+          var fEl = q('[data-mm-freq="' + c + '"]');
+          fEl.textContent = f > 0 ? String(f) : revealed ? '·' : '';
+          fEl.classList.toggle('is-single', f === 1);
+          for (var r = 0; r < KMAX; r++) {
+            var cell = q('[data-mm-c="' + r + '-' + c + '"]');
+            var ran = r < K;
+            var hit = ran && hist[r][item] === 1;
+            cell.classList.toggle('is-hit', hit);
+            cell.classList.toggle('is-single', hit && f === 1);
+            cell.classList.toggle('is-miss', ran && !hit);
+          }
+          var pEl = q('[data-mm-p="' + c + '"]');
+          (pEl.firstElementChild as HTMLElement).style.height = Math.round(Math.min(1, p[item]) * 100) + '%';
+          pEl.classList.toggle('is-missed', f === 0);
+        }
+        for (var rr = 0; rr < KMAX; rr++) q('[data-mm-runlab="' + rr + '"]').classList.toggle('is-live', rr < K);
+
+        q('[data-mm-k]').textContent = String(K);
+        q('[data-mm-s]').textContent = String(s.S);
+        q('[data-mm-q1]').textContent = String(s.Q1);
+        q('[data-mm-m]').textContent = K >= 2 ? String(K) : 'K';
+        var have = s.Chat !== undefined;
+        q('[data-mm-chat]').textContent = have ? s.Chat.toFixed(2) : '—';
+        q('[data-mm-ctrue]').textContent = K > 0 ? s.Ctrue.toFixed(2) : '—';
+        q('[data-mm-cbar]').style.width = have ? Math.round(s.Chat * 100) + '%' : '0';
+        q('[data-mm-tbar]').style.left = K > 0 ? s.Ctrue * 100 + '%' : '0';
+        q('[data-mm-chao]').textContent = have ? '≥ ' + Math.round(s.chao2) : '—';
+        q('[data-mm-nbar]').style.width = have ? Math.min(100, (s.chao2 / N) * 100) + '%' : '0';
+        q('[data-mm-dhat]').textContent = have ? s.dhat.toFixed(1) : '—';
+        q('[data-mm-dtrue]').textContent = have ? s.dtrue.toFixed(1) : '—';
+
+        var v = q('[data-mm-verdict]');
+        if (K === 0) v.innerHTML = 'Run the audit. Each run finds each failure mode with its own probability.';
+        else if (K === 1) v.innerHTML = 'One run found <b>' + s.S + '</b>. On its own that number says nothing about what was missed. Run another.';
+        else if (K >= KMAX) v.innerHTML = 'Twelve runs. Coverage estimate <b>' + s.Chat.toFixed(2) + '</b> against a true <b>' + s.Ctrue.toFixed(2) + '</b>. The count bound says ≥ ' + Math.round(s.chao2) + ' of ' + N + ': <span class="warn">the hard-to-find failures are what it can’t see.</span> Show what was missed.';
+        else v.innerHTML = 'Found <b>' + s.S + '</b>, ' + s.Q1 + ' of them by one run only. More single finds mean more left to find. Estimated coverage <b>' + s.Chat.toFixed(2) + '</b>; the true value is ' + s.Ctrue.toFixed(2) + '.';
+      }
+
+      q('[data-mm-run]').addEventListener('click', runOnce);
+      q('[data-mm-run5]').addEventListener('click', function () { for (var i = 0; i < 5; i++) runOnce(); });
+      q('[data-mm-new]').addEventListener('click', newWorld);
+      var rv = q('[data-mm-reveal]');
+      rv.addEventListener('click', function () {
+        revealed = !revealed;
+        root.classList.toggle('is-revealed', revealed);
+        rv.setAttribute('aria-pressed', revealed ? 'true' : 'false');
+        rv.textContent = revealed ? 'Hide findability' : 'Show what was missed';
+        render();
+      });
+      newWorld();
+    } catch (e) { /* noop */ }
   })();
 </script>

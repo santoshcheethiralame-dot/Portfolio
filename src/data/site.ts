@@ -44,7 +44,7 @@ export const experience: Experience[] = [
     kicker: 'Research Internship',
     role: 'Research Intern — RAG & LLM Reliability',
     blurb:
-      "First-authored LINEUP (paper in submission): a causal benchmark for per-passage attribution in RAG. A non-circular leave-one-out oracle labels every retrieved passage's causal role for organic errors, and the headline finding — robust across three model families, three multi-hop QA datasets, and a real BM25 retriever — is that 27–53% of RAG failures have no single culprit, so single-passage blame is the wrong primitive. Releases the benchmark, oracle, a one-call evaluation API, and a method leaderboard, with a calibrated set-valued remedy.",
+      "Research intern on RAG reliability. Led a study that queried every subset of the retrieved passages for 603 natural multi-hop errors across three model families and three datasets. For 49% of the errors, no single passage reproduces the mistake, and removing the passages that do repairs the answer no more often than removing a random one. Paper under review at TMLR; the protocol and every subset generation are released.",
     dates: 'Jun – Jul 2026',
     status: 'Current',
     handle: '@pesu-intel-labs',
@@ -507,20 +507,23 @@ export const projects: Project[] = [
 
 /* ------------------------------------------------------------------
    RESEARCH — the Research Desk section.
-   Disclosure is per-study and deliberate: `figures` are only ever
-   numbers that are already public. A study with `results: false`
-   renders as a "developing story" and MUST NOT be given figures.
+   Every number below is copied from the paper or repo it belongs to;
+   nothing is rounded up. Three papers are under double-blind review, so
+   nothing here links to a PDF. Set `results: false` on a study to pull
+   its figures and widget and leave only the headline and deck.
    ------------------------------------------------------------------ */
 export interface ResearchStudy {
   id: string;
   no: string;
   kicker: string;
-  name: string;
+  name: string; // short stamp, e.g. "NO SINGLE CULPRIT"
   headline: string; // the research question, as a headline
+  title: string; // the paper's actual title
   deck: string;
   body: string[];
-  status: string; // folio stamp, e.g. "PAPER IN SUBMISSION"
-  results: boolean; // false => teaser only, no figures rendered
+  byline: string;
+  status: string; // folio stamp, e.g. "UNDER REVIEW · TMLR"
+  results: boolean; // false => teaser only, no figures or widget rendered
   figures?: { v: string; note?: string; l: string }[];
   source?: string; // provenance line under the figures
   links?: { github?: string; paper?: string };
@@ -528,80 +531,221 @@ export interface ResearchStudy {
 
 export const research: ResearchStudy[] = [
   {
-    id: 'lineup',
+    id: 'culprit',
     no: '01',
-    kicker: 'RAG ATTRIBUTION · BENCHMARK',
-    name: 'LINEUP',
+    kicker: 'RAG ATTRIBUTION · EXHAUSTIVE ENUMERATION',
+    name: 'NO SINGLE CULPRIT',
     headline: 'When the answer is wrong, which passage lied?',
+    title: 'No Single Culprit: Plural, Non-Monotone Sufficiency in Multi-Hop RAG Errors',
     deck:
-      'A causal benchmark where every retrieved passage’s true role is known by construction — so attribution methods can be graded instead of trusted.',
+      'For half of the errors, no single passage did it alone. Attribution tools that name one culprit do one job well, and fail at the one people want them for: fixing the answer.',
     body: [
-      'When a retrieval-augmented system answers confidently and wrongly, the usual tools tell you <em>that</em> the answer is unfaithful. They do not tell you <em>which</em> retrieved passage caused it — and they are easiest to fool when the offending passage is not adversarial, but merely stale, near-duplicate, or topically adjacent.',
-      'LINEUP builds the missing ground truth: a non-circular leave-one-out oracle labels every passage’s causal role for organic errors. Attribution methods are then scored on whether they recover the causal passage or fall for the merely salient one.',
-      'The headline result is not that the methods are imperfect. It is that a large share of real errors have <em>no single culprit to find</em> — so single-passage blame is the wrong primitive, and the release ships a calibrated set-valued remedy in its place.',
-      'The rate is not a constant either, and that is the part a single number would hide. It moves substantially across model families and datasets, which is why the benchmark reports every cell rather than one pooled figure — an average here would describe none of the systems it was averaged over.',
-      'The rest is deliberately unglamorous. Roles come from exact leave-one-out rather than a heuristic, the errors are organic rather than adversarially planted, splits are held out by question so nothing leaks, and a split-half replication has to land in the same place twice. The number is meant to survive someone else running it.',
+      'Debugging a RAG system usually starts from a wrong answer and asks which retrieved passage caused it. Attribution methods answer with a ranking, and the top passage gets the blame. That assumes two things: one passage is enough to reproduce the error, and adding more context never undoes it. Nobody had checked either assumption error by error.',
+      'So I checked by brute force. Six passages give 63 proper subsets, few enough to query them all. Qwen2.5-7B, Phi-3.5-mini and Mistral-7B made 603 natural errors on HotpotQA, 2WikiMultiHopQA and MuSiQue. For each error, the model answered from every subset, and I recorded every <em>minimal sufficient set</em>: a smallest group of passages that makes the model repeat its mistake.',
+      'For 49% of errors, no single passage is sufficient. 59% have more than one minimal set, and for 27%, two of those sets share no passage. Support is also <em>non-monotone</em>: for 63% of errors, adding one passage to a sufficient set changes the answer. Decoding noise would have to be at least 15 times what I measured to explain that. On these errors, 28% of leave-one-out’s causal labels fall outside every minimal set.',
+      'Attribution is asked to do three jobs, and the results pull them apart. Naming one sufficient explanation mostly works. Recovering all the responsible evidence hits a hard limit: when an error has several minimal sets with no passage in common, one passage can belong to only one of them. Repair is the job that fails. Removing the smallest sufficient set restores the gold answer for 19% of errors, about the same as removing a random passage (17%).',
+      'Every rate comes with its conditions stated: the passage order the model saw, a strict answer matcher reported beside a looser one, and error labels from each model’s own judge, checked by hand. A second enumeration on another machine returns the identical family for 81% of errors. The protocol and every subset generation are released.',
     ],
-    status: 'PAPER IN SUBMISSION',
+    byline: 'Santosh Cheethirala · PESU Intelligence Labs',
+    status: 'UNDER REVIEW · TMLR',
     results: true,
     figures: [
-      { v: '27–53%', l: 'of RAG failures have <b>no single culprit</b> — responsibility is a coalition' },
-      { v: '3 × 3', l: '<b>model families</b> × <b>multi-hop QA datasets</b>, plus a real BM25 retriever' },
-      { v: '1st', l: '<b>author</b> — benchmark, oracle, evaluation API and method leaderboard released' },
+      { v: '49%', note: 'CI 45–53', l: 'of errors have <b>no sufficient single passage</b>' },
+      { v: '59%', l: 'have <b>more than one</b> minimal sufficient set. For 27%, two of them share no passage' },
+      { v: '63%', l: 'are <b>non-monotone</b>: adding one passage to a sufficient set changes the answer' },
+      { v: '19 vs 17%', l: 'repaired by removing the smallest sufficient set, against removing a <b>random passage</b>' },
     ],
-    source: 'Non-circular leave-one-out oracle · organic (not adversarial) errors · PESU Intelligence Labs',
-    links: { github: 'https://github.com/santoshcheethiralame-dot/LINEUP' },
+    source: '603 natural errors · 3 models × 3 datasets · 63 subsets per error · 26,724 one-step additions tested',
   },
   {
-    id: 'dragnet',
+    id: 'precise',
     no: '02',
-    kicker: 'METHOD · SET-VALUED ATTRIBUTION',
-    name: 'DRAGNET',
-    headline: 'If there’s no one suspect, cast a dragnet',
+    kicker: 'INTERPRETABILITY · METROLOGY',
+    name: 'PRECISE ≠ TRUE',
+    headline: 'Every check passed. The direction was wrong.',
+    title: 'Precise but Not True: Per-Coordinate Standardisation Collapses Fitted Directions at Near-Zero Norm Gains',
     deck:
-      'Set-valued causal attribution: name the smallest group of passages guaranteed to contain the responsible ones.',
+      'Interpretability trusts a probe when it predicts well and when reruns agree. In metrology that is precision. Trueness needs a reference value, and an MLP neuron’s input weights are one.',
     body: [
-      'Where LINEUP shows that single-culprit attribution is often ill-posed, DRAGNET replaces it. It estimates the <em>minimal sufficient causal set</em> — the smallest passage subset that alone reproduces the answer — under an explicit model-query budget, wrapped in a distribution-free coverage guarantee.',
+      'A probe fitted to a model’s activations returns a direction. That direction then gets compared with weights, used to steer the model, or reported as what the model represents. The right answer is rarely available, so people trust the direction on checks it can run by itself: held-out accuracy, and agreement across restarts and folds. MLP neurons are the exception. A neuron reads one direction of its layer norm’s output, that direction is written in its weights, and any method can be scored against it.',
+      'Scoring the standard probe this way turned up a failure the usual checks miss. Where a norm gain is near zero, one coordinate barely varies. Standardising each coordinate before fitting is recommended practice and a library default. It divides a tiny weight on that coordinate by the coordinate’s tiny spread, so the returned direction lands almost entirely on a coordinate the model barely reads. In Llama-3.2-1B layer 3, a capitalisation probe puts 0.11% of its squared norm on two such coordinates; after the division they hold 99.99%. Test accuracy is 0.9985 and fold agreement is 0.997.',
+      'The collapse appears in the standard scikit-learn probe across six model families up to 8B, and in two unrelated direction estimators. Added to the model, a collapsed direction moves it less than a random direction does. The exposed layers can be read from the gains alone: 28 of 36 public models have at least one. Dropping the near-constant coordinates before fitting removes the collapse.',
     ],
-    status: 'PAPER IN PREP',
-    results: false,
+    byline: 'Santosh Cheethirala',
+    status: 'UNDER REVIEW · TMLR',
+    results: true,
+    figures: [
+      { v: '99.99%', l: 'of the probe’s direction on <b>two coordinates</b> the model barely reads, at accuracy 0.9985' },
+      { v: '6', l: '<b>model families</b> up to 8B where the standard probe collapses' },
+      { v: '28 / 36', l: 'public models with a layer that <b>the gains alone flag</b>' },
+      { v: '25–81×', l: 'less next-token effect than a <b>random direction</b>, at 7–8B' },
+    ],
+    source: 'Every main-text result pre-registered before its data',
   },
   {
-    id: 'mirror',
+    id: 'instrument',
     no: '03',
-    kicker: 'INTERPRETABILITY · DEVELOPING',
-    name: 'MIRROR',
-    headline: 'Is the model introspecting — or making it up?',
-    deck: 'Dissociating genuine self-report from confabulation in language models.',
+    kicker: 'INTROSPECTION · CONSTRUCT VALIDITY',
+    name: 'AUDITING THE INSTRUMENT',
+    headline: 'Is the model introspecting, or just perturbed?',
+    title: 'Auditing the Instrument: What Concept-Injection Experiments Measure About LLM Introspection',
+    deck:
+      'Inject a concept into a model’s activations, ask whether it notices, and read YES as introspection. Before deciding what that shows, test the instrument.',
     body: [
-      'Extract a concept direction from contrastive prompts, inject it into the residual stream while the model generates, then ask it what it notices. A KL meter records how hard the injection actually perturbed the model — so a self-report can be checked against the size of the thing it claims to have noticed.',
+      'Concept-injection experiments add a concept vector to a model’s residual stream and ask whether it notices an injected thought. Each result rests on three assumptions about the instrument: the vector is <em>live</em>, the <em>dose</em> means the same thing across models and prompts, and the <em>readout</em> reports the injection rather than something else. I tested all three on nine open models from four families, using controls with known answers and pre-registering every arm.',
+      'Each assumption fails somewhere. The health checks in use can’t tell live vectors from dead ones (pooled AUCs 0.52 to 0.55). The same fraction of the residual norm moves the next token 25 to 480 times more in one model than in another. At the published strength, Gemma-3-27B puts less than 10⁻⁴ of its first-token probability on YES or NO, so the YES/NO readout is taken after the model has mostly stopped answering YES or NO.',
+      'Where a readout does work, it registers the perturbation, not the content. On Llama-3.1-8B the model localizes an injected sentence 96.7% of the time, but random vectors of the same norm reach 92.3%, and it can’t say which of ten concepts was injected (12.5%, against 9.2% for random vectors). The same controls apply to safety steering: unrelated vectors matched in effect move a model’s report of being evaluated more than the evaluation-awareness vector does. The paper ships a reporting checklist. It tests the instrument and does not rule on whether models introspect.',
     ],
-    status: 'DEVELOPING STORY',
-    results: false,
+    byline: 'Santosh Cheethirala',
+    status: 'UNDER REVIEW · TACL',
+    results: true,
+    source: '9 open models · 4 families · 30 concepts · every arm and amendment filed before its data',
+  },
+  {
+    id: 'missingmass',
+    no: '04',
+    kicker: 'AI SAFETY · CAPTURE–RECAPTURE',
+    name: 'MISSING MASS',
+    headline: 'How complete was the audit?',
+    title: 'How Complete Was the Audit? Estimating What Red Teams, Auditors and Interpretability Tools Miss',
+    deck:
+      'Safety evaluations report what they found. None report how much they missed. The overlap between repeated runs of a tool can put a number on it.',
+    body: [
+      'An alignment audit finds three hidden behaviours. A red team finds twelve jailbreak strategies. Neither number says whether the model has three problems, or whether the audit found the three easiest of thirty. That is what decides whether to ship or keep looking.',
+      'The overlap between repeated runs carries that information. When independent runs keep finding the same failure modes, the search is close to saturation; when each run finds mostly new ones, a lot is still undiscovered. Capture–recapture statistics turn this into estimates, and software testing uses the same idea for residual bugs. With Kushal, I’m applying it to AI-safety discovery tools, and validating it first on testbeds where the failures were planted and the truth is known.',
+      'The early results separate two quantities. <em>Audit coverage</em>, the share of detectable failure mass already found, can be estimated: in simulation its bias stays within 0.009 in every cell where its assumptions hold. The <em>number</em> of failure modes cannot be estimated; when some failures are much harder to find than others, count estimates are only lower bounds. Along the way, the standard bootstrap interval for coverage turned out to cover the truth only about 76% of the time at a nominal 95%, so we built one that reaches 0.90 to 0.95.',
+    ],
+    byline: 'Santosh Cheethirala & Kushal',
+    status: 'PRE-REGISTRATION · v0.2',
+    results: true,
+    figures: [
+      { v: '≤ 0.009', l: 'largest <b>bias of estimated coverage</b> across 14 clean simulation cells' },
+      { v: '76% → 0.90–0.95', l: 'how often the <b>95% interval</b> covers the truth: standard bootstrap → ours' },
+      { v: '1,744', l: 'checks against the <b>R reference</b> implementations, matching to 3×10⁻¹²' },
+      { v: '$0', l: 'compute budget: <b>open models</b>, CPU and free Kaggle GPUs' },
+    ],
+    source: 'Targeting arXiv in Dec 2026 · lab notebook, pre-registration and estimator library are public',
+    links: { github: 'https://github.com/santoshcheethiralame-dot/missingmass' },
   },
 ];
 
-/* The LINEUP console scenario. A worked example, labelled as such in the UI:
-   the mechanism (exact leave-one-out) is the benchmark's real oracle, but this
-   particular case is hand-built for legibility. `assertsWrong` chunks each
-   independently assert the wrong value — so no single removal fixes the answer. */
-export const lineupScenario = {
-  question: 'In what year was the director of the film “Nightjar” born?',
-  gold: '1921',
-  wrong: '1937',
-  chunks: [
-    { id: 'C1', role: 'gold', badge: 'GOLD', salience: 30, isGold: true, assertsWrong: false,
-      text: 'Elena Rivera (b. 1921, Oaxaca) directed her second feature, “Nightjar”, in 1958.' },
-    { id: 'C2', role: 'causal', badge: 'CAUSAL', salience: 82, isGold: false, assertsWrong: true,
-      text: 'Rivera was born in 1937 in Veracruz, according to the festival programme note.' },
-    { id: 'C3', role: 'misleading', badge: 'MISLEADING → INNOCENT', salience: 95, isGold: false, assertsWrong: false,
-      text: 'Widely cited as the definitive Rivera biography and the standard reference on her early life.' },
-    { id: 'C4', role: 'causal', badge: 'CAUSAL', salience: 38, isGold: false, assertsWrong: true,
-      text: 'The 1937 date is repeated in the studio press kit distributed with the re-release.' },
-    { id: 'C5', role: 'inert', badge: 'INERT', salience: 22, isGold: false, assertsWrong: false,
-      text: 'Rivera later taught cinematography at the national film school for eleven years.' },
+/* A "Corrections & Clarifications" box, newspaper style: one line per study,
+   each naming the check the field trusted and what the measurement found. */
+export const corrections: { desk: string; text: string; pending?: boolean }[] = [
+  {
+    desk: 'RAG attribution',
+    text: 'A wrong RAG answer was traced to one culprit passage. For 49% of 603 natural errors, no single passage reproduces the error alone.',
+  },
+  {
+    desk: 'Probing',
+    text: 'Agreement across restarts was taken as evidence that a fitted direction is right. At one GPT-Neo layer, restarts agreed at 1.00 on directions with a median alignment of 0.01 to the true weights.',
+  },
+  {
+    desk: 'Introspection',
+    text: 'A YES under concept injection was read as introspection. At the published strength, the model puts less than 10⁻⁴ of its first-token probability on YES or NO.',
+  },
+  {
+    desk: 'Safety audits',
+    text: 'Audits reported what they found, but not how much they missed. A correction is being prepared.',
+    pending: true,
+  },
+];
+
+/* Study 01's console: one real error from the paper (Figure 1: HotpotQA,
+   Qwen2.5-7B, first run, enumeration bound 3). Subsets are written as sorted
+   passage letters. Only sizes 0–3 and the full context were queried in this
+   run; sizes 4–5 are honestly reported as not queried. */
+export const culpritCase = {
+  model: 'Qwen2.5-7B',
+  dataset: 'HotpotQA',
+  question:
+    'Considered the strongest recorded tropical cyclone, which cyclone had a film made about it in 2007?',
+  gold: '1999 Odisha cyclone',
+  wrong: 'Kathantara',
+  bound: 3,
+  passages: [
+    { id: 'A', label: 'Article on another cyclone', gold: false },
+    { id: 'B', label: 'Article on “Kathantara”, the 2007 film', gold: true },
+    { id: 'C', label: 'Article on another cyclone', gold: false },
+    { id: 'D', label: 'Article on another cyclone', gold: false },
+    { id: 'E', label: 'Article on another cyclone', gold: false },
+    { id: 'F', label: 'Article on the 1999 Odisha cyclone', gold: true },
+  ],
+  // every queried subset that makes the model repeat "Kathantara"
+  sufficient: ['AB', 'BC', 'BE', 'ABC', 'ABE', 'BCD', 'BCE', 'BCF', 'ABCDEF'],
+  minimal: ['AB', 'BC', 'BE'],
+  // a sufficient set, and a one-larger superset that is not
+  violations: [['AB', 'ABD'], ['AB', 'ABF'], ['BE', 'BDE'], ['BE', 'BEF']],
+  // the answers the paper states for non-reproducing subsets
+  answers: { ABF: '1999 Odisha cyclone', ABD: 'Cyclone Hondo' } as Record<string, string>,
+};
+
+/* Study 01's scorecard: the three jobs attribution is asked to do (Section 5). */
+export const attributionJobs = [
+  {
+    job: 'Name one explanation',
+    verdict: 'WORKS',
+    a: { v: 98, l: 'ContextCite’s top passage lies in a minimal sufficient set' },
+    b: { v: 56, l: 'a random passage does' },
+  },
+  {
+    job: 'Recover all the evidence',
+    verdict: 'CAPPED',
+    a: { v: 45, l: 'ContextCite recall where every minimal set is disjoint' },
+    b: { v: 45, l: 'the most any single passage can reach there' },
+  },
+  {
+    job: 'Repair the answer',
+    verdict: 'FAILS',
+    a: { v: 19, l: 'removing the smallest sufficient set restores gold' },
+    b: { v: 17, l: 'removing a random passage does' },
+  },
+];
+
+/* Study 03's localization readout (Table 2, Llama-3.1-8B): accuracy at naming
+   which of 10 sentences got the injection (chance 0.10), real concept vectors
+   against random directions of the same norm. 600 trials per cell and arm. */
+export const localization = {
+  layers: [1, 2, 3, 4, 8],
+  strengths: [2, 5, 8],
+  primary: { layer: 2, strength: 5 },
+  real: [
+    [0.96, 0.61, 0.51],
+    [0.29, 0.97, 0.66],
+    [0.19, 0.88, 0.74],
+    [0.21, 0.83, 0.95],
+    [0.13, 0.36, 0.56],
+  ],
+  random: [
+    [0.70, 0.66, 0.42],
+    [0.25, 0.92, 0.60],
+    [0.12, 0.83, 0.74],
+    [0.11, 0.64, 0.91],
+    [0.12, 0.26, 0.56],
   ],
 };
+
+/* Study 03's three assumptions, and where each one breaks. */
+export const instrumentChecks = [
+  {
+    k: 'LIVE',
+    q: 'Does the vector change anything?',
+    v: '0.52–0.55',
+    fail: 'pooled AUC of the health checks in use at telling live vectors from dead ones. Chance is 0.50.',
+  },
+  {
+    k: 'DOSE',
+    q: 'Does a strength mean the same thing in every model?',
+    v: '25–480×',
+    fail: 'more next-token effect in one model than another, from the same fraction of the residual norm.',
+  },
+  {
+    k: 'READOUT',
+    q: 'Does a YES report the injection?',
+    v: '< 10⁻⁴',
+    fail: 'of Gemma-3-27B’s first-token probability is on YES or NO at the published strength.',
+  },
+];
 
 export const skills: { group: string; items: string[] }[] = [
   {
