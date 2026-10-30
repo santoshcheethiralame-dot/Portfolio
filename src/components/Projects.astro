@@ -324,7 +324,7 @@ import Folio from './Folio.astro';
         var ty = floor - H * THR;
         ctx.strokeStyle = 'rgba(255,255,255,.3)'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
         ctx.beginPath(); ctx.moveTo(pad, ty); ctx.lineTo(w - pad, ty); ctx.stroke(); ctx.setLineDash([]);
-        ctx.font = '600 7px "JetBrains Mono",monospace';
+        ctx.font = '600 7px "Martian Mono",monospace';
         ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
         ctx.fillStyle = 'rgba(255,255,255,.42)'; ctx.fillText('REVIEW DUE', w - pad, ty - 2);
 
@@ -340,15 +340,15 @@ import Folio from './Folio.astro';
           ctx.strokeRect(bx + 0.5, floor - bh + 0.5, bw - 1, bh - 1);
           if (rising) {
             ctx.fillStyle = LIME; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-            ctx.font = '700 7px "JetBrains Mono",monospace';
+            ctx.font = '700 7px "Martian Mono",monospace';
             ctx.fillText('REVIEW', bx + bw / 2, floor - bh - 3);
           }
           ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
-          ctx.font = '600 7px "JetBrains Mono",monospace';
+          ctx.font = '600 7px "Martian Mono",monospace';
           ctx.fillText('S' + (i + 1), bx + bw / 2, h - 12);
         }
         ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.textAlign = 'left';
-        ctx.font = '600 8px "JetBrains Mono",monospace';
+        ctx.font = '600 8px "Martian Mono",monospace';
         ctx.fillText('retention \u00b7 spaced repetition', pad, h - 4);
       };
       return o;
@@ -369,7 +369,7 @@ import Folio from './Folio.astro';
           if (active) { ctx.fillStyle = LIME; ctx.fillRect(tx + 2, pad - 2, tw - 4, topH - 4); }
           ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.lineWidth = 1; ctx.strokeRect(tx + 2.5, pad - 1.5, tw - 5, topH - 5);
           ctx.fillStyle = active ? '#0a0a0a' : 'rgba(255,255,255,.7)';
-          ctx.font = '600 9px "JetBrains Mono",monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.font = '600 9px "Martian Mono",monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
           ctx.fillText(toks[k], tx + tw / 2, pad + topH / 2 - 1);
         }
         for (var r = 0; r < N; r++) {
@@ -482,7 +482,7 @@ import Folio from './Folio.astro';
           else { ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.arc(px, py, 2.4, 0, 7); ctx.stroke(); }
         }
         // readout — the genuine numbers
-        ctx.font = '600 9px "JetBrains Mono",monospace'; ctx.textBaseline = 'alphabetic';
+        ctx.font = '600 9px "Martian Mono",monospace'; ctx.textBaseline = 'alphabetic';
         ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.textAlign = 'left';
         ctx.fillText('epoch ' + epoch + '   loss ' + lossv.toFixed(3) + '   acc ' + Math.round(accv * 100) + '%', padL, h - 7);
         ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.textAlign = 'right';
@@ -505,7 +505,7 @@ import Folio from './Folio.astro';
         var p = Math.max(0, Math.min(1, (tau - 0.5) / 2.6));
         var rev = Math.floor(p * 64), done = p >= 1;
 
-        ctx.font = '600 8px "JetBrains Mono",monospace';
+        ctx.font = '600 8px "Martian Mono",monospace';
         ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
         ctx.fillStyle = 'rgba(255,255,255,.5)';
         ctx.fillText('blob \u00b7 "hello world"', pad, 17);
@@ -525,10 +525,10 @@ import Folio from './Folio.astro';
           var chr = settled ? FINAL.charAt(i) : HEX[(Math.random() * 16) | 0];
           var row = i < per ? 0 : 1, col = i % per;
           var x = pad + col * colw + colw / 2, y = row ? y1 : y0;
-          if (done && i < 2) { ctx.fillStyle = LIME; ctx.font = '700 10px "JetBrains Mono",monospace'; }
+          if (done && i < 2) { ctx.fillStyle = LIME; ctx.font = '700 10px "Martian Mono",monospace'; }
           else {
             ctx.fillStyle = settled ? (done ? RED : 'rgba(255,255,255,.8)') : 'rgba(255,255,255,.3)';
-            ctx.font = '600 9.5px "JetBrains Mono",monospace';
+            ctx.font = '600 9.5px "Martian Mono",monospace';
           }
           ctx.fillText(chr, x, y);
         }
@@ -537,7 +537,7 @@ import Folio from './Folio.astro';
           ctx.beginPath(); ctx.moveTo(pad, y0 + 8); ctx.lineTo(pad + colw * 2, y0 + 8); ctx.stroke();
         }
         ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-        ctx.font = '600 8px "JetBrains Mono",monospace';
+        ctx.font = '600 8px "Martian Mono",monospace';
         ctx.fillStyle = done ? LIME : 'rgba(255,255,255,.45)';
         ctx.fillText(done ? '.pes/objects/' + FINAL.slice(0, 2) + '/ \u00b7 content addressed' : 'hashing\u2026', pad, h - 5);
       };
@@ -595,12 +595,12 @@ import Folio from './Folio.astro';
             ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 1.5; ctx.strokeRect(nx - s + .5, ny - s + .5, s * 2 - 1, s * 2 - 1);
           }
           ctx.fillStyle = isDead ? 'rgba(255,255,255,.35)' : 'rgba(255,255,255,.8)';
-          ctx.font = '600 8px "JetBrains Mono",monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.font = '600 8px "Martian Mono",monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
           ctx.fillText('n' + i, nx, ny + s + 9);
         }
         var msg = phase === 0 ? 'term 7 · leader n0' : phase === 1 ? '! ELECTION' : (tau < 5.6 ? 'term 8 · leader n2' : 'term 8 · n0 rejoined');
         ctx.fillStyle = phase === 1 ? RED : 'rgba(255,255,255,.55)';
-        ctx.font = '600 9px "JetBrains Mono",monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+        ctx.font = '600 9px "Martian Mono",monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
         ctx.fillText(msg, 12, 16);
       };
       return o;
@@ -627,7 +627,7 @@ import Folio from './Folio.astro';
         var zones = [['BEAR', 0.72], ['BASE', 1], ['BULL', 1.28]];
         var bx0 = padX + (w - padX * 2) * 0.46, bw = ((w - padX) - bx0) / 3;
         var gdv = 0.25 + s * 0.62;
-        ctx.font = '600 8px "JetBrains Mono",monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+        ctx.font = '600 8px "Martian Mono",monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
         zones.forEach(function (z, k) {
           var bh = Math.min(1, gdv * z[1]) * (baseY - topY - 14);
           var bx = bx0 + k * bw + 4, bwid = bw - 8, by = baseY - bh;
@@ -638,10 +638,10 @@ import Folio from './Folio.astro';
         });
         var cr = (18 + gdv * 74).toFixed(1); // the live number over the bars
         // the computed figure is the resolved output of the sweep — lime
-        ctx.fillStyle = LIME; ctx.font = '700 10px "JetBrains Mono",monospace';
+        ctx.fillStyle = LIME; ctx.font = '700 10px "Martian Mono",monospace';
         ctx.fillText(cr + ' CR NET', bx0 + bw * 1.5, topY + 4);
         var open = (o.clk % 6) > 4.4; // the sealed chip flashes its NDA reveal
-        ctx.font = '600 8px "JetBrains Mono",monospace'; ctx.textAlign = 'left';
+        ctx.font = '600 8px "Martian Mono",monospace'; ctx.textAlign = 'left';
         if (open) { ctx.fillStyle = LIME; ctx.fillText('NDA ✓ SY.NO 48/2 · 4.1 AC', padX, 14); }
         else {
           ctx.fillStyle = 'rgba(237,28,36,.8)'; ctx.fillRect(padX, 6, 86, 10);
@@ -684,7 +684,7 @@ import Folio from './Folio.astro';
         }
         ctx.globalAlpha = 1;
 
-        ctx.font = '700 9.5px "JetBrains Mono",monospace';
+        ctx.font = '700 9.5px "Martian Mono",monospace';
         ctx.textAlign = 'left'; ctx.textBaseline = 'top';
         ctx.fillStyle = P.c; ctx.fillText(P.n, pad, 9);
 
@@ -695,7 +695,7 @@ import Folio from './Folio.astro';
           ctx.fillRect(sx + k * (sw + gap), 10, sw, 4);
         }
 
-        ctx.font = '600 7.5px "JetBrains Mono",monospace';
+        ctx.font = '600 7.5px "Martian Mono",monospace';
         ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
         ctx.fillStyle = idx === 3 ? LIME : 'rgba(255,255,255,.45)';
         ctx.fillText(idx === 3 ? 'gap closed \u00b7 re-checked' : 'examine \u2192 teach \u2192 re-check', pad, h - 6);
@@ -757,7 +757,7 @@ import Folio from './Folio.astro';
           ctx.fill(); if (g > 0) ctx.stroke();
         }
 
-        ctx.font = '600 8px "JetBrains Mono",monospace';
+        ctx.font = '600 8px "Martian Mono",monospace';
         ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
         ctx.fillStyle = reveal > 0.9 ? LIME : 'rgba(255,255,255,.55)';
         ctx.fillText(reveal > 0.9 ? 'ring detected · message passing on' : 'per-account view · nothing looks abnormal', padX, h - 8);
@@ -781,7 +781,7 @@ import Folio from './Folio.astro';
 
         /* ---- the student's question, typed once, then it stays ---- */
         ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
-        ctx.font = '700 9px "JetBrains Mono",monospace';
+        ctx.font = '700 9px "Martian Mono",monospace';
         var pc = t < typeEnd ? Math.floor(t / typeEnd * Q.length) : Q.length;
         ctx.fillStyle = LIME; ctx.fillText('>', pad, 15);
         ctx.fillStyle = 'rgba(255,255,255,.95)'; ctx.fillText(Q.slice(0, pc), pad + 13, 15);
@@ -861,7 +861,7 @@ import Folio from './Folio.astro';
         ctx.beginPath(); ctx.arc(mx, my, 3.4 + hit * 1.6, 0, 7); ctx.fill();
 
         /* ---- labels: the promise is "moving AND labelled" ---- */
-        ctx.font = '600 7px "JetBrains Mono",monospace';
+        ctx.font = '600 7px "Martian Mono",monospace';
         ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.textAlign = 'center';
         ctx.fillText('sunlight', (sx + mx) / 2, (sy + my) / 2 - 6);
         ctx.fillStyle = LIME;
@@ -876,9 +876,9 @@ import Folio from './Folio.astro';
 
         /* ---- the answer, and the framing ---- */
         ctx.globalAlpha = Math.max(0, Math.min(1, (rev - 0.5) / 0.5));
-        ctx.font = '700 8px "JetBrains Mono",monospace'; ctx.textAlign = 'left';
+        ctx.font = '700 8px "Martian Mono",monospace'; ctx.textAlign = 'left';
         ctx.fillStyle = LIME; ctx.fillText('short waves scatter most', pad, h - 6);
-        ctx.font = '600 7px "JetBrains Mono",monospace'; ctx.textAlign = 'right';
+        ctx.font = '600 7px "Martian Mono",monospace'; ctx.textAlign = 'right';
         ctx.fillStyle = 'rgba(255,255,255,.5)';
         ctx.fillText('\u25b6 drawn for your question', w - pad, h - 6);
         ctx.globalAlpha = 1;
@@ -925,7 +925,7 @@ import Folio from './Folio.astro';
           ctx.fillStyle = 'rgba(10,10,10,.35)'; ctx.fillRect(cx + 2, cy - 3.5, 4, 7);
           ctx.strokeStyle = 'rgba(10,10,10,.5)'; ctx.lineWidth = 1; ctx.strokeRect(cx - 7.5, cy - 4, 15, 8);
           if (!siren && local > 0.05) {
-            ctx.fillStyle = LIME; ctx.font = '700 8px "JetBrains Mono",monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillStyle = LIME; ctx.font = '700 8px "Martian Mono",monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             ctx.fillText(c.home < 0 ? '\u25b2' : '\u25bc', cx, c.home < 0 ? cy - 12 : cy + 12);
           }
         }
@@ -935,12 +935,12 @@ import Folio from './Folio.astro';
         ctx.strokeStyle = 'rgba(10,10,10,.5)'; ctx.lineWidth = 1; ctx.strokeRect(ambX - 11, ay - 6, 22, 12);
         ctx.fillStyle = RED; ctx.fillRect(ambX - 6.5, ay - 1.5, 7, 3); ctx.fillRect(ambX - 3.5, ay - 4.5, 3, 9);
         ctx.fillStyle = Math.sin(o.clk * 11) > 0 ? RED : LIME; ctx.fillRect(ambX - 2, ay - 9, 4, 3);
-        ctx.font = '700 8px "JetBrains Mono",monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+        ctx.font = '700 8px "Martian Mono",monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
         ctx.fillStyle = siren ? RED : LIME;
         ctx.fillText(siren ? '\u258d SIREN \u00b7 all react at once' : '\u25b6 CORRIDOR \u00b7 each car addressed', pad, 26);
         ctx.textAlign = 'right'; ctx.fillStyle = siren ? 'rgba(255,255,255,.5)' : LIME;
         ctx.fillText(siren ? '20:22' : '13:25  \u221234%', w - pad, 26);
-        ctx.textAlign = 'left'; ctx.font = '600 7px "JetBrains Mono",monospace'; ctx.fillStyle = 'rgba(255,255,255,.4)';
+        ctx.textAlign = 'left'; ctx.font = '600 7px "Martian Mono",monospace'; ctx.fillStyle = 'rgba(255,255,255,.4)';
         ctx.fillText('5.8 KM \u00b7 11 JUNCTIONS', pad, roadBot + 14);
       };
       return o;
@@ -972,27 +972,27 @@ import Folio from './Folio.astro';
         ctx.strokeStyle = 'rgba(255,255,255,.14)'; ctx.beginPath(); ctx.arc(gcx, gcy, gr, A0, A0 + SW); ctx.stroke();
         ctx.strokeStyle = col; ctx.beginPath(); ctx.arc(gcx, gcy, gr, A0, A0 + SW * (P.score / 100) * prog); ctx.stroke();
         ctx.lineCap = 'butt';
-        ctx.fillStyle = col; ctx.font = '400 26px "Anton",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillStyle = col; ctx.font = '400 26px "Press Display",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.fillText(String(Math.round(P.score * prog)), gcx, gcy - 1);
-        ctx.font = '600 6.5px "JetBrains Mono",monospace'; ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fillText('/ 100', gcx, gcy + 13);
+        ctx.font = '600 6.5px "Martian Mono",monospace'; ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fillText('/ 100', gcx, gcy + 13);
         var rxx = pad + w * 0.44, rww = w - pad - (pad + w * 0.44);
         ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-        ctx.font = '700 9px "JetBrains Mono",monospace'; ctx.fillStyle = 'rgba(255,255,255,.9)';
+        ctx.font = '700 9px "Martian Mono",monospace'; ctx.fillStyle = 'rgba(255,255,255,.9)';
         ctx.fillText(P.name, rxx, by + bh + 18);
         var nmw = ctx.measureText(P.name).width, pillw = ctx.measureText(P.word).width + 12;
         ctx.fillStyle = col; ctx.fillRect(rxx + nmw + 8, by + bh + 8, pillw, 13);
-        ctx.fillStyle = '#0a0a0a'; ctx.font = '700 8px "JetBrains Mono",monospace'; ctx.fillText(P.word, rxx + nmw + 14, by + bh + 17.5);
+        ctx.fillStyle = '#0a0a0a'; ctx.font = '700 8px "Martian Mono",monospace'; ctx.fillText(P.word, rxx + nmw + 14, by + bh + 17.5);
         var labs = ['NUTRITION', 'PROCESSING', 'ADDITIVES'], ry = by + bh + 28, rh = 9, s;
         for (s = 0; s < 3; s++) {
           var yy = ry + s * (rh + 9), barw = rww - 24;
-          ctx.font = '600 6.5px "JetBrains Mono",monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = 'rgba(255,255,255,.55)';
+          ctx.font = '600 6.5px "Martian Mono",monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = 'rgba(255,255,255,.55)';
           ctx.fillText(labs[s], rxx, yy - 2);
           ctx.strokeStyle = 'rgba(255,255,255,.28)'; ctx.lineWidth = 1; ctx.strokeRect(rxx + 0.5, yy + 0.5, barw - 1, rh - 1);
           var sc = P.sub[s] >= 60 ? LIME : RED; ctx.fillStyle = sc; ctx.fillRect(rxx + 1.5, yy + 1.5, (barw - 3) * (P.sub[s] / 100 * prog), rh - 3);
-          ctx.textAlign = 'right'; ctx.font = '700 7px "JetBrains Mono",monospace'; ctx.fillText(String(Math.round(P.sub[s] * prog)), rxx + rww, yy + rh - 1);
+          ctx.textAlign = 'right'; ctx.font = '700 7px "Martian Mono",monospace'; ctx.fillText(String(Math.round(P.sub[s] * prog)), rxx + rww, yy + rh - 1);
         }
         ctx.globalAlpha = Math.max(0, Math.min(1, (rev - 0.4) / 0.6));
-        ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.font = '600 7px "JetBrains Mono",monospace';
+        ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.font = '600 7px "Martian Mono",monospace';
         ctx.fillStyle = P.bad ? RED : LIME; ctx.fillText((P.bad ? '\u26a0 ' : '\u2713 ') + P.add, pad, h - 8);
         ctx.textAlign = 'right'; ctx.fillStyle = LIME; ctx.fillText('\u2713 sourced', w - pad, h - 8);
         ctx.globalAlpha = 1;
@@ -1011,12 +1011,12 @@ import Folio from './Folio.astro';
         var ctx = o.ctx, w = o.w, h = o.h; if (!ctx) return; ctx.clearRect(0, 0, w, h);
         var pad = 14, seg = 5.4, arm = Math.floor(o.clk / seg) % 2, t = o.clk % seg, majority = arm === 0;
         var N = 16, bw = (w - pad * 2) / N, bh = 13, gy1 = h * 0.30, gy2 = gy1 + 24, killT = 2.8, killed = t >= killT, k;
-        ctx.font = '700 8px "JetBrains Mono",monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = 'rgba(255,255,255,.62)';
+        ctx.font = '700 8px "Martian Mono",monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = 'rgba(255,255,255,.62)';
         ctx.fillText('durability = "' + (majority ? 'majority' : 'persistToMajority') + '"', pad, 18);
         var memPtr = Math.min(N, (t / 2.2) * N), diskPtr = Math.min(N, Math.max(0, (t - 0.9) / 2.2) * N);
         if (!majority) memPtr = diskPtr;
         var mem = Math.floor(memPtr), disk = Math.floor(diskPtr), queue = Math.max(0, mem - disk);
-        ctx.font = '600 7px "JetBrains Mono",monospace'; ctx.fillStyle = 'rgba(255,255,255,.42)';
+        ctx.font = '600 7px "Martian Mono",monospace'; ctx.fillStyle = 'rgba(255,255,255,.42)';
         ctx.fillText('MEMORY \u00b7 acknowledged', pad, gy1 - 4);
         ctx.fillText('DISK \u00b7 flushed', pad, gy2 - 4);
         for (k = 0; k < mem; k++) {
@@ -1030,16 +1030,16 @@ import Folio from './Folio.astro';
           var qx0 = pad + disk * bw, qx1 = pad + mem * bw;
           ctx.strokeStyle = 'rgba(237,28,36,.7)'; ctx.lineWidth = 1; ctx.setLineDash([2, 2]);
           ctx.strokeRect(qx0 + 1, gy1 - 2, (qx1 - qx0) - 2, (gy2 + bh) - gy1 + 4); ctx.setLineDash([]);
-          ctx.fillStyle = RED; ctx.font = '600 7px "JetBrains Mono",monospace'; ctx.textAlign = 'center';
+          ctx.fillStyle = RED; ctx.font = '600 7px "Martian Mono",monospace'; ctx.textAlign = 'center';
           ctx.fillText('disk queue ' + queue, (qx0 + qx1) / 2, gy1 - 12);
         }
         if (killed) {
           var kx = pad + (w - pad * 2) * 0.62;
           ctx.strokeStyle = RED; ctx.lineWidth = 2; ctx.setLineDash([4, 3]); ctx.beginPath(); ctx.moveTo(kx, gy1 - 12); ctx.lineTo(kx, gy2 + bh + 8); ctx.stroke(); ctx.setLineDash([]);
-          ctx.fillStyle = RED; ctx.font = '700 7px "JetBrains Mono",monospace'; ctx.textAlign = 'center'; ctx.fillText('\u2715 KILL MAJORITY', kx, gy1 - 15); ctx.textAlign = 'left';
+          ctx.fillStyle = RED; ctx.font = '700 7px "Martian Mono",monospace'; ctx.textAlign = 'center'; ctx.fillText('\u2715 KILL MAJORITY', kx, gy1 - 15); ctx.textAlign = 'left';
           var lostN = majority ? Math.round(56 * Math.min(1, (t - killT) / 0.8)) : 0;
-          ctx.font = '400 15px "Anton",sans-serif'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = majority ? RED : LIME; ctx.fillText(lostN + ' LOST', pad, h - 20);
-          ctx.font = '700 8px "JetBrains Mono",monospace'; ctx.fillStyle = majority ? RED : LIME; ctx.fillText(majority ? '\u2715 NOT LINEARIZABLE' : '\u2713 LINEARIZABLE', pad, h - 8);
+          ctx.font = '400 15px "Press Display",sans-serif'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = majority ? RED : LIME; ctx.fillText(lostN + ' LOST', pad, h - 20);
+          ctx.font = '700 8px "Martian Mono",monospace'; ctx.fillStyle = majority ? RED : LIME; ctx.fillText(majority ? '\u2715 NOT LINEARIZABLE' : '\u2713 LINEARIZABLE', pad, h - 8);
         }
       };
       return o;
@@ -1087,11 +1087,11 @@ import Folio from './Folio.astro';
           var nh = H * netF * netT; ctx.fillStyle = LIME; ctx.fillRect(bx(4), base0 - nh, bw, nh);
           ctx.strokeStyle = 'rgba(180,255,46,.6)'; ctx.strokeRect(bx(4) + 0.5, base0 - nh + 0.5, bw - 1, nh - 1);
         }
-        ctx.font = '600 6.5px "JetBrains Mono",monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+        ctx.font = '600 6.5px "Martian Mono",monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
         for (i = 0; i < 5; i++) { ctx.fillStyle = i === 4 ? LIME : (i === 0 ? 'rgba(255,255,255,.6)' : 'rgba(237,28,36,.85)'); ctx.fillText(LAB[i], bx(i) + bw / 2, base0 + 11); }
-        ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.font = '600 7.5px "JetBrains Mono",monospace';
+        ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.font = '600 7.5px "Martian Mono",monospace';
         ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.fillText('subtract the money arriving anyway', pad, 20);
-        ctx.textAlign = 'right'; ctx.font = '400 13px "Anton",sans-serif'; ctx.fillStyle = LIME;
+        ctx.textAlign = 'right'; ctx.font = '400 13px "Press Display",sans-serif'; ctx.fillStyle = LIME;
         ctx.fillText('+' + (24.4 * netT).toFixed(1) + 'pp caused', w - pad, 22);
       };
       return o;
@@ -1107,7 +1107,10 @@ import Folio from './Folio.astro';
     var renderers = [], overlayOpen = false, lastT = performance.now();
     function loop(now) {
       if (!sectionLive()) { loopOn = false; return; }
-      var dt = Math.min(50, now - lastT); lastT = now;
+      // a frame's timestamp can predate the performance.now() taken when the loop
+      // was started, so the first dt can be negative: clamp it, or every clock runs
+      // backwards (Batch then indexes PROD[-1] and the throw kills the whole loop)
+      var dt = Math.max(0, Math.min(50, now - lastT)); lastT = now;
       if (!window.__pressFreeze) { // STOP THE PRESS freezes the instruments
         for (var i = 0; i < renderers.length; i++) {
           var r = renderers[i];
@@ -1298,11 +1301,13 @@ import Folio from './Folio.astro';
       var y = window.scrollY; vel = y - lastScroll; lastScroll = y;
     }, { passive: true });
 
-    // Reads first, then writes, and only what changed. The hatch offset lives on the
-    // section (only .li-card-head reads it) instead of <html>, where every write
-    // restyled the whole document; and interleaving each card's rect read with the
-    // previous card's --g write forced a fresh layout per card, every frame.
-    var hatchHost = document.getElementById('projects') || document.documentElement;
+    // Reads first, then writes, and only what changed. The hatch offset lives on
+    // each card head (only its ::before reads it) instead of <html> or the section,
+    // where every write restyled everything beneath; and interleaving each card's
+    // rect read with the previous card's --g write forced a fresh layout per card,
+    // every frame.
+    var heads = Array.prototype.slice.call(document.querySelectorAll('#projects .li-card-head'));
+    var HATCH = 9 / Math.SQRT1_2; // the hatch's vertical period, ~12.73px
     var lastHatch = '', lastTitle = '';
     var lastG = {};
     function uiFrame() {
@@ -1315,8 +1320,8 @@ import Folio from './Folio.astro';
         var d = Math.min(1, Math.abs(cc - vc) / (vh * 0.7));
         gs.push([p.key, card, (1 - d).toFixed(3)]);
       });
-      var hatch = (lastScroll * 0.45 % 200) + 'px';
-      if (hatch !== lastHatch) { lastHatch = hatch; hatchHost.style.setProperty('--li-hatch', hatch); }
+      var hatch = (lastScroll * 0.45 % HATCH).toFixed(2) + 'px';
+      if (hatch !== lastHatch) { lastHatch = hatch; heads.forEach(function (h) { h.style.setProperty('--li-hatch', hatch); }); }
       gs.forEach(function (g) {
         if (lastG[g[0]] === g[2]) return;
         lastG[g[0]] = g[2];
@@ -1333,7 +1338,6 @@ import Folio from './Folio.astro';
     }
     startUi();
     if (REDUCED) {
-      (document.getElementById('projects') || document.documentElement).style.setProperty('--li-hatch', '0px');
       PROJECTS.forEach(function (p) { cardByKey[p.key].querySelector('.li-idx').style.setProperty('--g', '0.6'); });
     }
 

@@ -68,17 +68,26 @@ import { site } from '../data/site';
         </div>
       </div>
 
-      <!-- RIGHT: pixel cat (slow parallax + canvas rain only) -->
+      <!-- RIGHT: the portrait. A loupe follows the cursor and reads the pixel under
+           it; the coffee steams; stderr blinks, slowly if you hover him. -->
       <div class="hp-side">
-        <div class="hp-photo">
-          <div class="cat-scene">
-            <div class="cat-parallax" id="hp-cat-parallax">
-              <img class="hp-cat" src="/img/cat.jpg" alt="Pixel-art portrait" />
-            </div>
-            <canvas class="cat-rain" id="hp-cat-rain"></canvas>
-            <div class="cat-scan" aria-hidden="true"></div>
+        <div class="hp-photo" id="hp-photo">
+          <div class="pt-art" id="hp-pt-art">
+            <img
+              class="hp-portrait"
+              src="/img/portrait.webp"
+              width="1611"
+              height="2000"
+              fetchpriority="high"
+              decoding="async"
+              alt="Pixel-art portrait of Santosh holding a steel tumbler of filter coffee, a black cat on his shoulder"
+            />
+            <canvas class="pt-fx" id="hp-pt-fx" aria-hidden="true"></canvas>
           </div>
+          <canvas class="pt-loupe" id="hp-pt-loupe" aria-hidden="true"></canvas>
+          <div class="cat-scan" aria-hidden="true"></div>
           <span class="hp-photo-tag" id="hp-cat-tag" data-decode="[ it me ]">[ it me ]</span>
+          <span class="hp-photo-hint" aria-hidden="true">hover · look closer</span>
         </div>
       </div>
     </div>
@@ -135,7 +144,7 @@ import { site } from '../data/site';
     min-height: 56px;
     padding: 8px clamp(16px, 2.4vw, 30px);
     border-bottom: 3px solid var(--bink);
-    font-family: "JetBrains Mono", monospace;
+    font-family: "Martian Mono", monospace;
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.12em;
@@ -190,7 +199,7 @@ import { site } from '../data/site';
   }
   .hero-name {
     display: block; /* spans inside the single h1 — each name line stays a block */
-    font-family: "Anton", sans-serif;
+    font-family: "Press Display", sans-serif;
     font-weight: 500;
     /* FIX: clamp max reduced + wrapping allowed so CHEETHIRALA never runs under the cat */
     font-size: clamp(2.4rem, 11.5vw, 8.6rem);
@@ -290,7 +299,7 @@ import { site } from '../data/site';
     top: -13px;
     right: -11px;
     z-index: 6;
-    font-family: "JetBrains Mono", monospace;
+    font-family: "Martian Mono", monospace;
     font-size: 8px;
     font-weight: 700;
     line-height: 1.15;
@@ -315,7 +324,7 @@ import { site } from '../data/site';
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 2px 10px;
-    font-family: "JetBrains Mono", monospace;
+    font-family: "Martian Mono", monospace;
     font-size: 9px;
     font-weight: 500;
     letter-spacing: 0.1em;
@@ -329,7 +338,7 @@ import { site } from '../data/site';
     margin: 0 0 7px;
   }
   .teaser .ts-mast {
-    font-family: "Anton", sans-serif;
+    font-family: "Press Display", sans-serif;
     font-weight: 500;
     font-size: clamp(1.8rem, 2.7vw, 2.7rem);
     line-height: 0.9;
@@ -342,7 +351,7 @@ import { site } from '../data/site';
   .teaser .ts-dateline {
     background: var(--bink);
     color: var(--bcream);
-    font-family: "JetBrains Mono", monospace;
+    font-family: "Martian Mono", monospace;
     font-size: 8px;
     font-weight: 700;
     letter-spacing: 0.16em;
@@ -365,7 +374,7 @@ import { site } from '../data/site';
   }
   .teaser .ts-kicker {
     display: block;
-    font-family: "JetBrains Mono", monospace;
+    font-family: "Martian Mono", monospace;
     font-size: 8px;
     font-weight: 700;
     letter-spacing: 0.14em;
@@ -374,7 +383,7 @@ import { site } from '../data/site';
     margin-bottom: 5px;
   }
   .teaser .ts-head {
-    font-family: "Anton", sans-serif;
+    font-family: "Press Display", sans-serif;
     font-weight: 500;
     font-size: clamp(1.1rem, 1.65vw, 1.55rem);
     line-height: 1.04;
@@ -395,7 +404,7 @@ import { site } from '../data/site';
   }
   .teaser .ts-deck {
     margin-top: 7px;
-    font-family: "Instrument Serif", serif;
+    font-family: "Fraunces", serif;
     font-style: italic;
     font-size: clamp(0.9rem, 1.1vw, 1.05rem);
     line-height: 1.22;
@@ -410,7 +419,7 @@ import { site } from '../data/site';
     border-top: 1.5px solid rgba(20, 20, 20, 0.25);
   }
   .teaser .ts-inside .ih {
-    font-family: "JetBrains Mono", monospace;
+    font-family: "Martian Mono", monospace;
     font-size: 7.5px;
     font-weight: 700;
     letter-spacing: 0.15em;
@@ -422,7 +431,7 @@ import { site } from '../data/site';
     display: flex;
     align-items: baseline;
     gap: 6px;
-    font-family: "Instrument Serif", serif;
+    font-family: "Fraunces", serif;
     font-size: 0.86rem;
     color: var(--bink);
     padding: 1px 0;
@@ -433,7 +442,7 @@ import { site } from '../data/site';
     transform: translateY(-3px);
   }
   .teaser .ts-inside .pg {
-    font-family: "JetBrains Mono", monospace;
+    font-family: "Martian Mono", monospace;
     font-size: 8.5px;
     font-weight: 700;
     color: var(--bink);
@@ -461,7 +470,7 @@ import { site } from '../data/site';
     min-height: 0;
     overflow: hidden;
     margin-top: 3px;
-    font-family: "Instrument Serif", serif;
+    font-family: "Fraunces", serif;
     font-size: 0.74rem;
     line-height: 1.45;
     color: var(--bink);
@@ -482,7 +491,7 @@ import { site } from '../data/site';
     gap: 8px;
     flex: none;
     margin-top: 8px;
-    font-family: "JetBrains Mono", monospace;
+    font-family: "Martian Mono", monospace;
     font-size: 9px;
     font-weight: 700;
     letter-spacing: 0.16em;
@@ -517,58 +526,87 @@ import { site } from '../data/site';
     position: relative;
     overflow: hidden;
   }
-  .hp-cat {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center 38%;
-    image-rendering: pixelated;
+  /* the art box is sized to cover the frame (container units read the frame),
+     a touch oversized so the head-lean never shows an edge, and the steam/blink
+     canvas shares it exactly, so both draw in the portrait's own pixel space */
+  .hp-photo {
+    container-type: size;
   }
-  .cat-scene {
+  .pt-art {
     position: absolute;
-    inset: 0;
-  }
-  .cat-parallax {
-    position: absolute;
-    inset: -7%;
+    left: 50%;
+    top: 50%;
+    width: max(106cqw, calc(106cqh * 1611 / 2000));
+    aspect-ratio: 1611 / 2000;
+    translate: -50% -47%;
     will-change: transform;
   }
-  .cat-rain {
+  .hp-portrait,
+  .pt-fx {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
-    z-index: 2;
+    display: block;
+  }
+  .hp-portrait {
+    image-rendering: pixelated;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+  .pt-fx {
     pointer-events: none;
   }
+  .pt-loupe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 4;
+    pointer-events: none;
+  }
+  .hp-photo.is-looking {
+    cursor: none;
+  }
+  /* scanlines: normal blending at low alpha reads the same as multiply over this
+     art and never asks any engine for a blend group over the animated canvases */
   .cat-scan {
     position: absolute;
     inset: 0;
     z-index: 3;
     pointer-events: none;
-    opacity: 0.1;
-    mix-blend-mode: multiply;
+    opacity: 0.06;
     background: repeating-linear-gradient(0deg, rgba(10, 10, 10, 0.6) 0 1px, transparent 1px 3px);
   }
-  /* Over the rain canvas, which redraws every frame, multiply makes Gecko re-composite
-     a blend group per frame. At 0.06 effective alpha of near-black, normal blending
-     lands within one colour level of multiply, so those engines use it. */
-  :global(html.nc) .cat-scan {
-    mix-blend-mode: normal;
+  .hp-photo-hint {
+    position: absolute;
+    right: 12px;
+    bottom: 10px;
+    z-index: 10;
+    font-family: var(--font-pixel);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--bink);
+    background: var(--blime);
+    padding: 4px 7px 3px;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  .hp-photo.is-looking .hp-photo-hint {
+    opacity: 0;
+    transform: translateY(6px);
   }
   .hp-photo-tag {
     position: absolute;
     bottom: 10px;
     left: 12px;
-    font-family: "JetBrains Mono", monospace;
+    font-family: "Martian Mono", monospace;
     font-size: 10px;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: rgba(247, 245, 241, 0.7);
-    background: rgba(20, 20, 20, 0.6);
-    padding: 3px 6px;
+    color: var(--bcream);
+    background: var(--bink);
+    padding: 4px 7px;
     z-index: 10;
   }
 
@@ -586,7 +624,7 @@ import { site } from '../data/site';
   .mq-track span {
     white-space: nowrap;
     padding: 12px 0;
-    font-family: "Anton", sans-serif;
+    font-family: "Press Display", sans-serif;
     font-weight: 500;
     font-size: clamp(1rem, 1.6vw, 1.45rem);
     letter-spacing: 0.06em;
@@ -661,25 +699,229 @@ import { site } from '../data/site';
 </style>
 
 <script>
-  // HERO ENGINE: reactive cat — slow head-lean parallax + canvas rain only (no glitch, no flash).
-  // Plus the [ it me ] tag decode. The clock (#clock-time) is filled by main.ts.
+  // HERO ENGINE: the portrait. A slow head-lean parallax; pixel steam off the coffee;
+  // stderr blinks (a slow blink when you hover him, which is how cats say hello); and
+  // a loupe that magnifies the art under the cursor and reads out the pixel there.
+  // Fast moves split the loupe's colour plates apart like a press out of register;
+  // they settle back into register when the cursor rests. The caption under the frame
+  // names what you are over. The clock (#clock-time) is filled by main.ts.
   import { decode } from '../scripts/decode';
 
   (function () {
     'use strict';
     try {
-      const photo = document.querySelector<HTMLElement>('.me-top .hp-photo');
+      const photo = document.getElementById('hp-photo');
       const hero = document.querySelector<HTMLElement>('.me-top');
-      const parallax = document.getElementById('hp-cat-parallax');
-      const rainCv = document.getElementById('hp-cat-rain');
+      const art = document.getElementById('hp-pt-art');
+      const img = art?.querySelector<HTMLImageElement>('img');
+      const fxCv = document.getElementById('hp-pt-fx');
+      const lpCv = document.getElementById('hp-pt-loupe');
       const tag = document.getElementById('hp-cat-tag');
-      if (!photo || !hero || !parallax || !(rainCv instanceof HTMLCanvasElement)) return;
+      if (!photo || !hero || !art || !img || !(fxCv instanceof HTMLCanvasElement) || !(lpCv instanceof HTMLCanvasElement)) return;
+      const fx = fxCv.getContext('2d');
+      const lp = lpCv.getContext('2d');
+      if (!fx || !lp) return;
 
       const PRM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const IW = 1611, IH = 2000; // the portrait's own pixel space
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
 
-      /* 1. slow head-lean parallax (the ONE subtle motion alongside rain) */
+      /* regions of the art, in its own pixels */
+      const EYES = [[1234, 1164, 1295, 1200], [1372, 1189, 1433, 1213]];
+      const FUR = '#141412';
+      const ZONES: [string, number[][]][] = [
+        ['[ stderr · unimpressed ]', [[1180, 960, 1560, 1520], [230, 1020, 570, 1370]]],
+        ['[ filter coffee · hot ]', [[760, 1540, 1210, 2000]]],
+        ['[ it me ]', [[380, 230, 1220, 1330]]],
+      ];
+      const zoneAt = (x: number, y: number) => {
+        for (const [label, boxes] of ZONES) for (const b of boxes) if (x >= b[0] && x <= b[2] && y >= b[1] && y <= b[3]) return label;
+        return '[ it me ]';
+      };
+
+      /* ---------- sizing: both canvases track their boxes ---------- */
+      let artW = 1, artH = 1, frW = 1, frH = 1, k = 1; // k = css px per art px
+      function size() {
+        const ar = art!.getBoundingClientRect(), fr = photo!.getBoundingClientRect();
+        artW = ar.width; artH = ar.height; frW = fr.width; frH = fr.height; k = artW / IW;
+        fxCv.width = Math.max(1, Math.round(artW * dpr)); fxCv.height = Math.max(1, Math.round(artH * dpr));
+        lpCv.width = Math.max(1, Math.round(frW * dpr)); lpCv.height = Math.max(1, Math.round(frH * dpr));
+        fx!.setTransform(dpr * k, 0, 0, dpr * k, 0, 0); // fx draws in art pixels
+        lp!.setTransform(dpr, 0, 0, dpr, 0, 0);
+        fxDirty = null; lpDirty = null;
+      }
+
+      /* ---------- the head-lean ---------- */
       const LEAN = 9;
       let tx = 0, ty = 0, cx = 0, cy = 0;
+
+      /* ---------- steam: pixel puffs off the tumbler's rim ---------- */
+      const PX = 12; // the art's own pixel size, near enough
+      interface Puff { x: number; y: number; vy: number; ph: number; life: number; age: number; s: number; }
+      const puffs: Puff[] = [];
+      let puffClock = 0;
+      function spawn() {
+        puffs.push({ x: 930 + Math.random() * 100, y: 1560, vy: 34 + Math.random() * 26, ph: Math.random() * 6.28, life: 2.6 + Math.random() * 1.6, age: 0, s: Math.random() < 0.3 ? 2 : 1 });
+      }
+
+      /* ---------- the blink ---------- */
+      let blinkT = 2.2, blinkP = 0, slow = false; // blinkP 0 open .. 1 shut
+      let blinkPhase = 0; // seconds into the current blink, -1 when idle
+      let blinking = false;
+
+      let fxDirty: number[] | null = null;
+      function grow(b: number[] | null, x0: number, y0: number, x1: number, y1: number) {
+        if (!b) return [x0, y0, x1, y1];
+        b[0] = Math.min(b[0], x0); b[1] = Math.min(b[1], y0); b[2] = Math.max(b[2], x1); b[3] = Math.max(b[3], y1);
+        return b;
+      }
+      function drawFx(dt: number) {
+        if (fxDirty) fx!.clearRect(fxDirty[0], fxDirty[1], fxDirty[2] - fxDirty[0], fxDirty[3] - fxDirty[1]);
+        let d: number[] | null = null;
+        if (!PRM) {
+          puffClock += dt;
+          while (puffClock > 0.16) { puffClock -= 0.16; if (puffs.length < 26) spawn(); }
+          for (let i = puffs.length - 1; i >= 0; i--) {
+            const p = puffs[i];
+            p.age += dt; p.y -= p.vy * dt;
+            if (p.age > p.life) { puffs.splice(i, 1); continue; }
+            const t = p.age / p.life;
+            const x = p.x + Math.sin(p.ph + p.age * 2.1) * (10 + t * 34);
+            const a = (t < 0.15 ? t / 0.15 : 1 - (t - 0.15) / 0.85) * 0.55;
+            const sz = PX * p.s;
+            const gx = Math.round(x / PX) * PX, gy = Math.round(p.y / PX) * PX; // snap to the art's grid
+            fx!.fillStyle = 'rgba(247,245,241,' + a.toFixed(3) + ')';
+            fx!.fillRect(gx, gy, sz, sz);
+            d = grow(d, gx - 1, gy - 1, gx + sz + 1, gy + sz + 1);
+          }
+          // blink scheduler
+          if (!blinking) {
+            blinkT -= dt;
+            if (blinkT <= 0) { blinking = true; blinkPhase = 0; }
+          }
+          if (blinking) {
+            const close = slow ? 0.42 : 0.07, hold = slow ? 0.5 : 0.06, open = slow ? 0.5 : 0.1;
+            blinkPhase += dt;
+            const ph = blinkPhase;
+            blinkP = ph < close ? ph / close : ph < close + hold ? 1 : ph < close + hold + open ? 1 - (ph - close - hold) / open : 0;
+            if (ph >= close + hold + open) { blinking = false; blinkP = 0; blinkT = slow ? 1.6 + Math.random() * 1.2 : 2.5 + Math.random() * 4; }
+          }
+          if (blinkP > 0) {
+            fx!.fillStyle = FUR;
+            for (const e of EYES) {
+              const h = (e[3] - e[1] + 8) * blinkP;
+              const yy = Math.round((e[1] - 4) / 4) * 4;
+              fx!.fillRect(e[0] - 4, yy, e[2] - e[0] + 8, Math.ceil(h / 4) * 4);
+              d = grow(d, e[0] - 6, e[1] - 6, e[2] + 6, e[3] + 6);
+            }
+          } else {
+            // the lids just lifted: make sure last frame's lids are cleared
+            if (fxDirty) for (const e of EYES) d = grow(d, e[0] - 6, e[1] - 6, e[2] + 6, e[3] + 6);
+          }
+        }
+        fxDirty = d;
+      }
+
+      /* ---------- the loupe ---------- */
+      // channel plates, built once (lazily) from a half-size copy of the art
+      const HS = 2; // half size
+      let plates: HTMLCanvasElement[] | null = null, px: Uint8ClampedArray | null = null, pw = 0, ph2 = 0;
+      function buildPlates() {
+        if (plates || !img!.complete || !img!.naturalWidth) return;
+        try {
+          pw = Math.round(IW / HS); ph2 = Math.round(IH / HS);
+          const c = document.createElement('canvas'); c.width = pw; c.height = ph2;
+          const g = c.getContext('2d', { willReadFrequently: true }); if (!g) return;
+          g.imageSmoothingEnabled = false;
+          g.drawImage(img!, 0, 0, pw, ph2);
+          const src = g.getImageData(0, 0, pw, ph2);
+          px = src.data;
+          plates = [0, 1, 2].map((ch) => {
+            const pc = document.createElement('canvas'); pc.width = pw; pc.height = ph2;
+            const pg = pc.getContext('2d'); if (!pg) return pc;
+            const out = pg.createImageData(pw, ph2), o = out.data, s = src.data;
+            for (let i = 0; i < s.length; i += 4) { o[i + ch] = s[i + ch]; o[i + 3] = 255; }
+            pg.putImageData(out, 0, 0);
+            return pc;
+          });
+        } catch (e) { plates = null; }
+      }
+      let mx = -1, my = -1, inside = false, vx = 0, vy = 0, lmx = -1, lmy = -1, split = 0, sdx = 0, sdy = 0;
+      let lpDirty: number[] | null = null;
+      const R = 74, ZOOM = 2.6;
+      function hex(n: number) { return n.toString(16).padStart(2, '0'); }
+      function drawLoupe() {
+        if (lpDirty) lp!.clearRect(lpDirty[0], lpDirty[1], lpDirty[2] - lpDirty[0], lpDirty[3] - lpDirty[1]);
+        lpDirty = null;
+        if (!inside || !plates) return;
+        // where the cursor is in art pixels (the art box sits offset inside the frame)
+        const ar = art!.getBoundingClientRect(), fr = photo!.getBoundingClientRect();
+        const ox = ar.left - fr.left, oy = ar.top - fr.top;
+        const ax = (mx - ox) / k, ay = (my - oy) / k;
+        const srcR = R / (k * ZOOM); // radius in art px
+        // velocity → plate split (settles to zero at rest)
+        if (lmx >= 0 && !PRM) { vx = vx * 0.7 + (mx - lmx) * 0.3; vy = vy * 0.7 + (my - lmy) * 0.3; }
+        lmx = mx; lmy = my;
+        const sp = Math.min(9, Math.hypot(vx, vy) * 0.55);
+        split += (sp - split) * 0.25;
+        const vl = Math.hypot(vx, vy) || 1;
+        sdx = (vx / vl) * split; sdy = (vy / vl) * split;
+        lp!.save();
+        lp!.beginPath(); lp!.arc(mx, my, R, 0, Math.PI * 2); lp!.clip();
+        lp!.fillStyle = '#000'; lp!.fillRect(mx - R, my - R, R * 2, R * 2);
+        lp!.imageSmoothingEnabled = false;
+        lp!.globalCompositeOperation = 'lighter';
+        const sx = (ax - srcR) / HS, sy = (ay - srcR) / HS, sw = (srcR * 2) / HS;
+        const off = [[sdx, sdy], [0, 0], [-sdx, -sdy]];
+        for (let c = 0; c < 3; c++) lp!.drawImage(plates[c], sx, sy, sw, sw, mx - R + off[c][0], my - R + off[c][1], R * 2, R * 2);
+        lp!.globalCompositeOperation = 'source-over';
+        lp!.restore();
+        // ring, ticks, crosshair
+        lp!.lineWidth = 3; lp!.strokeStyle = '#141414';
+        lp!.beginPath(); lp!.arc(mx, my, R + 1.5, 0, Math.PI * 2); lp!.stroke();
+        lp!.lineWidth = 1.5; lp!.strokeStyle = '#b4ff2e';
+        lp!.beginPath(); lp!.arc(mx, my, R - 1, 0, Math.PI * 2); lp!.stroke();
+        lp!.beginPath();
+        for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2; lp!.moveTo(mx + Math.cos(a) * (R - 9), my + Math.sin(a) * (R - 9)); lp!.lineTo(mx + Math.cos(a) * (R + 6), my + Math.sin(a) * (R + 6)); }
+        lp!.moveTo(mx - 6, my); lp!.lineTo(mx + 6, my); lp!.moveTo(mx, my - 6); lp!.lineTo(mx, my + 6);
+        lp!.stroke();
+        // readout: the pixel under the crosshair
+        let label = '';
+        if (px) {
+          const ix = Math.max(0, Math.min(pw - 1, Math.floor(ax / HS))), iy = Math.max(0, Math.min(ph2 - 1, Math.floor(ay / HS)));
+          const i = (iy * pw + ix) * 4;
+          label = 'x' + Math.round(ax) + ' y' + Math.round(ay) + '  #' + hex(px[i]) + hex(px[i + 1]) + hex(px[i + 2]);
+          lp!.font = '700 10px "Martian Mono", monospace';
+          const tw = lp!.measureText(label).width + 22;
+          let bx = mx - tw / 2, by = my + R + 12;
+          if (by + 20 > frH) by = my - R - 32;
+          bx = Math.max(4, Math.min(frW - tw - 4, bx));
+          lp!.fillStyle = '#141414'; lp!.fillRect(bx, by, tw, 20);
+          lp!.fillStyle = 'rgb(' + px[i] + ',' + px[i + 1] + ',' + px[i + 2] + ')'; lp!.fillRect(bx + 6, by + 6, 8, 8);
+          lp!.fillStyle = '#f7f5f1'; lp!.textBaseline = 'middle'; lp!.fillText(label, bx + 18, by + 10.5);
+          lpDirty = grow(lpDirty, bx - 2, by - 2, bx + tw + 2, by + 22);
+        }
+        lpDirty = grow(lpDirty, mx - R - 12, my - R - 12, mx + R + 12, my + R + 12);
+        // caption follows what's under the loupe
+        const z = zoneAt(ax, ay);
+        if (z !== zone) { zone = z; if (tag) decode(tag as HTMLElement, z, { dur: 380 }); }
+        const nowSlow = z.indexOf('stderr') >= 0;
+        if (nowSlow && !slow && !blinking) blinkT = Math.min(blinkT, 0.35);
+        slow = nowSlow;
+      }
+      let zone = '[ it me ]';
+
+      photo.addEventListener('pointerenter', () => { buildPlates(); });
+      photo.addEventListener('pointermove', (e) => {
+        const r = photo.getBoundingClientRect();
+        mx = e.clientX - r.left; my = e.clientY - r.top;
+        if (!inside) { inside = true; lmx = -1; photo.classList.add('is-looking'); buildPlates(); }
+        startLoop();
+      });
+      photo.addEventListener('pointerleave', () => {
+        inside = false; slow = false; photo.classList.remove('is-looking');
+        if (zone !== '[ it me ]') { zone = '[ it me ]'; if (tag) decode(tag as HTMLElement, zone, { dur: 380 }); }
+      });
       hero.addEventListener('pointermove', function (e) {
         const r = photo.getBoundingClientRect();
         const nx = ((e.clientX - r.left) / r.width - 0.5) * 2;
@@ -688,45 +930,6 @@ import { site } from '../data/site';
         ty = Math.max(-1, Math.min(1, ny)) * LEAN * 0.7;
       });
       hero.addEventListener('pointerleave', function () { tx = 0; ty = 0; });
-
-      /* 2. live rain canvas */
-      const ctx = rainCv.getContext('2d');
-      const dpr = Math.min(2, window.devicePixelRatio || 1);
-      let drops: { x: number; y: number; len: number; sp: number; w: number; a: number }[] = [];
-      function seed() {
-        const w = rainCv.width / dpr, h = rainCv.height / dpr;
-        const n = Math.max(40, Math.min(120, Math.round((w * h) / 2600)));
-        drops = [];
-        for (let i = 0; i < n; i++) {
-          const near = Math.random() > 0.55;
-          drops.push({
-            x: Math.random() * w, y: Math.random() * h,
-            len: near ? 14 + Math.random() * 16 : 7 + Math.random() * 9,
-            sp: near ? 9 + Math.random() * 6 : 4 + Math.random() * 4,
-            w: near ? 2 : 1,
-            a: near ? 0.3 + Math.random() * 0.2 : 0.12 + Math.random() * 0.1,
-          });
-        }
-      }
-      function sizeRain() {
-        const r = photo.getBoundingClientRect();
-        rainCv.width = Math.max(1, Math.round(r.width * dpr));
-        rainCv.height = Math.max(1, Math.round(r.height * dpr));
-        if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        seed();
-      }
-      function drawRain() {
-        if (!ctx) return;
-        const w = rainCv.width / dpr, h = rainCv.height / dpr;
-        ctx.clearRect(0, 0, w, h);
-        for (let i = 0; i < drops.length; i++) {
-          const d = drops[i];
-          ctx.fillStyle = 'rgba(247,245,241,' + d.a + ')';
-          ctx.fillRect(Math.round(d.x), Math.round(d.y), d.w, d.len);
-          if (!PRM) { d.y += d.sp; d.x += 0.6; }
-          if (d.y > h) { d.y = -d.len; d.x = Math.random() * w; }
-        }
-      }
 
       /* rAF loop — runs only while the hero can actually be seen. Two flags:
          the sticky hero "intersecting" even while the edition sheet covers it,
@@ -755,7 +958,7 @@ import { site } from '../data/site';
         const endTop = nr.top;             // editionTop where the plate is solid (p=1)
         const editionTop = editionEl.getBoundingClientRect().top;
         const p = Math.max(0, Math.min(1, (startTop - editionTop) / (startTop - endTop)));
-        surname.style.setProperty('--plate-ink', p.toFixed(3));
+        if (Math.abs(p - lastInk) > 0.0005 || (p === 0) !== (lastInk === 0)) surname.style.setProperty('--plate-ink', p.toFixed(3));
         if (p >= 0.985 && lastInk < 0.985) {
           surname.classList.remove('plate-struck');
           void surname.offsetWidth; // restart the one-shot thump
@@ -764,19 +967,24 @@ import { site } from '../data/site';
         lastInk = p;
       }
 
-      function loop() {
+      let lastT = 0, lastArt = '';
+      function loop(now: number) {
         if (!running()) { rafOn = false; return; }
+        const dt = lastT ? Math.max(0, Math.min(0.05, (now - lastT) / 1000)) : 0;
+        lastT = now;
         if (!(window as any).__pressFreeze) { // STOP THE PRESS holds everything mid-air
           inkPlate();
           cx += (tx - cx) * 0.12;
           cy += (ty - cy) * 0.12;
-          if (parallax) parallax.style.transform = PRM ? 'translate(0,0)' : 'translate(' + Math.round(cx) + 'px,' + Math.round(cy) + 'px)';
-          drawRain();
+          const t = PRM ? '' : 'translate(' + cx.toFixed(1) + 'px,' + cy.toFixed(1) + 'px)';
+          if (t !== lastArt) { lastArt = t; art!.style.transform = t; }
+          drawFx(dt);
+          drawLoupe();
         }
         requestAnimationFrame(loop);
       }
       function startLoop() {
-        if (!rafOn && running()) { rafOn = true; requestAnimationFrame(loop); }
+        if (!rafOn && running()) { rafOn = true; lastT = 0; requestAnimationFrame(loop); }
       }
       if (typeof IntersectionObserver !== 'undefined') {
         new IntersectionObserver(function (es) {
@@ -784,18 +992,18 @@ import { site } from '../data/site';
           startLoop();
           reflectMarquee();
         }).observe(hero);
-        const edition = document.getElementById('about');
-        if (edition) {
+        if (editionEl) {
           new IntersectionObserver(function (es) {
             es.forEach(function (en) { editionCoversTop = en.isIntersecting; });
             startLoop();
             reflectMarquee();
-          }, { rootMargin: '0px 0px -100% 0px' }).observe(edition);
+          }, { rootMargin: '0px 0px -100% 0px' }).observe(editionEl);
         }
       }
 
-      sizeRain();
-      window.addEventListener('resize', sizeRain);
+      size();
+      if (typeof ResizeObserver !== 'undefined') new ResizeObserver(size).observe(photo);
+      else window.addEventListener('resize', size);
       /* decode the [ it me ] tag via the shared house cipher */
       if (tag) decode(tag as HTMLElement, null, { dur: 700 });
       startLoop();

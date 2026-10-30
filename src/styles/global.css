@@ -2,19 +2,54 @@
    Design system — Bill Chien palette: warm gold + black
    ============================================================ */
 
+/* Type: self-hosted, subset to Latin + the press furniture glyphs (arrows, rules,
+   superscripts). One family carries the voice: Bricolage Grotesque, variable in
+   weight, width and optical size, for body and UI. "Press Display" is a single
+   static cut of it (ExtraBold, condensed, display optical size) with overlaps
+   removed, so outlined headlines stroke cleanly and any requested weight lands on
+   the same face instead of a synthesized bold. Fraunces carries the italic asides,
+   Martian Mono (pinned condensed: the same 0.6em advance the layout was set to)
+   the labels, and Silkscreen the odd pixel stamp. */
 @font-face {
-  font-family: 'Faktum';
-  src: url('/fonts/Faktum-Medium.woff2') format('woff2');
-  font-weight: 400 700;
+  font-family: 'Press Display';
+  src: url('/fonts/press-display.woff2') format('woff2');
+  font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
-
 @font-face {
-  font-family: 'Manuka';
-  src: url('/fonts/Manuka-Medium.woff') format('woff');
-  font-weight: 500;
-  /* actual cut = Medium; heavier requests synthesize bold */
+  font-family: 'Bricolage';
+  src: url('/fonts/bricolage-var.woff2') format('woff2-variations'), url('/fonts/bricolage-var.woff2') format('woff2');
+  font-weight: 200 800;
+  font-stretch: 75% 100%;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Fraunces';
+  src: url('/fonts/fraunces-italic.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Fraunces';
+  src: url('/fonts/fraunces-normal.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Martian Mono';
+  src: url('/fonts/martian-mono.woff2') format('woff2');
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Silkscreen';
+  src: url('/fonts/silkscreen.woff2') format('woff2');
+  font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
@@ -58,14 +93,13 @@
   --neon-red: #ff5a5a;
 
   /* fonts */
-  --font-display: 'Manuka', 'Anton', sans-serif;
-  --font-serif: 'Instrument Serif', Georgia, serif;
-  --font-grotesk: 'Inter', sans-serif;
-  /* Space Grotesk dropped — was loaded but unused */
-  --font-body: 'Inter', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
-  --font-intro: 'Faktum', 'Inter', sans-serif;
-  /* Faktum (paid) → Hanken Grotesk stand-in */
+  --font-display: 'Press Display', 'Arial Narrow', sans-serif;
+  --font-serif: 'Fraunces', Georgia, serif;
+  --font-grotesk: 'Bricolage', system-ui, sans-serif;
+  --font-body: 'Bricolage', system-ui, sans-serif;
+  --font-mono: 'Martian Mono', ui-monospace, monospace;
+  --font-intro: 'Bricolage', system-ui, sans-serif;
+  --font-pixel: 'Silkscreen', 'Martian Mono', monospace;
 
   /* spacing */
   --pad-x: clamp(20px, 7vw, 120px);
@@ -116,7 +150,10 @@
 
 html {
   -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
+  /* kerning without optimizeLegibility, whose shaping path is slow in Gecko and
+     WebKit on a page this long; and never a faux bold or italic */
+  font-kerning: normal;
+  font-synthesis: none;
   /* body's clip alone doesn't stop mobile layout-viewport expansion when a
      3D-tilted element (the Experience phone) projects wider than the screen —
      the browser zooms out and fixed UI (nav HUD, FAB) lands off-screen */
@@ -969,11 +1006,25 @@ html.cover-on #contact:has(#lt-call.is-open) {
   z-index: 1950;
 }
 
-#projects::before,
-#research::before,
-#education::before,
-#stack::before,
-#contact::before {
+/* The printed top edge each act leads with. It lives on a small child (.lay-edge,
+   added by main.ts) rather than on the act's own ::before/::after: the seat scrub
+   writes --lay-y/--lay-o every scroll frame, and custom properties inherit, so
+   writing them on the act restyled its whole subtree per frame. Cheap in Blink,
+   the main cost of every seam in Gecko and WebKit. On this element they reach
+   only its two pseudo-elements, which animate on their own compositor layers. */
+.lay-edge {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 17px;
+  pointer-events: none;
+  z-index: 6;
+}
+
+#projects > .lay-edge::before,
+#research > .lay-edge::before,
+#education > .lay-edge::before,
+#stack > .lay-edge::before,
+#contact > .lay-edge::before {
   content: '';
   position: absolute;
   inset: 0 0 auto 0;
@@ -987,15 +1038,16 @@ html.cover-on #contact:has(#lt-call.is-open) {
      here — the overflow:clip scroll hack disables scroll-driven timelines). */
   transform: translateY(var(--lay-y, 0px));
   opacity: var(--lay-o, 1);
+  will-change: transform, opacity;
 }
 
 /* registration tick row riding just under the cut — press furniture on the
    page top; seats with the edge and fades in on the same scrub var. */
-#projects::after,
-#research::after,
-#education::after,
-#stack::after,
-#contact::after {
+#projects > .lay-edge::after,
+#research > .lay-edge::after,
+#education > .lay-edge::after,
+#stack > .lay-edge::after,
+#contact > .lay-edge::after {
   content: '';
   position: absolute;
   left: 0;
@@ -1007,6 +1059,7 @@ html.cover-on #contact:has(#lt-call.is-open) {
   z-index: 6;
   transform: translateY(var(--lay-y, 0px));
   opacity: calc(var(--lay-o, 1) * 0.5);
+  will-change: transform, opacity;
 }
 
 /* ── per-seam personalities (the "press actions"). Edge COLOUR is per act via
@@ -1017,18 +1070,18 @@ html.cover-on #contact:has(#lt-call.is-open) {
    shadow on the site as it covers (the floor lights cutting), and the lime
    registration ticks only glow ON once the blackout has landed (second half of
    the cover) — the lone UV ink surviving the dark. */
-#stack::before {
+#stack > .lay-edge::before {
   box-shadow: 0 -5px 0 -2px rgba(10, 10, 10, 0.35), 0 -52px 110px -2px rgba(10, 10, 10, 0.9);
 }
 
-#stack::after {
+#stack > .lay-edge::after {
   opacity: calc(max(0, var(--lay-o, 1) - 0.5) * 1.5);
   filter: drop-shadow(0 0 3px rgba(180, 255, 46, 0.85));
 }
 
 /* The Run Finishes (Night Desk → Closer): the red closer's cut glints a cream
    "finish line" as it lands — the press waking back into colour to ship out. */
-#contact::before {
+#contact > .lay-edge::before {
   box-shadow: 0 -8px 0 -2px rgba(10, 10, 10, 0.3), 0 -46px 80px -2px rgba(10, 10, 10, 0.5),
     0 1px 10px 1px rgba(247, 245, 241, 0.55);
 }
@@ -1043,7 +1096,7 @@ html.cover-on #contact:has(#lt-call.is-open) {
   --lime: var(--neon-lime);
   /* one lime site-wide — was a legacy #c8e620 */
   --w-black: #0a0a0a;
-  --w-disp: 'Anton', sans-serif;
+  --w-disp: 'Press Display', sans-serif;
   --snap: cubic-bezier(0.2, 0.9, 0.2, 1);
 }
 
@@ -1946,8 +1999,8 @@ html.cover-on #contact:has(#lt-call.is-open) {
   --li-paper: #eceae4;
   --li-line: rgba(10, 10, 10, 0.18);
   --li-ease: cubic-bezier(0.2, 0.9, 0.2, 1);
-  --li-fd: 'Anton', sans-serif;
-  --li-fm: 'JetBrains Mono', monospace;
+  --li-fd: 'Press Display', sans-serif;
+  --li-fm: 'Martian Mono', monospace;
 }
 
 .li-projects {
@@ -2233,10 +2286,22 @@ html.cover-on #contact:has(#lt-call.is-open) {
   height: clamp(168px, 21vw, 196px);
   overflow: hidden;
   background-color: var(--li-black);
-  background-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.055) 0 1px, transparent 1px 9px);
-  background-position: 0 var(--li-hatch, 0px);
   border-bottom: 2.5px solid var(--li-black);
   cursor: pointer;
+}
+
+/* the hatch drifts with scroll. It is a translated layer, not an animated
+   background-position, so the drift composites instead of repainting every
+   visible card head on every scroll frame. The layer overhangs by one period of
+   the hatch (9px / cos 45deg) and main.ts keeps the offset inside it. */
+.li-card-head::before {
+  content: '';
+  position: absolute;
+  inset: -13px 0 0 0;
+  background-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.055) 0 1px, transparent 1px 9px);
+  transform: translateY(var(--li-hatch, 0px));
+  will-change: transform;
+  pointer-events: none;
 }
 
 .li-card-head canvas.li-demo {
@@ -2824,9 +2889,9 @@ body.li-cs-open {
   --lt-cream-2: #fffdf9;
   --lt-muted: #a39a90;
   --lt-black: #0a0a0a;
-  --lt-fd: 'Anton', sans-serif;
-  --lt-fm: 'JetBrains Mono', monospace;
-  --lt-fi: 'Inter', system-ui, sans-serif;
+  --lt-fd: 'Press Display', sans-serif;
+  --lt-fm: 'Martian Mono', monospace;
+  --lt-fi: 'Bricolage', system-ui, sans-serif;
   --lt-ease: cubic-bezier(0.2, 0.9, 0.2, 1);
   --lt-pop: cubic-bezier(0.16, 1, 0.3, 1);
   --lt-thunk: cubic-bezier(0.18, 1.5, 0.3, 1);

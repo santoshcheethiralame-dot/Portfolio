@@ -15,12 +15,12 @@ function initConsole() {
   if (w.__pressConsole) return;
   w.__pressConsole = true;
   try {
-    const red = 'background:#ed1c24;color:#f7f5f1;font:700 20px/1.7 "JetBrains Mono",monospace;padding:6px 16px;';
-    const lime = 'color:#7bbf00;font:700 11px "JetBrains Mono",monospace;letter-spacing:0.22em;';
-    const paper = 'background:#f7f5f1;color:#141414;font:13px "JetBrains Mono",monospace;padding:3px 8px;';
-    const dim = 'color:#928b80;font:12px "JetBrains Mono",monospace;';
-    const cta = 'color:#555;font:12px "JetBrains Mono",monospace;';
-    const ctaHi = 'background:#b4ff2e;color:#0a0a0a;font:700 12px "JetBrains Mono",monospace;padding:2px 6px;';
+    const red = 'background:#ed1c24;color:#f7f5f1;font:700 20px/1.7 "Martian Mono",monospace;padding:6px 16px;';
+    const lime = 'color:#7bbf00;font:700 11px "Martian Mono",monospace;letter-spacing:0.22em;';
+    const paper = 'background:#f7f5f1;color:#141414;font:13px "Martian Mono",monospace;padding:3px 8px;';
+    const dim = 'color:#928b80;font:12px "Martian Mono",monospace;';
+    const cta = 'color:#555;font:12px "Martian Mono",monospace;';
+    const ctaHi = 'background:#b4ff2e;color:#0a0a0a;font:700 12px "Martian Mono",monospace;padding:2px 6px;';
 
     console.log('%c THE DAILY CHEETHIRALA ', red);
     console.log('%cALL THE BUGS FIT TO PRINT', lime);
@@ -148,7 +148,7 @@ function initGridWake() {
   const wrap = (i: number, n: number) => ((i % n) + n) % n;
   const target = (r: number, c: number) => { const ch = MESSAGE[wrap(r * cols + c, MESSAGE.length)]; return ch === ' ' ? '' : ch; };
   const baseGlyph = (r: number, c: number) => (target(r, c) === '' ? '' : GLYPHS[wrap(r * 7 + c * 29 + 13, GLYPHS.length)]);
-  const fontStr = () => '700 ' + Math.round(CELL * 0.4) + 'px "JetBrains Mono", monospace';
+  const fontStr = () => '700 ' + Math.round(CELL * 0.4) + 'px "Martian Mono", monospace';
   // CSS grid lines sit at -1 + k*CELL, so cell centres land at k*CELL + CELL/2 - 1
   const cellX = (c: number) => c * CELL + CELL / 2 - 1;
   const cellY = (r: number) => r * CELL + CELL / 2 - 1;
@@ -209,13 +209,22 @@ function initGridWake() {
     if (steps === 0) { touch(c1, r1); return; }
     for (let i = 0; i <= steps; i++) touch(Math.round(c0 + (dc * i) / steps), Math.round(r0 + (dr * i) / steps));
   }
+  // Only the cells drawn last frame are cleared, not the whole viewport-sized
+  // canvas: a full clear re-uploads every pixel of it each frame, which Gecko and
+  // WebKit pay for in full.
+  let dirty: [number, number, number, number] | null = null;
   function frame(t: number) {
     now = t;
-    g2.clearRect(0, 0, W, H); g2.font = fontStr(); g2.textAlign = 'center'; g2.textBaseline = 'middle';
+    if (dirty) g2.clearRect(dirty[0], dirty[1], dirty[2] - dirty[0], dirty[3] - dirty[1]);
+    dirty = null;
+    g2.font = fontStr(); g2.textAlign = 'center'; g2.textBaseline = 'middle';
     cells.forEach((cell, key) => {
       const age = t - cell.t0;
       if (age / LIFE >= 1) { cells.delete(key); return; }
       const x = cellX(cell.c), y = cellY(cell.r) + 1;
+      const x0 = x - CELL / 2, y0 = y - CELL / 2, x1 = x + CELL / 2, y1 = y + CELL / 2;
+      if (!dirty) dirty = [x0, y0, x1, y1];
+      else { dirty[0] = Math.min(dirty[0], x0); dirty[1] = Math.min(dirty[1], y0); dirty[2] = Math.max(dirty[2], x1); dirty[3] = Math.max(dirty[3], y1); }
       if (age < SCRAMBLE) {
         const g = GLYPHS[wrap(((age / 45) | 0) + cell.seed, GLYPHS.length)];
         g2.fillStyle = COL.scramble; g2.fillText(g, x, y); // lime reads vividly on red — no outline needed
@@ -234,7 +243,7 @@ function initGridWake() {
   let rt: number | undefined;
   window.addEventListener('resize', () => {
     window.clearTimeout(rt);
-    rt = window.setTimeout(() => { build(); cells.clear(); g2.clearRect(0, 0, W, H); }, 180);
+    rt = window.setTimeout(() => { build(); cells.clear(); g2.clearRect(0, 0, W, H); dirty = null; }, 180);
   });
   if (reduced) return; // ciphertext drawn statically; skip the decode trail
 
@@ -400,8 +409,22 @@ function pauseOffscreenAnimations() {
   }, true);
 }
 
+/** Each act's printed top edge (see .lay-edge in global.css). Added for every
+ *  visitor, so reduced-motion and the sequential fallback keep the seated edge. */
+function addLayEdges() {
+  ['projects', 'research', 'education', 'stack', 'contact'].forEach((id) => {
+    const act = document.getElementById(id);
+    if (!act || act.querySelector(':scope > .lay-edge')) return;
+    const edge = document.createElement('div');
+    edge.className = 'lay-edge';
+    edge.setAttribute('aria-hidden', 'true');
+    act.prepend(edge);
+  });
+}
+
 export function initAnimations() {
   initConsole();
+  addLayEdges();
   startClock();
   initEmailCopy();
   initGridWake();
@@ -593,9 +616,10 @@ export function initAnimations() {
     };
     ['projects', 'research', 'education', 'stack', 'contact'].forEach((id) => {
       const act = document.getElementById(id);
-      if (!act) return;
+      const edge = act?.querySelector<HTMLElement>(':scope > .lay-edge');
+      if (!act || !edge) return;
       gsap.fromTo(
-        act,
+        edge,
         { '--lay-y': '-46px', '--lay-o': 0 },
         {
           '--lay-y': '0px',

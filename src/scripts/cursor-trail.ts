@@ -266,7 +266,7 @@ export function initCursorTrail() {
   const stampNow = new Date();
   const DATE_STAMP = MON3[stampNow.getMonth()] + ' ' + stampNow.getFullYear();
   const INK_A = '#b3001b', INK_B = '#7a0014'; // deep rubber-stamp reds, matching the record's honors
-  const recFont = (px: number) => `700 ${px}px 'JetBrains Mono', monospace`;
+  const recFont = (px: number) => `700 ${px}px 'Martian Mono', monospace`;
   const boxStamp = (c2: CanvasRenderingContext2D, label: string, px: number) => {
     c2.font = recFont(px);
     const bw = c2.measureText(label).width + px * 1.3, bh = px * 2.05;
