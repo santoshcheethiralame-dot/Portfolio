@@ -453,7 +453,12 @@ export function initAnimations() {
   ScrollTrigger.config({ ignoreMobileResize: true });
 
   // --- Smooth scroll (Lenis) wired into ScrollTrigger ---
-  const lenis = new Lenis({ duration: 1.1, smoothWheel: true });
+  // Gecko and WebKit (html.nc) keep their own wheel scrolling: it runs on the
+  // compositor, off the main thread, and both already smooth it. Lenis's smoothed
+  // wheel scrolls from JS every frame, so any busy frame there was a visible
+  // hitch. Lenis still drives the anchored jumps (scrollTo) everywhere.
+  const nativeWheel = document.documentElement.classList.contains('nc');
+  const lenis = new Lenis({ duration: 1.1, smoothWheel: !nativeWheel });
   lenis.on('scroll', ScrollTrigger.update);
   gsap.ticker.add((t) => lenis.raf(t * 1000));
   gsap.ticker.lagSmoothing(0);
