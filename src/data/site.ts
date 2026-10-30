@@ -844,14 +844,24 @@ export const skills: { group: string; items: string[] }[] = [
     items: [
       'PyTorch', 'NumPy', 'scikit-learn', 'Pandas', 'SciPy', 'Matplotlib',
       'Deep Learning', 'Graph Neural Networks', 'Synthetic Data', 'Quantization', 'vLLM',
+      'Sparse Autoencoders',
     ],
   },
   {
     group: 'Interpretability / LLM',
     items: [
       'Mechanistic Interpretability', 'TransformerLens', 'Activation Patching',
-      'Linear Probing', 'HuggingFace Transformers', 'LLM Evaluation', 'RAG',
-      'Failure Taxonomy', 'Tool Calling', 'Structured Outputs',
+      'Linear Probing', 'Steering Vectors', 'Concept Injection', 'HuggingFace Transformers',
+      'LLM Evaluation', 'RAG', 'Failure Taxonomy',
+    ],
+  },
+  // Agents: what Injunct and Smudge are made of, and the plumbing they run on
+  {
+    group: 'Agents',
+    items: [
+      'Multi-Agent Systems', 'Agent Guardrails', 'Claude Code Hooks', 'Agent Skills',
+      'opencode', 'LLM Routing & Fallback', 'Open-Weight Models', 'Groq', 'Gemini API',
+      'Ollama', 'Tool Calling', 'Structured Outputs',
     ],
   },
   {
@@ -879,13 +889,16 @@ export const skills: { group: string; items: string[] }[] = [
     group: 'Research / Methods',
     items: [
       'Conformal Prediction', 'Causal Inference', 'Experimental Design',
-      'Statistical Inference', 'Benchmark Design', 'Scientific Writing', 'LaTeX',
+      'Statistical Inference', 'Benchmark Design', 'Pre-registration', 'Capture–Recapture',
+      'Bootstrap Intervals', 'Bit-Parallel Algorithms', 'Differential Fuzzing',
+      'Scientific Writing', 'LaTeX',
     ],
   },
   {
     group: 'Graphics / Realtime',
     items: [
       'WebGPU', 'WebRTC', 'Canvas', 'SVG / Data Viz', 'Framer Motion', 'GSAP', 'Web Speech API',
+      'Phaser 3', 'Tone.js',
     ],
   },
 ];

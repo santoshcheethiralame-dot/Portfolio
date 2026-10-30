@@ -62,6 +62,17 @@ const MM_K = 12;
     <p class="rd-lede" data-fade>
       I test the tools that <b>explain and audit language models</b>, against answers that are already known.
     </p>
+    <!-- the manuscripts on the desk, fanned; each opens its study -->
+    <div class="rd-papers" aria-label="The four studies">
+      {research.map((st, i) => (
+        <a class="rd-ms" href={`#study-${st.id}`} style={`--i:${i}`}>
+          <span class="rd-ms-top"><span>MS No.{st.no}</span><span>{st.byline.indexOf('&') > 0 ? '2 AUTHORS' : 'SOLE AUTHOR'}</span></span>
+          <span class="rd-ms-t">{st.title}</span>
+          <span class="rd-ms-lines" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          <span class={`rd-ms-stamp${st.status.indexOf('REVIEW') >= 0 ? '' : ' is-pre'}`}>{st.status}</span>
+        </a>
+      ))}
+    </div>
   </div>
 
   <div class="rd-sheet">
@@ -486,6 +497,7 @@ const MM_K = 12;
 
   /* ---- section heading (white on red, like the other sections) ---- */
   .research .rd-head {
+    position: relative;
     gap: 0;
     max-width: min(100%, 1500px);
     margin: 0 auto clamp(30px, 4vw, 56px);
@@ -1054,6 +1066,65 @@ const MM_K = 12;
     .rd-next-arr { animation: none; }
     .cl-file.is-found .cl-file-v { animation: none; }
     .cl-sus, .cl-cell, .cl-out, .cl-file, .cl-file--twist li { transition: none; }
+  }
+
+  /* the manuscripts, fanned on the red desk to the right of the heading */
+  .rd-papers {
+    position: absolute;
+    right: clamp(10px, 6vw, 120px);
+    top: 4px;
+    width: clamp(240px, 21vw, 300px);
+    height: clamp(210px, 17vw, 250px);
+  }
+  @media (min-width: 1101px) {
+    .research .rd-head { min-height: clamp(240px, 19vw, 280px); }
+  }
+  .rd-ms {
+    --r: calc((var(--i) - 1.5) * 7deg);
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 92%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 14px;
+    background: var(--bcream);
+    color: var(--bink);
+    border: 2px solid var(--bink);
+    box-shadow: 4px 4px 0 rgba(10, 10, 10, 0.45);
+    text-decoration: none;
+    transform-origin: 50% 120%;
+    transform: rotate(var(--r)) translateX(calc((var(--i) - 1.5) * 10px));
+    transition: transform 0.45s cubic-bezier(0.2, 0.9, 0.2, 1), box-shadow 0.3s;
+    z-index: calc(var(--i) + 1);
+  }
+  .rd-papers:hover .rd-ms { transform: rotate(calc(var(--r) * 2.3)) translateX(calc((var(--i) - 1.5) * 34px)); }
+  .rd-papers .rd-ms:hover,
+  .rd-papers .rd-ms:focus-visible { transform: rotate(calc(var(--r) * 2.3)) translateX(calc((var(--i) - 1.5) * 34px)) translateY(-26px); z-index: 9; box-shadow: 8px 10px 0 rgba(10, 10, 10, 0.5); outline: none; }
+  .rd-ms-top { display: flex; justify-content: space-between; font-family: var(--fm); font-size: 8px; font-weight: 700; letter-spacing: 0.14em; color: var(--bgray); border-bottom: 1px solid rgba(20, 20, 20, 0.25); padding-bottom: 6px; }
+  .rd-ms-t { font-family: var(--fi); font-size: 0.98rem; line-height: 1.22; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+  .rd-ms-lines { display: grid; gap: 6px; margin-top: 2px; }
+  .rd-ms-lines i { height: 3px; background: rgba(20, 20, 20, 0.12); }
+  .rd-ms-lines i:nth-child(2) { width: 86%; }
+  .rd-ms-lines i:nth-child(4) { width: 62%; }
+  .rd-ms-stamp {
+    margin-top: auto;
+    align-self: flex-end;
+    font-family: var(--fm);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--bred);
+    border: 2px solid var(--bred);
+    padding: 4px 7px;
+    transform: rotate(-6deg);
+  }
+  .rd-ms-stamp.is-pre { color: var(--bink); border-color: var(--bink); }
+  @media (max-width: 1100px) {
+    .rd-papers { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .rd-ms { transition: none; }
   }
 </style>
 

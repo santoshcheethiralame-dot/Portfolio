@@ -19,15 +19,27 @@ const WEIGHTS: Record<string, number> = {
   'Mechanistic Interpretability': 5, TransformerLens: 5, RAG: 5, 'LLM Evaluation': 5,
   'Activation Patching': 4, 'Linear Probing': 4, 'HuggingFace Transformers': 4,
   'Failure Taxonomy': 4, 'Tool Calling': 3, 'Structured Outputs': 3,
+  // the three papers: concept injection is the instrument the TACL paper audits;
+  // steering vectors are what the probing paper scores against true weights
+  'Concept Injection': 5, 'Steering Vectors': 4, 'Sparse Autoencoders': 5,
+  // Agents — Smudge runs a cast of firewalled agents with a release gate; Injunct
+  // is a guardrail that blocks an agent's edit before it lands
+  'Multi-Agent Systems': 5, 'Agent Guardrails': 5, 'Claude Code Hooks': 4, 'LLM Routing & Fallback': 4,
+  'Open-Weight Models': 4, 'Agent Skills': 3, opencode: 3, Groq: 3, 'Gemini API': 3, Ollama: 3,
   // Research / Methods — the conformal + causal spine of the DRAGNET paper, and the
   // control that killed a positive finding, which is the rarest thing here
   'Conformal Prediction': 5, 'Causal Inference': 5, 'Experimental Design': 5,
   'Statistical Inference': 4, 'Benchmark Design': 4, LaTeX: 4, 'Scientific Writing': 3,
+  // pre-registration and capture–recapture are missingmass's spine; bit-parallel LCS
+  // and differential fuzzing are featherrouge's (3M fuzz cases, 0 mismatches)
+  'Pre-registration': 5, 'Capture–Recapture': 5, 'Bit-Parallel Algorithms': 5, 'Differential Fuzzing': 5,
+  'Bootstrap Intervals': 4,
   // Web / Frontend
   React: 5, 'Next.js': 4, Astro: 4, Vite: 4, 'Tailwind CSS': 4, PWA: 4,
   'IndexedDB / Dexie.js': 4, 'React Router': 3, 'Web Workers': 3, Leaflet: 3,
   // Graphics / Realtime — WebGPU trained a net on hand-written WGSL kernels
-  WebGPU: 5, WebRTC: 4, 'SVG / Data Viz': 4, 'Framer Motion': 4, Canvas: 3, GSAP: 3, 'Web Speech API': 3,
+  WebGPU: 5, WebRTC: 4, 'SVG / Data Viz': 4, 'Framer Motion': 4, Canvas: 4, GSAP: 3, 'Web Speech API': 3,
+  'Phaser 3': 3, 'Tone.js': 3,
   // Backend / Data
   FastAPI: 4, SQLAlchemy: 4, PostgreSQL: 4, 'Node.js': 4, 'REST APIs': 4, 'OpenAI Realtime API': 4,
   Pydantic: 3, MongoDB: 3, Express: 3, 'JWT Auth': 3, 'Rate Limiting': 3, Streamlit: 3,
@@ -59,6 +71,11 @@ const ABBR: Record<string, string> = {
   'Distributed Systems': 'DIST', pytest: 'PYT',
   Vitest: 'VIT', Playwright: 'PWR', Vercel: 'VRC', 'Hugging Face Hub': 'HUB',
   'Kaggle GPU': 'KGL', 'OpenRouter API': 'ORT',
+  'Sparse Autoencoders': 'SAE', 'Steering Vectors': 'STV', 'Concept Injection': 'INJ',
+  'Multi-Agent Systems': 'MAS', 'Agent Guardrails': 'GRD', 'Claude Code Hooks': 'HOOK', 'Agent Skills': 'AGS',
+  opencode: 'OPC', 'LLM Routing & Fallback': 'RTE', 'Open-Weight Models': 'OWM', Groq: 'GRQ', 'Gemini API': 'GEM',
+  Ollama: 'OLM', 'Pre-registration': 'PRE', 'Capture–Recapture': 'CRC', 'Bootstrap Intervals': 'BOOT',
+  'Bit-Parallel Algorithms': 'BIT', 'Differential Fuzzing': 'FUZ', 'Phaser 3': 'PHS', 'Tone.js': 'TNE',
 };
 
 const wOf = (n: string) => WEIGHTS[n] ?? 4;
@@ -67,6 +84,23 @@ const rarityClass = (w: number) => (w >= 5 ? 'legendary' : w >= 4 ? 'epic' : 'ra
 const rarityShort = (w: number) => (w >= 5 ? 'LEG' : w >= 4 ? 'EPI' : 'RAR');
 const rarityWord = (w: number) => (w >= 5 ? 'Legendary' : w >= 4 ? 'Epic' : 'Rare');
 const totalSlots = skills.reduce((a, g) => a + g.items.length, 0);
+
+// the character sheet: average level per class, drawn as a radar
+const SHORT: Record<string, string> = {
+  Languages: 'LANG', 'ML / AI': 'ML', 'Interpretability / LLM': 'INTERP', Agents: 'AGENTS',
+  'Web / Frontend': 'WEB', 'Backend / Data': 'BACK', 'Tools / Systems': 'SYS',
+  'Research / Methods': 'RESEARCH', 'Graphics / Realtime': 'GFX',
+};
+const RC = 130, RR = 92;
+const classAvg = skills.map((g) => g.items.reduce((a, n) => a + wOf(n), 0) / g.items.length);
+const overall = skills.flatMap((g) => g.items).reduce((a, n) => a + wOf(n), 0) / totalSlots;
+const legendaries = skills.flatMap((g) => g.items).filter((n) => wOf(n) >= 5).length;
+const ang = (i: number) => -Math.PI / 2 + (i * 2 * Math.PI) / skills.length;
+const pt = (i: number, r: number) => [RC + Math.cos(ang(i)) * r, RC + Math.sin(ang(i)) * r];
+// levels 3..5 span the inner 40%..100% of the radius, so the shape reads
+const rOf = (lvl: number) => RR * (0.4 + 0.6 * Math.max(0, (lvl - 3) / 2));
+const ring = (lvl: number) => skills.map((_, i) => pt(i, rOf(lvl)).map((v) => v.toFixed(1)).join(',')).join(' ');
+const shape = classAvg.map((a, i) => pt(i, rOf(a)).map((v) => v.toFixed(1)).join(',')).join(' ');
 ---
 
 <section class="section" id="stack">
@@ -85,6 +119,20 @@ const totalSlots = skills.reduce((a, g) => a + g.items.length, 0);
       <span class="hl"><span class="hl-in">Built,&nbsp;not</span></span>
       <span class="hl"><span class="hl-in"><span class="bk">bookmarked</span></span></span>
     </h2>
+    <figure class="ld-sheet" aria-label={`Average level by class; overall ${overall.toFixed(1)} of 5`}>
+      <figcaption class="ld-sheet-h"><span>CHARACTER SHEET</span><b>LVL {overall.toFixed(1)}</b></figcaption>
+      <svg viewBox={`0 0 ${RC * 2} ${RC * 2}`} class="ld-radar" aria-hidden="true">
+        {[3, 4, 5].map((l) => <polygon class={`rg rg-${l}`} points={ring(l)} />)}
+        {skills.map((_, i) => { const [x, y] = pt(i, RR); return <line class="spoke" x1={RC} y1={RC} x2={x} y2={y} />; })}
+        <polygon class="shape" points={shape} />
+        {classAvg.map((a, i) => { const [x, y] = pt(i, rOf(a)); return <circle class={`dot${a >= 4.5 ? ' is-hi' : ''}`} cx={x} cy={y} r="3.6" />; })}
+        {skills.map((g, i) => {
+          const [x, y] = pt(i, RR + 22);
+          return <text class="lab" x={x} y={y + 3} text-anchor={Math.abs(x - RC) < 8 ? 'middle' : x > RC ? 'start' : 'end'}>{SHORT[g.group] ?? g.group}</text>;
+        })}
+      </svg>
+      <div class="ld-sheet-f"><span><b>{legendaries}</b> legendary</span><span><b>{skills.length}</b> classes</span><span><b>{totalSlots}</b> slots</span></div>
+    </figure>
   </div>
 
   <div class="legend" aria-hidden="true">

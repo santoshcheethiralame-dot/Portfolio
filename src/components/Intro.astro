@@ -89,6 +89,10 @@ const opened = ['neural nets', 'GPT-2', 'git', 'consensus', 'RAG errors', 'probe
           <span class="chip">Bengaluru &middot; he/him</span>
         </div>
       </div>
+      <figure class="lead-art" aria-hidden="true">
+        <canvas id="box-cv"></canvas>
+        <figcaption>FIG. 1 &middot; A BLACK BOX, OPENED</figcaption>
+      </figure>
       <div class="lead-side" aria-label="By the numbers">
         <div class="num"><b data-count="97%">97%</b><span>MNIST, backprop by hand, no framework</span></div>
         <div class="num"><b data-count="3">3</b><span>papers under review</span></div>
@@ -423,6 +427,25 @@ const opened = ['neural nets', 'GPT-2', 'git', 'consensus', 'RAG errors', 'probe
   .chip--live { background: var(--ink); color: var(--cream); }
   .chip--live i { width: 7px; height: 7px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 0 3px rgba(180, 255, 46, 0.25); }
 
+  /* fig. 1: an isometric black box between the headline and the numbers. Its lid
+     lifts on a loop and lets out what was inside; hovering the headline's box or
+     the figure holds it open */
+  .lead-art {
+    display: none;
+    align-self: center;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+  .lead-art canvas { width: 100%; max-width: 330px; aspect-ratio: 1; display: block; }
+  .lead-art figcaption { font: 700 9px var(--fm); letter-spacing: 0.18em; color: var(--gray); }
+  @media (min-width: 1240px) {
+    .lead { grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.8fr) minmax(0, 1fr); }
+    .lead-art { display: flex; }
+    .headline { font-size: clamp(3.4rem, 6.4vw, 8.2rem); }
+  }
+  .hl-line { white-space: nowrap; }
   .lead-side {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -976,5 +999,127 @@ const opened = ['neural nets', 'GPT-2', 'git', 'consensus', 'RAG errors', 'probe
         if (typeof ResizeObserver !== 'undefined') new ResizeObserver(size).observe(cv);
       }
     } catch (e) { /* edition engine failed silently */ }
+  })();
+
+  // FIG. 1: an isometric black box. Its lid hinges open on a loop and the things
+  // inside float out as labels; while the headline's box is open, the figure
+  // holds open and lets out the same word. Draws only while on screen.
+  (function () {
+    'use strict';
+    try {
+      const cv = document.getElementById('box-cv') as HTMLCanvasElement | null;
+      const ctx = cv?.getContext('2d');
+      const redact = document.getElementById('redact');
+      const redIn = document.getElementById('redact-in');
+      if (!cv || !ctx) return;
+      const REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const ITEMS = ['neural nets', 'GPT-2', 'git', 'consensus', 'RAG errors', 'probes', 'SAE features', 'ROUGE-L', 'AGENTS.md'];
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      let W = 1;
+      function size() {
+        const r = cv!.getBoundingClientRect(); if (r.width < 1) return;
+        W = r.width; cv!.width = Math.round(W * dpr); cv!.height = Math.round(W * dpr);
+        ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+      const C30 = 0.866, S30 = 0.5;
+      let s = 1, cx = 0, cy = 0;
+      const P = (x: number, y: number, z: number): [number, number] => [cx + (x - y) * C30, cy + (x + y) * S30 - z];
+      function poly(pts: [number, number][], fill: string, stroke?: string, lw = 2) {
+        ctx!.beginPath(); ctx!.moveTo(pts[0][0], pts[0][1]);
+        for (let i = 1; i < pts.length; i++) ctx!.lineTo(pts[i][0], pts[i][1]);
+        ctx!.closePath(); ctx!.fillStyle = fill; ctx!.fill();
+        if (stroke) { ctx!.strokeStyle = stroke; ctx!.lineWidth = lw; ctx!.lineJoin = 'round'; ctx!.stroke(); }
+      }
+      interface Item { t: string; age: number; x: number; vx: number; rot: number; }
+      const items: Item[] = [];
+      let clk = 0, lid = 0, lastT = 0, raf = 0, visible = false, nextItem = 0, ii = 0, held = false, hover = false;
+      function spawn(word?: string) {
+        items.push({ t: word || ITEMS[ii++ % ITEMS.length], age: 0, x: (Math.random() - 0.5) * 0.3, vx: (Math.random() - 0.5) * 0.5, rot: (Math.random() - 0.5) * 0.5 });
+      }
+      let lastWord = '';
+      function frame(now: number) {
+        const dt = lastT ? Math.max(0, Math.min(0.05, (now - lastT) / 1000)) : 0; lastT = now;
+        if (!(window as any).__pressFreeze) clk += dt;
+        held = !!redact && redact.classList.contains('is-open');
+        const cyc = 5.2, t = clk % cyc;
+        // lid target: closed, opening, open, closing (or open while held)
+        let target = t < 1.3 ? 0 : t < 4.6 ? 1 : 0;
+        if (held || hover) target = 1;
+        lid += (target - lid) * Math.min(1, dt * (target > lid ? 6 : 5));
+        if (lid > 0.7) {
+          nextItem -= dt;
+          const w = held && redIn ? (redIn.textContent || '') : '';
+          if (w && w !== lastWord) { spawn(w); lastWord = w; nextItem = 0.9; }
+          else if (nextItem <= 0) { spawn(); nextItem = hover ? 0.45 : 0.85; }
+        }
+        draw(t);
+        if (visible) raf = requestAnimationFrame(frame); else { raf = 0; lastT = 0; }
+      }
+      function draw(t: number) {
+        const c = ctx!;
+        c.clearRect(0, 0, W, W);
+        s = W * 0.34; cx = W * 0.5; cy = W * 0.5;
+        const INK = '#141414', LIME = '#b4ff2e', RED = '#ed1c24', CREAM = '#f7f5f1';
+        // a closed box shivers now and then: something is in there
+        const shiver = lid < 0.05 && t > 0.5 && t < 1.2 ? Math.sin(t * 60) * 1.2 : 0;
+        cx += shiver;
+        // shadow
+        c.fillStyle = 'rgba(20,20,20,0.12)';
+        c.beginPath(); c.ellipse(cx, cy + s * 0.98, s * 1.15, s * 0.32, 0, 0, Math.PI * 2); c.fill();
+        const a = lid * 1.95; // lid angle, radians (about 112 degrees open)
+        const L = (x: number, y: number): [number, number] => P(x, y * Math.cos(a), s + y * Math.sin(a));
+        const lidPts: [number, number][] = [L(0, 0), L(s, 0), L(s, s), L(0, s)];
+        const lidBehind = a > Math.PI / 2;
+        if (lidBehind) poly(lidPts, '#262626', LIME);
+        // the opening: dark, with a lime glow that grows as it opens
+        if (lid > 0.02) {
+          poly([P(0, 0, s), P(s, 0, s), P(s, s, s), P(0, s, s)], '#050505');
+          c.save(); c.globalAlpha = Math.min(1, lid * 1.2) * 0.55;
+          const g = c.createRadialGradient(cx, cy - s * 0.5 + s * 0.5, 2, cx, cy, s);
+          g.addColorStop(0, LIME); g.addColorStop(1, 'rgba(180,255,46,0)');
+          c.fillStyle = g; c.beginPath(); c.ellipse(cx, cy, s * 0.75, s * 0.42, 0, 0, Math.PI * 2); c.fill();
+          c.restore();
+        }
+        // items rising out of the box
+        for (let i = items.length - 1; i >= 0; i--) {
+          const it = items[i]; it.age += 1 / 60;
+          if (it.age > 2.6) { items.splice(i, 1); continue; }
+          const k = it.age / 2.6;
+          const [ox, oy] = P(s / 2, s / 2, s);
+          const x = ox + (it.x + it.vx * k) * s * 1.6, y = oy - k * s * 1.9;
+          const alpha = k < 0.15 ? k / 0.15 : 1 - Math.max(0, (k - 0.6) / 0.4);
+          c.save(); c.globalAlpha = Math.max(0, alpha); c.translate(x, y); c.rotate(it.rot * (0.3 + k));
+          c.font = '700 ' + Math.round(W * 0.042) + 'px "Martian Mono", monospace';
+          const tw = c.measureText(it.t).width + 14, th = W * 0.075;
+          c.fillStyle = CREAM; c.fillRect(-tw / 2, -th / 2, tw, th);
+          c.strokeStyle = INK; c.lineWidth = 2; c.strokeRect(-tw / 2, -th / 2, tw, th);
+          c.fillStyle = it.t === lastWord && held ? RED : INK; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(it.t, 0, 1);
+          c.restore();
+        }
+        // the two visible walls
+        poly([P(0, s, 0), P(s, s, 0), P(s, s, s), P(0, s, s)], '#1c1c1c', INK);
+        poly([P(s, 0, 0), P(s, s, 0), P(s, s, s), P(s, 0, s)], '#0d0d0d', INK);
+        // edges in lime, and a red stencil on the front wall
+        c.strokeStyle = LIME; c.lineWidth = 1.5;
+        const e = (p: [number, number], q: [number, number]) => { c.beginPath(); c.moveTo(p[0], p[1]); c.lineTo(q[0], q[1]); c.stroke(); };
+        e(P(0, s, 0), P(s, s, 0)); e(P(s, s, 0), P(s, 0, 0)); e(P(s, s, 0), P(s, s, s)); e(P(0, s, 0), P(0, s, s)); e(P(s, 0, 0), P(s, 0, s));
+        c.save();
+        const [fx, fy] = P(s * 0.5, s, s * 0.45);
+        // lay the stencil on the front wall: x runs along the wall, y down it
+        c.setTransform(dpr * C30, dpr * S30, 0, dpr, fx * dpr, fy * dpr);
+        c.font = '400 ' + Math.round(W * 0.07) + 'px "Press Display", sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+        c.fillStyle = RED; c.fillText('DO NOT OPEN', 0, 0);
+        c.restore();
+        c.setTransform(dpr, 0, 0, dpr, 0, 0);
+        if (!lidBehind) poly(lidPts, '#202020', LIME);
+      }
+      function start() { if (!raf && visible) raf = requestAnimationFrame(frame); }
+      cv.addEventListener('pointerenter', () => { hover = true; });
+      cv.addEventListener('pointerleave', () => { hover = false; });
+      if (typeof ResizeObserver !== 'undefined') new ResizeObserver(() => { size(); if (!raf) draw(0); }).observe(cv);
+      size();
+      if (REDUCE) { lid = 0.6; for (let i = 0; i < 3; i++) { spawn(); items[i].age = 0.5 + i * 0.5; } draw(2); return; }
+      new IntersectionObserver((es) => es.forEach((en) => { visible = en.isIntersecting; start(); })).observe(cv);
+    } catch (e) { /* the figure stays blank */ }
   })();
 </script>

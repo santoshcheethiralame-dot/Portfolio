@@ -18,6 +18,11 @@ import Folio from './Folio.astro';
     <div class="li-title-wrap" id="li-titleWrap">
       <h2 class="li-title">SELECTED <em>WORK</em></h2>
     </div>
+    <aside class="li-index" id="li-index" aria-label="Project index">
+      <div class="li-ix-h"><span>THE INDEX</span><span id="li-ix-count"></span></div>
+      <div class="li-ix-grid" id="li-ix-grid"></div>
+      <div class="li-ix-read" id="li-ix-read">hover a tile &middot; click to jump</div>
+    </aside>
     <p class="li-lede">
       Each card is a live <b>2-colour instrument</b> — hover to run the demo, click for the case study.
     </p>
@@ -1466,6 +1471,33 @@ import Folio from './Folio.astro';
         setTimeout(finishFlip, 250); /* rAF can stall in background tabs */
       }, leaving ? 200 : 0);
     }
+
+    /* ============================================================ THE INDEX
+       one tile per project in the header's empty right half: live ones pulse,
+       hovering names it, clicking scrolls to its card and lifts it */
+    (function () {
+      var ix = document.getElementById('li-ix-grid'), read = document.getElementById('li-ix-read'), cnt = document.getElementById('li-ix-count');
+      if (!ix || !read) return;
+      var live = PROJECTS.filter(function (p) { return p.status === 'live'; }).length;
+      if (cnt) cnt.innerHTML = '<b>' + PROJECTS.length + '</b> BUILT &middot; <b class="lv">' + live + '</b> LIVE';
+      var idle = read.textContent;
+      PROJECTS.forEach(function (p, i) {
+        var t = document.createElement('button');
+        t.type = 'button'; t.className = 'li-ix' + (p.status === 'live' ? ' is-live' : '');
+        t.style.setProperty('--d', (i * 0.11).toFixed(2) + 's');
+        t.setAttribute('aria-label', p.name + ', ' + p.status);
+        t.innerHTML = '<span class="li-ix-n">' + p.idx + '</span><span class="li-ix-m">' + p.mono + '</span>';
+        t.addEventListener('mouseenter', function () { read.innerHTML = '<b>' + p.idx + ' ' + p.name + '</b> &middot; ' + (p.status === 'live' ? 'live' : 'built'); });
+        t.addEventListener('mouseleave', function () { read.textContent = idle; });
+        t.addEventListener('click', function () {
+          var card = cardByKey[p.key]; if (!card) return;
+          var lenis = window.__lenis;
+          if (lenis && lenis.scrollTo) lenis.scrollTo(card, { offset: -90 }); else card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          card.classList.remove('li-pinged'); void card.offsetWidth; card.classList.add('li-pinged');
+        });
+        ix.appendChild(t);
+      });
+    })();
 
     /* ============================================================ SCROLL UI */
     var titleWrap = document.getElementById('li-titleWrap');
