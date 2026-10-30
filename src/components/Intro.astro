@@ -3,7 +3,7 @@ import { site } from '../data/site';
 const year = new Date().getFullYear(); // colophon stays current per build
 
 /* The about page, said in as few words as it can take: one headline you can
-   un-redact, the habit behind every project as a four-step loop, and three
+   open, the habit behind every project as a four-step loop, and three
    things to play with instead of paragraphs to read. */
 const steps = [
   {
@@ -75,11 +75,12 @@ const opened = ['neural nets', 'GPT-2', 'git', 'consensus', 'RAG errors', 'probe
       <div class="lead-main">
         <span class="kicker">&#9654; ABOUT &middot; CS @ PES UNIVERSITY &middot; SWE / ML</span>
         <h2 class="headline">
-          I open
-          <span class="redact" id="redact" tabindex="0" role="button" aria-label="Reveal what the black boxes were">
-            <span class="redact-word" aria-hidden="true">black boxes</span>
-            <span class="redact-in" id="redact-in" aria-live="polite">{opened[0]}</span>
-          </span>.
+          <span class="hl-line">I open</span>
+          <span class="hl-line"><span class="box" id="redact" tabindex="0" role="button" aria-label="Open the black box to see what was inside">
+            <span class="box-in" aria-hidden="true"><span id="redact-in">{opened[0]}</span></span>
+            <span class="box-lid">black boxes</span>
+            <span class="box-tag" aria-hidden="true">open me</span>
+          </span>.</span>
         </h2>
         <p class="deck">If I can&rsquo;t see how something works, I build my own until I can.</p>
         <div class="chips">
@@ -91,7 +92,7 @@ const opened = ['neural nets', 'GPT-2', 'git', 'consensus', 'RAG errors', 'probe
       <div class="lead-side" aria-label="By the numbers">
         <div class="num"><b data-count="97%">97%</b><span>MNIST, backprop by hand, no framework</span></div>
         <div class="num"><b data-count="3">3</b><span>papers under review</span></div>
-        <div class="num"><b data-count="13">13</b><span>things built to understand them</span></div>
+        <div class="num"><b data-count="16">16</b><span>things built to understand them</span></div>
         <div class="num"><b id="cups">2</b><span>filter coffees so far today</span></div>
       </div>
     </div>
@@ -333,55 +334,73 @@ const opened = ['neural nets', 'GPT-2', 'git', 'consensus', 'RAG errors', 'probe
     text-transform: none;
     margin: 14px 0 18px;
   }
-  /* the redaction bar: the words sit under a black slab; hover lifts it and
-     the slab shows what was actually inside, one at a time */
-  .redact {
+  /* "black boxes" is set as one: a black box with the words on its lid. Hover
+     (or focus, or a tap) tips the lid open on its hinge, and the box shows
+     what was inside, one thing at a time. The lid sizes the box. */
+  .hl-line { display: block; }
+  .box {
     position: relative;
     display: inline-grid;
-    vertical-align: baseline;
+    vertical-align: bottom;
     cursor: pointer;
     outline: none;
+    perspective: 900px;
   }
-  .redact > * { grid-area: 1 / 1; }
-  .redact-word {
+  .box > .box-in, .box > .box-lid { grid-area: 1 / 1; }
+  .box-lid {
     position: relative;
-    color: var(--ink);
-    z-index: 1;
-  }
-  .redact-word::after {
-    content: '';
-    position: absolute;
-    left: -0.06em;
-    right: -0.06em;
-    top: 0.12em;
-    bottom: 0.02em;
-    background: var(--ink);
-    transform-origin: right center;
-    transition: transform 0.42s var(--ease);
-  }
-  .redact-in {
     z-index: 2;
-    align-self: center;
-    justify-self: start;
-    color: var(--red);
+    padding: 0.06em 0.14em 0.02em;
+    background: var(--ink);
+    color: var(--cream);
+    box-shadow: 0.06em 0.06em 0 var(--red);
+    transform-origin: 50% 0;
+    transition: transform 0.6s var(--ease), box-shadow 0.6s var(--ease), background 0.6s var(--ease);
+  }
+  .box-in {
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background: var(--cream2);
+    border: 0.05em solid var(--ink);
+    box-shadow: inset 0 0.08em 0 rgba(20, 20, 20, 0.12);
+  }
+  .box-in span {
     font-family: var(--fi);
     font-style: italic;
-    font-weight: 400;
+    font-weight: 500;
+    font-size: 0.56em;
     letter-spacing: -0.02em;
+    color: var(--red);
     white-space: nowrap;
     opacity: 0;
-    transform: translateY(0.25em);
-    transition: opacity 0.25s ease, transform 0.35s var(--ease);
+    transform: translateY(0.4em);
+    transition: opacity 0.25s ease 0.12s, transform 0.4s var(--ease) 0.12s;
   }
-  .redact:hover .redact-word,
-  .redact:focus-visible .redact-word,
-  .redact.is-open .redact-word { color: transparent; }
-  .redact:hover .redact-word::after,
-  .redact:focus-visible .redact-word::after,
-  .redact.is-open .redact-word::after { transform: scaleX(0); }
-  .redact:hover .redact-in,
-  .redact:focus-visible .redact-in,
-  .redact.is-open .redact-in { opacity: 1; transform: none; }
+  .box-tag {
+    position: absolute;
+    z-index: 3;
+    right: -0.2em;
+    top: -0.55em;
+    font: 700 11px var(--fm);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    background: var(--lime);
+    color: var(--ink);
+    padding: 4px 7px;
+    transform: rotate(4deg);
+    transition: opacity 0.2s ease;
+  }
+  .box:hover .box-lid,
+  .box:focus-visible .box-lid,
+  .box.is-open .box-lid { transform: rotateX(76deg); box-shadow: 0 0.02em 0 var(--red); background: #2a2a2a; }
+  .box:hover .box-in span,
+  .box:focus-visible .box-in span,
+  .box.is-open .box-in span { opacity: 1; transform: none; }
+  .box:hover .box-tag,
+  .box:focus-visible .box-tag,
+  .box.is-open .box-tag { opacity: 0; }
+  .box:focus-visible { outline: 3px solid var(--red); outline-offset: 6px; }
   .deck {
     font-family: var(--fi);
     font-style: italic;

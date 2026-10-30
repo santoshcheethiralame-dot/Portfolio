@@ -107,6 +107,91 @@ export interface Project {
 
 export const projects: Project[] = [
   {
+    slug: 'injunct',
+    name: 'Injunct',
+    oneLiner:
+      'Turns the rules in your AGENTS.md into checks that stop a coding agent’s edit before it lands, after proving each one against your own git history.',
+    year: '2026',
+    role: 'Hackathon build',
+    status: 'Built · hackday',
+    tags: ['Coding agents', 'Developer tools', 'Open weights'],
+    stack: ['Python 3.12 (standard library only)', 'SQLite', 'Gemma 4 (open weights)', 'Claude Code hooks', 'opencode', 'GitHub Actions'],
+    stats: [
+      { v: '53→70%', l: 'First-try pass rate, 300 runs' },
+      { v: '0%', l: 'False positives on control tasks' },
+      { v: '446', l: 'Tests, no network or key' },
+    ],
+    links: {},
+    problem:
+      'Every repository now tells its coding agents what to do, in prose. An agent mostly follows it and skips it under pressure, and nobody can say which instructions are actually enforced and which are wishes. Teams find out when the migration is missing again.',
+    build:
+      'Injunct reads AGENTS.md, CLAUDE.md and CONTRIBUTING.md and has a model fill in one of twelve typed checks for each instruction a machine can verify. Every check is then replayed against the repository’s own commits: it must catch the case that created it and stay silent on work that shipped, or it only advises. Proven rules refuse the edit before it is written, in Claude Code, opencode, a git hook, a GitHub Action or any CI, and every refusal names the next step. A model never decides what blocks, and nothing a model writes is executed.',
+    highlights: [
+      'A rule has to earn the right to block: replayed against past commits first, and retired in public when work keeps succeeding over it',
+      'Twelve typed checks: the model only fills in the blanks, it never writes a checker',
+      'coverage shows how much of an AGENTS.md is guarded; on astral-sh/uv, suggested rewrites take it from 3% to 13%, each proven on 69 commits',
+      '300-run ablation: first-try pass 53.3% → 70.0%, repeat mistakes 58.1% → 31.0%, 0% false positives on control tasks',
+      'Standard library and one SQLite file; Gemma 4 on the free Gemini API, or any OpenAI-compatible endpoint',
+    ],
+    outcome: 'Agent instructions you can measure: which ones are enforced, which could be, and which need a human.',
+  },
+  {
+    slug: 'featherrouge',
+    name: 'featherrouge',
+    oneLiner:
+      'A bit-identical, pure-Python speedup for Google’s rouge-score: the same scores to the last digit, up to 870× faster on long texts.',
+    year: '2026',
+    role: 'Two-person team, with Mounika P T',
+    status: 'Top 10 · Confluence buildathon (IEEE CS)',
+    tags: ['NLP evaluation', 'Performance', 'Exactness'],
+    stack: ['Python', 'Bit-parallel LCS', 'rouge-score 0.1.2', 'nltk', 'NumPy', 'Hypothesis'],
+    stats: [
+      { v: '870×', l: 'Faster LCS at 4,096 tokens' },
+      { v: '5.5×', l: 'Faster end to end, CNN/DailyMail' },
+      { v: '0', l: 'Mismatches in 3,000,000 fuzz cases' },
+    ],
+    links: {},
+    problem:
+      'rouge-score is how most people score summaries: 9,063,958 downloads in 30 days, no release since July 2022. Its ROUGE-L fills a table with one Python step per pair of words, so two 4,096-word texts cost 16,777,216 cells.',
+    build:
+      'featherrouge packs each row of the LCS table into one Python integer and updates it with two bitwise lines (Allison and Dix, Hyyrö), so Python’s big-integer arithmetic does the scan in C. It keeps every row, so ROUGE-Lsum can run upstream’s own backtrace with upstream’s own tie rule. Each word is tokenized once and stemmed once. One call, install(), patches rouge_score in place, and Hugging Face evaluate gets faster with it.',
+    highlights: [
+      'Every precision, recall and F value compares equal with ==; a SHA-256 over all 11,490 CNN/DailyMail scores matches',
+      '3,000,000 index-list fuzz cases and 60,000 text-level cases with 0 mismatches, and the fuzzers fail when a bug is planted',
+      'Hugging Face’s default path runs 5.5× faster end to end, 8.5× with the stemmer',
+      'Pure Python: no compiled code, no new dependencies, and a hash guard leaves unfamiliar library versions untouched',
+    ],
+    outcome: 'A drop-in speedup with its proof attached: nothing about the scores changes.',
+  },
+  {
+    slug: 'smudge',
+    name: 'Smudge',
+    oneLiner:
+      'A detective game for 14–16 year olds: question three AI suspects, measure in the lab, and strike through the one sworn lie to write a stolen science law back.',
+    year: '2026',
+    role: 'Team Strikethrough (3) · server, agents and case kits',
+    status: 'In progress · agentathon, education track',
+    tags: ['AI agents', 'Education', 'Game'],
+    stack: ['Python / FastAPI', 'Phaser 3', 'TypeScript', 'Tone.js', 'Groq + Gemini (free tiers)'],
+    stats: [
+      { v: '9', l: 'Cases, one law each' },
+      { v: '30', l: 'Synthesised voices' },
+      { v: '229', l: 'Server tests, no keys' },
+    ],
+    links: {},
+    problem:
+      'Physics homework asks for a number nobody needs. In Smudge the number is the evidence: the only way to catch the liar is to take the measurement and do the maths.',
+    build:
+      'A truth engine in code decides every fact of a case. Each suspect is its own agent that sees only its slice of the truth, behind a firewall, also code, that blocks confessions, the case’s numbers and suspects pointing at each other. A release gate has a detective agent play every case without the lab and with it: without, it must score near chance; with, it must name the culprit. The model router falls back across Groq models, Gemini, a disk cache and scripted lines, so the game never stalls. Every sound is synthesised in Tone.js. Budget: ₹0.',
+    highlights: [
+      'Nine cases from ρ = m/V to P = mgh/t, each a district with its own law, suspects and lab',
+      'Code decides the truth and filters every reply; the models only voice the suspects',
+      'Release gate: without the lab the detective scores 0.33–0.67, with it 0.78–1.0, and failing seeds stay out of the pool',
+      'Thirty voices, a score and ambience per district, all synthesised in Tone.js with no audio files',
+    ],
+    outcome: 'A game where the maths is the only way to win the argument.',
+  },
+  {
     slug: 'orbit',
     name: 'Orbit',
     oneLiner:

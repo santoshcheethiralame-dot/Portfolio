@@ -54,6 +54,54 @@ import Folio from './Folio.astro';
        two in sync until this section reads from it directly. */
     var PROJECTS = [
       {
+        key: 'injunct', mono: 'I', idx: '00', name: 'INJUNCT', label: 'injunct',
+        status: 'built', host: null, github: null,
+        tagline: 'Turns the rules in your AGENTS.md into checks that stop a coding agent’s edit before it lands, after proving each one against your own git history.',
+        blurb: 'Your AGENTS.md is a suggestion. Injunct proves each rule on your git history, then blocks the edit.',
+        stack: ['Python (stdlib only)', 'SQLite', 'Gemma 4', 'Claude Code hooks'],
+        stats: [{ target: 70, decimals: 1, suf: '%', lab: 'First-try pass (from 53.3%)' }, { target: 446, suf: '', lab: 'Tests passing' }],
+        overview: 'Every repository now tells its coding agents what to do, in prose, and nobody can say which of it is enforced. Injunct has a model fill in one of twelve typed checks for each instruction a machine can verify, then replays every check against the repository’s own commits. Only rules that catch their case and stay silent on work that shipped may block, and they block before the write lands: in Claude Code, opencode, a git hook, a GitHub Action or any CI. A model never decides what blocks, and nothing a model writes is executed.',
+        highlights: [
+          'A rule has to earn the right to block: replayed against past commits first, retired in public when work keeps succeeding over it.',
+          'Twelve typed checks; the model fills in the blanks and never writes a checker.',
+          '300-run ablation: first-try pass 53.3% → 70.0%, repeat mistakes 58.1% → 31.0%, 0% false positives on controls.',
+          'On astral-sh/uv, suggested rewrites take guarded coverage from 3% to 13%, each proven on 69 commits.'
+        ],
+        meta: { Role: 'Hackathon build', Year: '2026', Type: 'Developer tools / coding agents' }
+      },
+      {
+        key: 'featherrouge', mono: 'F', idx: '00', name: 'FEATHERROUGE', label: 'featherrouge',
+        status: 'built', host: null, github: null,
+        tagline: 'A bit-identical, pure-Python speedup for Google’s rouge-score: the same scores to the last digit, up to 870× faster on long texts.',
+        blurb: 'Same ROUGE scores to the last digit. Up to 870× faster, in pure Python.',
+        stack: ['Python', 'Bit-parallel LCS', 'rouge-score', 'nltk'],
+        stats: [{ target: 870, suf: '×', lab: 'Faster LCS, 4,096 tokens' }, { target: 5.5, decimals: 1, suf: '×', lab: 'Faster end to end' }],
+        overview: 'rouge-score had 9,063,958 downloads in 30 days and fills its ROUGE-L table one slow Python step per pair of words. featherrouge packs each row of that table into one Python integer and updates it with two bitwise lines, keeps every row so ROUGE-Lsum runs upstream’s own backtrace and tie rule, and stems each word once. install() patches rouge_score in place, and Hugging Face evaluate gets faster with it. Top 10 at the Confluence buildathon (IEEE CS), built with Mounika P T.',
+        highlights: [
+          'Every score compares equal with ==; a SHA-256 over all 11,490 CNN/DailyMail scores matches.',
+          '3,000,000 index-list fuzz cases with 0 mismatches, and the fuzzers fail when a bug is planted.',
+          'Hugging Face’s default path: 5.5× faster end to end, 8.5× with the stemmer.',
+          'Pure Python, no compiled code, no new dependencies.'
+        ],
+        meta: { Role: 'Two-person team', Year: '2026', Type: 'NLP evaluation / performance' }
+      },
+      {
+        key: 'smudge', mono: 'S', idx: '00', name: 'SMUDGE', label: 'smudge',
+        status: 'built', host: null, github: null,
+        tagline: 'A detective game for 14–16 year olds: question three AI suspects, measure in the lab, and strike through the one sworn lie.',
+        blurb: 'Question three AI suspects, measure in the lab, and strike through the one lie.',
+        stack: ['FastAPI', 'Phaser 3', 'TypeScript', 'Tone.js'],
+        stats: [{ target: 9, suf: '', lab: 'Cases, one law each' }, { target: 229, suf: '', lab: 'Server tests' }],
+        overview: 'A science law has been stolen from a living textbook and its district is glitching. The player questions three AI suspects, takes real measurements in the lab, and strikes through the one sworn statement the numbers prove false. Code decides every fact of a case; each suspect is its own agent that sees only its slice of the truth, behind a firewall that blocks confessions and leaked numbers. A release gate has a detective agent play each case without the lab (near chance) and with it (it must name the culprit). Team Strikethrough, agentathon education track, ₹0 budget.',
+        highlights: [
+          'Nine cases from ρ = m/V to P = mgh/t, each with its own district, suspects and lab.',
+          'Code decides the truth and filters every reply; the models only voice the suspects.',
+          'Gate: without the lab the detective scores 0.33–0.67; with it, 0.78–1.0.',
+          'Thirty voices and every sound synthesised in Tone.js, no audio files.'
+        ],
+        meta: { Role: 'Team of 3 · server, agents, kits', Year: '2026', Type: 'AI agents / education game' }
+      },
+      {
         key: 'orbit', mono: 'O', idx: '01', name: 'ORBIT', label: 'orbit',
         status: 'live', host: 'orbit-virid-gamma.vercel.app',
         github: 'https://github.com/santoshcheethiralame-dot/ORBIT',
@@ -280,7 +328,7 @@ import Folio from './Folio.astro';
 
     /* Display order is a presentation concern, not a data one — reorder here and the
        index numbers follow, so the entries above stay grouped however they read best. */
-    var ORDER = ['attest', 'showme', 'corridor', 'batch', 'highwater', 'lift', 'glassbox', 'gradient', 'untangle', 'tessera', 'terracrest', 'orbit', 'pesvcs'];
+    var ORDER = ['injunct', 'featherrouge', 'smudge', 'attest', 'showme', 'corridor', 'batch', 'highwater', 'lift', 'glassbox', 'gradient', 'untangle', 'tessera', 'terracrest', 'orbit', 'pesvcs'];
     PROJECTS = ORDER
       .map(function (k) { for (var i = 0; i < PROJECTS.length; i++) if (PROJECTS[i].key === k) return PROJECTS[i]; return null; })
       .filter(Boolean);
@@ -1097,7 +1145,132 @@ import Folio from './Folio.astro';
       return o;
     }
 
-    var RENDER = { orbit: makeOrbit, glassbox: makeGlassbox, gradient: makeGradient, pesvcs: makePesVcs, tessera: makeTessera, terracrest: makeTerracrest, attest: makeAttest, untangle: makeUntangle, showme: makeShowMe, corridor: makeCorridor, batch: makeBatch, highwater: makeHighwater, lift: makeLift };
+    // ---- INJUNCT: an agent's edit streams in; the line that breaks a proven rule
+    //      trips the gate, the card cites the rule and names the next step.
+    function makeInjunct(cv) {
+      var o = base(cv); var LIME = '#b4ff2e';
+      var LINES = [['+', 'class Patient(Model):'], ['+', '    name = CharField()'], ['+', '    phone = CharField()'], ['+', '    dob = DateField()']];
+      o.tick = function (now, dt) {
+        o.advance(dt);
+        var ctx = o.ctx, w = o.w, h = o.h; if (!ctx) return; ctx.clearRect(0, 0, w, h);
+        var pad = 14, cyc = 6.4, t = o.clk % cyc, i;
+        ctx.font = '600 7.5px "Martian Mono",monospace'; ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
+        ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fillText('agent ▸ edit models/patient.py', pad + 40, 24);
+        var lh = 14, y0 = 52;
+        for (i = 0; i < LINES.length; i++) {
+          var at = 0.3 + i * 0.45; if (t < at) break;
+          var chars = Math.floor(Math.min(1, (t - at) / 0.35) * LINES[i][1].length);
+          ctx.fillStyle = 'rgba(180,255,46,.08)'; ctx.fillRect(pad, y0 + i * lh - 10, w - pad * 2, 13);
+          ctx.fillStyle = LIME; ctx.fillText(LINES[i][0], pad + 4, y0 + i * lh);
+          ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.fillText(LINES[i][1].slice(0, chars), pad + 16, y0 + i * lh);
+        }
+        var gate = Math.max(0, Math.min(1, (t - 2.4) / 0.25));
+        if (gate > 0) {
+          var gy = y0 + LINES.length * lh - 4, gh = h - gy - 10, gx = pad + (w - pad * 2) * (1 - gate);
+          ctx.fillStyle = '#ed1c24'; ctx.fillRect(gx, gy, (w - pad * 2) * gate, gh);
+          if (gate >= 1) {
+            ctx.fillStyle = '#fff'; ctx.font = '400 15px "Press Display",sans-serif'; ctx.fillText('BLOCKED', pad + 10, gy + 20);
+            ctx.font = '600 7px "Martian Mono",monospace'; ctx.fillStyle = 'rgba(255,255,255,.85)';
+            ctx.fillText('models/* changed, nothing under migrations/* did', pad + 10, gy + 33);
+            if (t > 3.3) { ctx.fillStyle = LIME; ctx.fillText('NEXT ▸ create migrations/009_patient.sql', pad + 10, gy + 46); }
+            if (t > 4.1) { ctx.textAlign = 'right'; ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.fillText('held on 14 commits · 0 false positives', w - pad - 10, gy + 20); ctx.textAlign = 'left'; }
+          }
+        }
+      };
+      return o;
+    }
+
+    // ---- FEATHERROUGE: the same LCS two ways. Upstream fills the table one cell at
+    //      a time; the bit-parallel row finishes while it's still filling, and the
+    //      two scores hash the same.
+    function makeFeather(cv) {
+      var o = base(cv); var LIME = '#b4ff2e';
+      var C = 16, R = 9;
+      o.tick = function (now, dt) {
+        o.advance(dt);
+        var ctx = o.ctx, w = o.w, h = o.h; if (!ctx) return; ctx.clearRect(0, 0, w, h);
+        var pad = 14, cyc = 6.6, t = o.clk % cyc, r, c;
+        var top = 48, gw = (w - pad * 3) * 0.6, cw = gw / C, ch = Math.min(cw, (h - top - 34) / R);
+        ctx.font = '600 7px "Martian Mono",monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+        ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.fillText('UPSTREAM · ONE CELL A STEP', pad + 40, 24);
+        var filled = Math.floor(Math.min(1, t / 5.2) * C * R);
+        for (r = 0; r < R; r++) for (c = 0; c < C; c++) {
+          var k = r * C + c, x = pad + c * cw, y = top + r * ch;
+          ctx.fillStyle = k < filled ? 'rgba(237,28,36,' + (0.35 + 0.4 * ((r + c) % 3 === 0 ? 1 : 0)) + ')' : 'rgba(255,255,255,.06)';
+          ctx.fillRect(x + 1, y + 1, cw - 2, ch - 2);
+        }
+        var rx = pad * 2 + gw, rw = w - rx - pad, bw = rw / C;
+        ctx.fillStyle = LIME; ctx.fillText('FEATHER · ONE ROW A STEP', rx, top - 8);
+        var rowsDone = Math.min(R, Math.floor(t / 0.07));
+        for (r = 0; r < R; r++) {
+          var y2 = top + r * ch;
+          for (c = 0; c < C; c++) {
+            var bit = r < rowsDone ? ((c * 7 + r * 3) % 5 < 2 ? 1 : 0) : 0;
+            ctx.fillStyle = r < rowsDone ? (bit ? LIME : 'rgba(180,255,46,.18)') : 'rgba(255,255,255,.06)';
+            ctx.fillRect(rx + c * bw + 0.5, y2 + ch * 0.3, bw - 1, ch * 0.4);
+          }
+        }
+        var by = top + R * ch + 18;
+        ctx.font = '400 13px "Press Display",sans-serif';
+        ctx.fillStyle = 'rgba(255,255,255,.8)'; ctx.fillText(filled < C * R ? (filled * 1) + ' / ' + (C * R) + ' cells' : 'done', pad, by);
+        if (t <= 5.4) { ctx.fillStyle = LIME; ctx.fillText(rowsDone >= R ? '9 rows · done' : rowsDone + ' rows', rx, by); }
+        if (t > 5.4) {
+          ctx.font = '700 7.5px "Martian Mono",monospace'; ctx.textAlign = 'right'; ctx.fillStyle = LIME;
+          ctx.fillText('sha256 ✓ identical', w - pad, by); ctx.textAlign = 'left';
+        }
+      };
+      return o;
+    }
+
+    // ---- SMUDGE: three suspects, three sworn statements; the spotlight finds the
+    //      one the measurement disproves, it's struck through, and the law writes
+    //      itself back.
+    function makeSmudge(cv) {
+      var o = base(cv); var LIME = '#b4ff2e', RED = '#ed1c24';
+      var SAYS = ['“7 m/s. under the limit.”', '“6 m/s. like always.”', '“8 m/s, I swear.”'];
+      var CASES = [0, 2, 1];
+      o.tick = function (now, dt) {
+        o.advance(dt);
+        var ctx = o.ctx, w = o.w, h = o.h; if (!ctx) return; ctx.clearRect(0, 0, w, h);
+        var pad = 14, cyc = 6.8, n = Math.floor(o.clk / cyc), t = o.clk % cyc, liar = CASES[n % CASES.length], i;
+        var col = (w - pad * 2) / 3, fy = h - 22;
+        // spotlight sweep, settling on the liar
+        var sx = t < 2.6 ? pad + col * (0.5 + 1 * (1 + Math.sin(t * 2.6 - 1.57))) : pad + col * (liar + 0.5);
+        ctx.fillStyle = 'rgba(255,255,255,.07)';
+        ctx.beginPath(); ctx.moveTo(sx - 4, 0); ctx.lineTo(sx + 4, 0); ctx.lineTo(sx + col * 0.42, fy); ctx.lineTo(sx - col * 0.42, fy); ctx.closePath(); ctx.fill();
+        for (i = 0; i < 3; i++) {
+          var cx = pad + col * (i + 0.5), s = 4;
+          // a pixel suspect: body, head, two eyes
+          ctx.fillStyle = i === liar && t > 2.6 ? '#2a2a2a' : '#1f1f1f';
+          ctx.fillRect(cx - 5 * s, fy - 9 * s, 10 * s, 9 * s);
+          ctx.fillRect(cx - 4 * s, fy - 15 * s, 8 * s, 6 * s);
+          ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.lineWidth = 1;
+          ctx.strokeRect(cx - 5 * s + 0.5, fy - 9 * s + 0.5, 10 * s - 1, 9 * s - 1); ctx.strokeRect(cx - 4 * s + 0.5, fy - 15 * s + 0.5, 8 * s - 1, 6 * s - 1);
+          var blink = (o.clk * 1.3 + i) % 3.1 < 0.12;
+          ctx.fillStyle = i === liar && t > 3.2 ? RED : '#f7f5f1';
+          if (!blink) { ctx.fillRect(cx - 2.5 * s, fy - 13 * s, s, s); ctx.fillRect(cx + 1.5 * s, fy - 13 * s, s, s); }
+          // the sworn statement
+          ctx.font = 'italic 400 8.5px "Fraunces",serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+          var ty = 56 + (i % 2) * 14;
+          ctx.fillStyle = 'rgba(255,255,255,.82)'; ctx.fillText(SAYS[i], cx, ty);
+          if (i === liar && t > 3.2) {
+            var k = Math.min(1, (t - 3.2) / 0.3), tw = ctx.measureText(SAYS[i]).width;
+            ctx.strokeStyle = RED; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(cx - tw / 2 - 3, ty - 3); ctx.lineTo(cx - tw / 2 - 3 + (tw + 6) * k, ty - 3); ctx.stroke();
+          }
+        }
+        ctx.textAlign = 'left';
+        if (t > 3.5) {
+          ctx.font = '400 12px "Press Display",sans-serif'; ctx.fillStyle = RED; ctx.fillText('STRIKETHROUGH', pad, h - 6);
+        }
+        if (t > 4.2) {
+          var law = 'v² = u² + 2as', m = Math.floor(Math.min(1, (t - 4.2) / 0.8) * law.length);
+          ctx.font = '700 9px "Martian Mono",monospace'; ctx.textAlign = 'right'; ctx.fillStyle = LIME; ctx.fillText(law.slice(0, m), w - pad, h - 6); ctx.textAlign = 'left';
+        }
+      };
+      return o;
+    }
+
+    var RENDER = { orbit: makeOrbit, glassbox: makeGlassbox, gradient: makeGradient, pesvcs: makePesVcs, tessera: makeTessera, terracrest: makeTerracrest, attest: makeAttest, untangle: makeUntangle, showme: makeShowMe, corridor: makeCorridor, batch: makeBatch, highwater: makeHighwater, lift: makeLift, injunct: makeInjunct, featherrouge: makeFeather, smudge: makeSmudge };
 
     /* section visibility gate — when the projects section is off-screen and no
        case study is open, both rAF loops stop scheduling entirely */
@@ -1387,7 +1560,9 @@ import Folio from './Folio.astro';
     function buildPanel(p) {
       var panel = document.createElement('section');
       panel.className = 'li-cs-panel'; panel.dataset.key = p.key;
-      var srcLink = '<a class="li-cs-link li-ghost" href="' + p.github + '" target="_blank" rel="noopener">VIEW SOURCE</a>';
+      var srcLink = p.github
+        ? '<a class="li-cs-link li-ghost" href="' + p.github + '" target="_blank" rel="noopener">VIEW SOURCE</a>'
+        : '<span class="li-cs-link li-ghost" aria-disabled="true">SOURCE · SOON</span>';
       var links = (p.host
         ? '<a class="li-cs-link li-primary" href="https://' + p.host + '" target="_blank" rel="noopener">VISIT LIVE &rarr;</a>' + srcLink
         : srcLink);

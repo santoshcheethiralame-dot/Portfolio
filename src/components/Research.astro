@@ -71,27 +71,16 @@ const MM_K = 12;
       <span>BENGALURU · 2026</span>
     </div>
 
-    <!-- ================= THE DESK: one study at a time ================= -->
-    <div class="rd-tabs" role="tablist" aria-label="Studies">
+    <!-- ================= THE DESK: four studies, read down the page ================= -->
+    <nav class="rd-rail" aria-label="Studies on this desk">
       {research.map((st, i) => (
-        <button
-          class={`rd-tab${i === 0 ? ' is-on' : ''}`}
-          type="button"
-          role="tab"
-          id={`rd-tab-${st.id}`}
-          aria-controls={`rd-panel-${st.id}`}
-          aria-selected={i === 0 ? 'true' : 'false'}
-          tabindex={i === 0 ? 0 : -1}
-          data-tab={i}
-        >
-          <span class="rd-tab-no">No.{st.no}</span>
-          <span class="rd-tab-name">{st.name}</span>
-          <span class="rd-tab-q">{st.headline}</span>
-          <span class="rd-tab-st">{st.status}</span>
-          <span class="rd-tab-bar" aria-hidden="true"></span>
-        </button>
+        <a class={`rd-rail-i${i === 0 ? ' is-on' : ''}`} href={`#study-${st.id}`} data-rail={st.id}>
+          <span class="rd-rail-no">No.{st.no}</span>
+          <span class="rd-rail-name">{st.name}</span>
+          <i class="rd-rail-fill" aria-hidden="true"></i>
+        </a>
       ))}
-    </div>
+    </nav>
 
     <div class="rd-panels">
       {research.map((st, i) => {
@@ -100,13 +89,7 @@ const MM_K = 12;
         const claim = c ? (cut > 0 ? c.text.slice(0, cut + 1) : c.text) : '';
         const found = c && cut > 0 ? c.text.slice(cut + 2) : '';
         return (
-          <article
-            class={`rd-panel${i === 0 ? ' is-on' : ''}${st.id === 'missingmass' ? ' rd-panel--ink' : ''}`}
-            id={`rd-panel-${st.id}`}
-            role="tabpanel"
-            aria-labelledby={`rd-tab-${st.id}`}
-            hidden={i !== 0}
-          >
+          <article class="rd-panel" id={`study-${st.id}`} data-study={st.id}>
             <div class="rd-p-top">
               <div class="rd-p-q">
                 <div class="rd-kicker">▶ STUDY No.{st.no} · {st.kicker}</div>
@@ -450,6 +433,14 @@ const MM_K = 12;
                 <p class="rd-more-by">{st.byline}</p>
               </div>
             </details>
+            {i < research.length - 1 && (
+              <a class="rd-next" href={`#study-${research[i + 1].id}`}>
+                <span class="rd-next-k">NEXT STUDY · No.{research[i + 1].no}</span>
+                <span class="rd-next-name">{research[i + 1].name}</span>
+                <span class="rd-next-q">{research[i + 1].headline}</span>
+                <span class="rd-next-arr" aria-hidden="true">↓</span>
+              </a>
+            )}
           </article>
         );
       })}
@@ -794,43 +785,93 @@ const MM_K = 12;
   }
 
   /* ============================================================ THE DESK: tabs + panels */
-  .rd-tabs {
+  /* the rail: which study you're reading, pinned under the nav as you scroll
+     down the desk; each entry jumps to its study */
+  .rd-rail {
+    position: sticky;
+    top: 86px;
+    z-index: 6;
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     border: 3px solid var(--bink);
+    background: var(--bcream);
+    box-shadow: 0 6px 0 rgba(20, 20, 20, 0.12);
     margin-bottom: clamp(18px, 2.4vw, 28px);
   }
-  .rd-tab {
+  .rd-rail-i {
     position: relative;
     display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 12px 14px 16px;
-    border: 0;
+    align-items: baseline;
+    gap: 10px;
+    padding: 9px 12px 11px;
     border-right: 2px solid var(--bink);
-    background: var(--bcream);
     color: var(--bink);
-    text-align: left;
-    cursor: pointer;
-    font: inherit;
+    text-decoration: none;
+    min-width: 0;
     transition: background 0.25s ease, color 0.25s ease;
   }
-  .rd-tab:last-child { border-right: 0; }
-  .rd-tab:hover { background: var(--bcream2); }
-  .rd-tab:focus-visible { outline: 3px solid var(--bred); outline-offset: -6px; }
-  .rd-tab-no { font-family: var(--fm); font-size: 10px; font-weight: 700; letter-spacing: 0.16em; color: var(--bred); }
-  .rd-tab-name { font-family: var(--fd); font-size: clamp(1.15rem, 1.9vw, 1.7rem); line-height: 0.92; }
-  .rd-tab-q { font-family: var(--fi); font-style: italic; font-size: 14px; line-height: 1.25; color: #4f4b44; }
-  .rd-tab-st { margin-top: auto; padding-top: 4px; font-family: var(--fm); font-size: 8.5px; font-weight: 700; letter-spacing: 0.12em; color: var(--bgray); }
-  .rd-tab-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: var(--blime); transform: scaleX(0); transform-origin: left; transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.2, 1); }
-  .rd-tab.is-on { background: var(--bink); color: var(--bcream); }
-  .rd-tab.is-on .rd-tab-no { color: var(--blime); }
-  .rd-tab.is-on .rd-tab-q { color: rgba(247, 245, 241, 0.75); }
-  .rd-tab.is-on .rd-tab-bar { transform: scaleX(1); }
+  .rd-rail-i:last-child { border-right: 0; }
+  .rd-rail-i:hover { background: var(--bcream2); }
+  .rd-rail-i:focus-visible { outline: 3px solid var(--bred); outline-offset: -6px; }
+  .rd-rail-no { flex: none; font-family: var(--fm); font-size: 10px; font-weight: 700; letter-spacing: 0.14em; color: var(--bred); }
+  .rd-rail-name { font-family: var(--fd); font-size: clamp(0.95rem, 1.5vw, 1.35rem); line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rd-rail-fill { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: var(--blime); transform: scaleX(0); transform-origin: left; transition: transform 0.5s cubic-bezier(0.2, 0.9, 0.2, 1); }
+  .rd-rail-i.is-done .rd-rail-fill { transform: scaleX(1); background: var(--bgray); }
+  .rd-rail-i.is-on { background: var(--bink); color: var(--bcream); }
+  .rd-rail-i.is-on .rd-rail-no { color: var(--blime); }
+  .rd-rail-i.is-on .rd-rail-fill { transform: scaleX(1); }
 
-  .rd-panel[hidden] { display: none; }
-  .rd-panel.is-entering { animation: rd-in 0.45s cubic-bezier(0.2, 0.9, 0.2, 1); }
-  @keyframes rd-in { from { opacity: 0; transform: translateY(14px); } }
+  .rd-panel { scroll-margin-top: 150px; padding-bottom: clamp(26px, 3vw, 40px); }
+  .rd-panel + .rd-panel { border-top: 5px solid var(--bink); padding-top: clamp(26px, 3vw, 40px); }
+
+  /* the prompt at the foot of each study */
+  .rd-next {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-rows: auto auto;
+    align-items: center;
+    gap: 2px 18px;
+    margin-top: 22px;
+    padding: 14px 18px;
+    background: var(--bink);
+    color: var(--bcream);
+    text-decoration: none;
+    border: 3px solid var(--bink);
+    box-shadow: 6px 6px 0 var(--bred);
+    transition: transform 0.18s cubic-bezier(0.2, 0.9, 0.2, 1), box-shadow 0.18s;
+  }
+  .rd-next:hover { transform: translate(-2px, -2px); box-shadow: 9px 9px 0 var(--bred); }
+  .rd-next:focus-visible { outline: 3px solid var(--blime); outline-offset: 3px; }
+  .rd-next-k { grid-column: 1 / 3; font-family: var(--fm); font-size: 10px; font-weight: 700; letter-spacing: 0.16em; color: var(--blime); }
+  .rd-next-name { font-family: var(--fd); font-size: clamp(1.4rem, 2.6vw, 2.2rem); line-height: 0.95; }
+  .rd-next-q { font-family: var(--fi); font-style: italic; font-size: 1.05rem; color: rgba(247, 245, 241, 0.75); }
+  .rd-next-arr { grid-row: 1 / 3; grid-column: 3; font-family: var(--fd); font-size: 2.6rem; color: var(--blime); animation: rd-bob 1.6s ease-in-out infinite; }
+  @keyframes rd-bob { 50% { transform: translateY(6px); } }
+
+  /* autoplay: each figure plays itself while it's on screen, until it's touched */
+  :global(.rd-auto) {
+    position: absolute;
+    z-index: 4;
+    top: -13px;
+    right: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    font-family: var(--fm);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    background: var(--blime);
+    color: var(--bink);
+    border: 2px solid var(--bink);
+    pointer-events: none;
+  }
+  :global(.rd-auto i) { width: 0; height: 0; border-left: 7px solid currentColor; border-top: 4px solid transparent; border-bottom: 4px solid transparent; }
+  :global(.rd-auto.is-yours) { background: var(--bcream); }
+  :global(.rd-auto.is-yours i) { width: 6px; height: 8px; border: 0; border-left: 2px solid currentColor; border-right: 2px solid currentColor; }
+  [data-culprit], [data-precise], [data-instrument], [data-mm] { position: relative; }
 
   .rd-p-top {
     display: grid;
@@ -889,21 +930,18 @@ const MM_K = 12;
   .rd-more-by { font-family: var(--fm); font-size: 10px !important; letter-spacing: 0.1em; text-transform: uppercase; color: var(--bgray); }
 
   @media (max-width: 1080px) {
-    .rd-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .rd-tab:nth-child(2) { border-right: 0; }
-    .rd-tab:nth-child(-n + 2) { border-bottom: 2px solid var(--bink); }
+    .rd-rail-name { display: none; }
     .rd-p-top { grid-template-columns: 1fr; }
     .rd-figs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .rd-fig:nth-child(3) { border-left: 0; }
     .rd-fig:nth-child(n + 3) { border-top: 1px solid rgba(20, 20, 20, 0.25); }
   }
   @media (max-width: 620px) {
-    .rd-tab-q { display: none; }
+    .rd-rail { top: 64px; }
+    .rd-next { grid-template-columns: 1fr auto; }
+    .rd-next-q { display: none; }
     .rd-figs { grid-template-columns: 1fr; }
     .rd-fig + .rd-fig { border-left: 0; border-top: 1px solid rgba(20, 20, 20, 0.25); }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .rd-panel.is-entering { animation: none; }
   }
 
   /* ============================================================ 01 · THE LINEUP */
@@ -1013,54 +1051,63 @@ const MM_K = 12;
     .cl-suspects { grid-template-columns: 1fr 1fr; }
   }
   @media (prefers-reduced-motion: reduce) {
+    .rd-next-arr { animation: none; }
     .cl-file.is-found .cl-file-v { animation: none; }
     .cl-sus, .cl-cell, .cl-out, .cl-file, .cl-file--twist li { transition: none; }
   }
 </style>
 
 <script>
-  // THE DESK: one study at a time. Tabs follow the ARIA pattern (arrow keys move
-  // between them, the panel follows) and the URL hash can open one directly.
+  // THE DESK: the rail follows the study under the viewport's mid-line (an
+  // observer, so scrolling measures nothing) and marks the ones already read.
   (function () {
     try {
-      const tabs = Array.from(document.querySelectorAll<HTMLButtonElement>('#research .rd-tab'));
+      const items = Array.from(document.querySelectorAll<HTMLElement>('#research .rd-rail-i'));
       const panels = Array.from(document.querySelectorAll<HTMLElement>('#research .rd-panel'));
-      if (!tabs.length) return;
-      function show(i: number, focus: boolean) {
-        tabs.forEach((t, j) => {
-          const on = j === i;
-          t.classList.toggle('is-on', on);
-          t.setAttribute('aria-selected', on ? 'true' : 'false');
-          t.tabIndex = on ? 0 : -1;
-        });
-        panels.forEach((p, j) => {
-          const on = j === i;
-          if (on && p.hidden) { p.hidden = false; p.classList.remove('is-entering'); void p.offsetWidth; p.classList.add('is-entering'); }
-          else if (!on) p.hidden = true;
-        });
-        if (focus) tabs[i].focus();
-        // the desk changed height: let the pinned acts re-measure
-        window.dispatchEvent(new Event('resize'));
-      }
-      tabs.forEach((t, i) => {
-        t.addEventListener('click', () => show(i, false));
-        t.addEventListener('keydown', (e) => {
-          const k = e.key;
-          let n = -1;
-          if (k === 'ArrowRight' || k === 'ArrowDown') n = (i + 1) % tabs.length;
-          else if (k === 'ArrowLeft' || k === 'ArrowUp') n = (i - 1 + tabs.length) % tabs.length;
-          else if (k === 'Home') n = 0;
-          else if (k === 'End') n = tabs.length - 1;
-          if (n >= 0) { e.preventDefault(); show(n, true); }
-        });
-      });
-      const m = location.hash.match(/^#study-(\w+)/);
-      if (m) { const i = panels.findIndex((p) => p.id === 'rd-panel-' + m[1]); if (i > 0) show(i, false); }
-      document.querySelectorAll('#research .rd-more').forEach((d) => d.addEventListener('toggle', () => window.dispatchEvent(new Event('resize'))));
-    } catch (e) { /* tabs failed: the first study stays open */ }
+      if (!items.length || typeof IntersectionObserver === 'undefined') return;
+      const on = new Set<string>();
+      const io = new IntersectionObserver((es) => {
+        es.forEach((en) => { const id = (en.target as HTMLElement).dataset.study || ''; if (en.isIntersecting) on.add(id); else on.delete(id); });
+        let cur = -1;
+        panels.forEach((p, i) => { if (on.has(p.dataset.study || '')) cur = i; });
+        if (cur < 0) return;
+        items.forEach((it, i) => { it.classList.toggle('is-on', i === cur); it.classList.toggle('is-done', i < cur); });
+      }, { rootMargin: '-45% 0px -54% 0px' });
+      panels.forEach((p) => io.observe(p));
+    } catch (e) { /* the rail stays a list of links */ }
   })();
 
-  // The Research Desk's four instruments. Event-driven only: no rAF, no canvas, no timers.
+  // AUTOPLAY: each figure plays itself while it's on screen. Touch it and it's
+  // yours; it picks back up after 20 s left alone. Reduced motion: never plays.
+  const REDUCE_AUTO = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function autoplay(root: HTMLElement | null, step: () => void, every: number) {
+    if (!root || REDUCE_AUTO) return;
+    const chip = document.createElement('span');
+    chip.className = 'rd-auto';
+    chip.setAttribute('aria-hidden', 'true');
+    chip.innerHTML = '<i></i><b>PLAYING · TOUCH TO TAKE OVER</b>';
+    root.appendChild(chip);
+    const label = chip.querySelector('b') as HTMLElement;
+    let took = 0, vis = false;
+    const take = () => {
+      took = performance.now();
+      chip.classList.add('is-yours');
+      label.textContent = 'YOURS · REPLAYS WHEN LEFT ALONE';
+    };
+    root.addEventListener('pointerdown', take, true);
+    root.addEventListener('keydown', take, true);
+    new IntersectionObserver((es) => es.forEach((en) => { vis = en.isIntersecting; }), { threshold: 0.3 }).observe(root);
+    window.setInterval(() => {
+      if (!vis || document.hidden || (window as any).__pressFreeze) return;
+      if (took) {
+        if (performance.now() - took < 20000) return;
+        took = 0;
+        chip.classList.remove('is-yours');
+        label.textContent = 'PLAYING · TOUCH TO TAKE OVER';
+      }
+      step();
+    }, every);
+  }
 
   /* ===================== 01 · the lineup ===================== */
   // Pick passages (or tap a cell of the pair grid) and the model answers from that
@@ -1197,6 +1244,15 @@ const MM_K = 12;
         update();
       });
       update();
+      // the walk-through: B alone, the three culprit pairs, the twists, all six
+      const DEMO = ['B', 'AB', 'BC', 'BE', 'ABD', 'ABF', 'ABCDEF'];
+      let di = 0;
+      autoplay(root, () => {
+        if (di === 0) { seen.clear(); found.clear(); revealed = false; }
+        selected = new Set(DEMO[di].split(''));
+        update();
+        di = (di + 1) % DEMO.length;
+      }, 2300);
     } catch (e) { /* lineup enhancement failed: the markup stays readable */ }
   })();
 
@@ -1271,6 +1327,18 @@ const MM_K = 12;
         update();
       });
       update();
+      // shrink the gain to 10^-5 and watch the direction collapse while every
+      // check still passes; then switch standardisation off and watch it hold
+      var at = 0, hold = 0, phase = 0;
+      autoplay(root as HTMLElement, function () {
+        if (hold > 0) { hold--; return; }
+        if (phase === 0) {
+          if (!standardise) stdBtn.click();
+          at = Math.min(50, at + 1); range.value = String(at); update();
+          if (at >= 50) { phase = 1; hold = 14; }
+        } else if (phase === 1) { stdBtn.click(); phase = 2; hold = 22; }
+        else { stdBtn.click(); at = 0; range.value = '0'; update(); phase = 0; hold = 8; }
+      }, 140);
     } catch (e) { /* noop */ }
   })();
 
@@ -1314,6 +1382,9 @@ const MM_K = 12;
         verdict.innerHTML = MSG[mode];
       }
       btns.forEach(function (b) { b.addEventListener('click', function () { show(b.dataset.heatMode || 'real'); }); });
+      // concept vectors, then random ones of the same norm, then the difference
+      var hi = 0;
+      autoplay(root as HTMLElement, function () { hi = (hi + 1) % btns.length; btns[hi].click(); }, 3200);
       show('real');
     } catch (e) { /* noop */ }
   })();
@@ -1459,6 +1530,14 @@ const MM_K = 12;
         render();
       });
       newWorld();
+      // twelve audits, then what they missed, then a new model
+      var wait = 0;
+      autoplay(root, function () {
+        if (wait > 0) { wait--; return; }
+        if (hist.length < KMAX) { if (revealed) rv.click(); runOnce(); if (hist.length >= KMAX) wait = 2; }
+        else if (!revealed) { rv.click(); wait = 5; }
+        else { rv.click(); newWorld(); wait = 1; }
+      }, 850);
     } catch (e) { /* noop */ }
   })();
 </script>
