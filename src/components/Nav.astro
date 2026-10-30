@@ -439,36 +439,49 @@ const spineText = Array(4).fill(NAV.map((s) => s.label).join('   ·   ')).join('
       cmdEls.forEach((c) => c.classList.toggle('onav-here', c.dataset.id === active));
     }
 
-    // the section currently under the viewport's mid-line (defaults to the first when above them all)
-    function currentSection() {
-      const mid = window.innerHeight * 0.5;
-      let cur = SECTION_IDS[0];
-      for (const id of SECTION_IDS) {
-        const el = document.getElementById(id);
-        if (el && el.getBoundingClientRect().top <= mid) cur = id;
-      }
-      return cur;
+    // The section under the viewport's mid-line, from an observer whose root is
+    // shrunk to that line, so scrolling never measures a section. Where the cover
+    // stack overlaps two acts on the line, the later one is the one on top.
+    const onLine = new Set<string>();
+    if (hasSections && typeof IntersectionObserver !== 'undefined') {
+      const io = new IntersectionObserver((es) => {
+        es.forEach((en) => { const id = (en.target as HTMLElement).id; if (en.isIntersecting) onLine.add(id); else onLine.delete(id); });
+        let cur = '';
+        for (const id of SECTION_IDS) if (onLine.has(id)) cur = id;
+        if (cur) setActive(cur, false);
+      }, { rootMargin: '-50% 0px -50% 0px' });
+      SECTION_IDS.forEach((id) => { const el = document.getElementById(id); if (el) io.observe(el); });
     }
 
     /* ===================== scroll progress → ring fill + walking cat ===================== */
-    let catTimer: number | undefined;
-    function onScroll() {
+    // The page height is cached (re-read only when the document resizes), and the
+    // per-scroll work is writes only, batched to one frame: the old handler read
+    // section rects and hit-tested between style writes on every scroll event,
+    // forcing a fresh layout each time. The rail fills with a transform, not width.
+    let maxScroll = 1, navQueued = false;
+    const measure = () => {
       const doc = document.documentElement;
-      const max = doc.scrollHeight - doc.clientHeight;
-      const p = max > 0 ? Math.min(1, Math.max(0, doc.scrollTop / max)) : 0;
+      maxScroll = Math.max(1, doc.scrollHeight - doc.clientHeight);
+    };
+    let catTimer: number | undefined;
+    function navFrame() {
+      navQueued = false;
+      const p = Math.min(1, Math.max(0, window.scrollY / maxScroll));
       const pct = (p * 100).toFixed(2);
-      railFill.style.width = pct + '%';
+      railFill.style.transform = 'scaleX(' + p.toFixed(4) + ')';
       monoSvg.style.setProperty('--onav-pp', pct);
       cat.style.setProperty('--px', (p * (window.innerWidth - 8)).toFixed(1) + 'px');
-      sampleCatBg(p);
-      if (hasSections) setActive(currentSection(), false);
+      if (!REDUCE) cat.classList.add('onav-walking');
+      clearTimeout(catTimer);
+      // the cat checks what it's standing on once it stops walking
+      catTimer = window.setTimeout(() => { cat.classList.remove('onav-walking'); sampleCatBg(p); }, 160);
+    }
+    function onScroll() {
+      if (!navQueued) { navQueued = true; requestAnimationFrame(navFrame); }
     }
 
     // flip the cat to contrast with whatever section it's currently riding over
-    let lastBgP = -1;
     function sampleCatBg(p: number) {
-      if (Math.abs(p - lastBgP) < 0.005) return;
-      lastBgP = p;
       const x = Math.min(window.innerWidth - 10, Math.max(10, p * (window.innerWidth - 8)));
       let el: Element | null = document.elementFromPoint(x, 8); // y=8 is below the 3px rail
       let lum = 0.36, guard = 0;
@@ -482,14 +495,11 @@ const spineText = Array(4).fill(NAV.map((s) => s.label).join('   ·   ')).join('
         el = el.parentElement;
       }
       cat.classList.toggle('onav-cat-dark', lum > 0.55);
-      if (!REDUCE) {
-        cat.classList.add('onav-walking');
-        clearTimeout(catTimer);
-        catTimer = window.setTimeout(() => cat.classList.remove('onav-walking'), 160);
-      }
     }
+    measure();
+    if (typeof ResizeObserver !== 'undefined') new ResizeObserver(() => { measure(); onScroll(); }).observe(document.body);
     addEventListener('scroll', onScroll, { passive: true });
-    addEventListener('resize', onScroll);
+    addEventListener('resize', () => { measure(); onScroll(); });
     onScroll();
 
     /* ===================== command palette filter ===================== */
@@ -605,7 +615,7 @@ const spineText = Array(4).fill(NAV.map((s) => s.label).join('   ·   ')).join('
 
   /* ---- top progress rail + walking cat ---- */
   .onav-rail { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 1200; background: rgba(10, 10, 10, 0.14); }
-  .onav-rail-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--olime); border-right: 2px solid var(--oink); }
+  .onav-rail-fill { position: absolute; inset: 0; background: var(--olime); transform: scaleX(0); transform-origin: left center; will-change: transform; }
   .onav-cat { position: fixed; top: 5px; left: 0; z-index: 1201; width: 32px; height: 24px; pointer-events: none; color: var(--opaper); transform: translateX(calc(var(--px, 0px) - 16px)); transition: color 0.25s ease; }
   .onav-cat svg { display: block; width: 100%; height: 100%; }
   .onav-cat .onav-eye { fill: var(--oink); }

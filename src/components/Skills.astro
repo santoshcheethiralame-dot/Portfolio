@@ -502,32 +502,25 @@ const totalSlots = skills.reduce((a, g) => a + g.items.length, 0);
     // the stack section is on screen (scroll-driven so it works with Lenis smooth-scroll)
     const catEl = document.getElementById('cat');
     const secEl = document.getElementById('stack');
-    let catRAF = 0;
-    function updateCat() {
-      if (!catEl || !secEl) return;
-      const r = secEl.getBoundingClientRect();
-      const vh = window.innerHeight || document.documentElement.clientHeight;
-      const visible = r.top < vh * 0.85 && r.bottom > vh * 0.2;
-      catEl.classList.toggle('in-view', visible);
+    // Both are observers, not scroll handlers: measuring the section on every
+    // scroll frame forced a layout per frame. The cat's band (the section's top
+    // above 85% of the viewport and its bottom below 20%) is the observer's root.
+    if (catEl && secEl && typeof IntersectionObserver !== 'undefined') {
+      new IntersectionObserver((es) => es.forEach((en) => catEl.classList.toggle('in-view', en.isIntersecting)), {
+        rootMargin: '-20% 0px -15% 0px',
+      }).observe(secEl);
     }
     // creative heading: clip-rise lines + a lime strike that draws through "bookmarked"
     const headEl = document.getElementById('ld-head');
     if (headEl && !REDUCED) headEl.classList.add('armed'); // armed only with JS+motion; no-JS stays visible
-    let headRevealed = false;
-    function revealHead() {
-      if (headRevealed || !headEl) return;
-      const r = headEl.getBoundingClientRect();
-      const vh = window.innerHeight || document.documentElement.clientHeight;
-      if (r.top < vh * 0.9 && r.bottom > 0) { headEl.classList.add('revealed'); headRevealed = true; }
-    }
-
-    window.addEventListener('scroll', () => {
-      if (catRAF) cancelAnimationFrame(catRAF);
-      catRAF = requestAnimationFrame(() => { updateCat(); revealHead(); });
-    }, { passive: true });
-    window.addEventListener('resize', () => { updateCat(); });
-    updateCat();
-    revealHead();
+    if (headEl && typeof IntersectionObserver !== 'undefined') {
+      const hio = new IntersectionObserver((es) => es.forEach((en) => {
+        if (!en.isIntersecting) return;
+        headEl.classList.add('revealed');
+        hio.disconnect();
+      }), { rootMargin: '0px 0px -10% 0px' });
+      hio.observe(headEl);
+    } else if (headEl) headEl.classList.add('revealed');
 
     function boot() {
       if (bubble) bubble.textContent = IDLE[0];
@@ -642,12 +635,18 @@ const totalSlots = skills.reduce((a, g) => a + g.items.length, 0);
     };
 
     let lx = 0, ly = 0, tx = -9999, ty = -9999, on = false, glow = 0, raf = 0;
+    let lit: number[] | null = null;
     function frame() {
       lx += (tx - lx) * 0.2;
       ly += (ty - ly) * 0.2;
       glow += ((on ? 1 : 0) - glow) * 0.14;
-      ctx!.clearRect(0, 0, W, H);
+      // clear only what the last frame lit: the canvas spans the whole section, and
+      // a full clear re-uploads every pixel of it, every frame
+      if (lit) ctx!.clearRect(lit[0], lit[1], lit[2], lit[3]);
+      lit = null;
       if (glow < 0.02 && !on) { raf = 0; return; }
+      const R = BANDS[BANDS.length - 1][0] + 200; // the outer band, plus the longest note
+      lit = [lx - R, ly - R, R * 2, R * 2];
       for (const nt of notes) {
         const a = bandAlpha(Math.hypot(nt.x - lx, nt.y - ly)) * glow;
         if (a > 0) drawNote(nt, a);

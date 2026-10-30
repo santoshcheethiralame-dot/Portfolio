@@ -118,8 +118,10 @@ const opened = ['neural nets', 'GPT-2', 'git', 'consensus', 'RAG errors', 'probe
                   {[16, 35, 54].map((y) => <circle cx="22" cy={y} r="5" />)}
                   {[18, 34, 50].map((y) => <circle cx="80" cy={y} r="5" />)}
                   <circle cx="138" cy="35" r="6" class="out" />
-                  <circle r="2.6" class="pulse p1"><animateMotion dur="1.6s" repeatCount="indefinite" path="M22 16 L80 34 L138 35" /></circle>
-                  <circle r="2.6" class="pulse p2"><animateMotion dur="1.6s" begin="0.55s" repeatCount="indefinite" path="M22 54 L80 18 L138 35" /></circle>
+                </svg>
+                <svg viewBox="0 0 160 70" class="v-net v-pulses">
+                  <circle r="2.6" class="pulse p1" />
+                  <circle r="2.6" class="pulse p2" />
                 </svg>
               )}
               {i === 2 && (
@@ -516,7 +518,16 @@ const opened = ['neural nets', 'GPT-2', 'git', 'consensus', 'RAG errors', 'probe
   .v-net .out { fill: var(--red); stroke: var(--red); }
   .v-net .pulse { fill: var(--lime); stroke: none; opacity: 0; }
   .step-2.is-on .v-net circle:not(.pulse):not(.out) { fill: var(--ink); stroke: var(--cream); }
+  /* CSS keyframes, not SMIL: <animateMotion> ran whether or not the step was on
+     and invalidated the whole SVG's layout every frame */
+  /* the pulses get their own svg, so their motion invalidates two circles
+     instead of every line of the network */
+  .v-pulses { position: absolute; inset: 0; }
   .step-2.is-on .v-net .pulse { opacity: 1; }
+  .step-2.is-on .v-net .p1 { animation: pulse1 1.6s linear infinite; }
+  .step-2.is-on .v-net .p2 { animation: pulse2 1.6s linear 0.55s infinite; }
+  @keyframes pulse1 { 0% { transform: translate(22px, 16px); } 50% { transform: translate(80px, 34px); } 100% { transform: translate(138px, 35px); } }
+  @keyframes pulse2 { 0% { transform: translate(22px, 54px); } 50% { transform: translate(80px, 18px); } 100% { transform: translate(138px, 35px); } }
 
   .v-hash { display: flex; flex-direction: column; align-items: center; gap: 10px; }
   .hash { font: 700 13px var(--fm); letter-spacing: 0.08em; }

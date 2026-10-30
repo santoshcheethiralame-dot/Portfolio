@@ -592,6 +592,9 @@ import { site } from '../data/site';
     padding: 4px 7px 3px;
     transition: opacity 0.3s ease, transform 0.3s ease;
   }
+  @media (hover: none) {
+    .hp-photo-hint { display: none; }
+  }
   .hp-photo.is-looking .hp-photo-hint {
     opacity: 0;
     transform: translateY(6px);

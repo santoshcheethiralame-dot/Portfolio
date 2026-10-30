@@ -31,32 +31,6 @@ const instrument = byId.instrument;
 const mm = byId.missingmass;
 const also = experience.filter((e) => !e.foldedIntoResearch);
 
-/* ---- the subset lattice for study 01 (sizes 0–3, then the full context) ---- */
-const letters = culpritCase.passages.map((p) => p.id);
-function combos(k: number, start = 0, acc = ''): string[] {
-  if (acc.length === k) return [acc];
-  const out: string[] = [];
-  for (let i = start; i < letters.length; i++) out.push(...combos(k, i + 1, acc + letters[i]));
-  return out;
-}
-const LW = 1000;
-const rowY = [34, 104, 174, 244];
-const levels = [0, 1, 2, 3].map((k) => combos(k));
-const nodes = levels.flatMap((row, k) =>
-  row.map((key, i) => ({
-    key: key || '∅',
-    id: key,
-    x: Math.round(((i + 1) * LW) / (row.length + 1)),
-    y: rowY[k],
-    size: k,
-  }))
-);
-const fullNode = { id: letters.join(''), key: letters.join(''), x: LW / 2, y: 330, size: 6 };
-const pos = Object.fromEntries([...nodes, fullNode].map((n) => [n.id, n]));
-const suff = new Set(culpritCase.sufficient);
-const mins = new Set(culpritCase.minimal);
-const edges = culpritCase.violations.map(([a, b]) => ({ a, b, A: pos[a], B: pos[b] }));
-
 /* ---- localization heatmap for study 03 ---- */
 const loc = localization;
 const locCells = loc.layers.flatMap((layer, r) =>
@@ -86,9 +60,7 @@ const MM_K = 12;
     <span class="kicker">research</span>
     <h2 class="h2 rd-title" data-fade>The <em class="rd-em">Research</em> Desk</h2>
     <p class="rd-lede" data-fade>
-      I test the tools we use to <b>explain and audit language models</b> against answers that are
-      already known. Three papers under review and one study in progress. Each takes a check the field
-      trusts and measures whether it <b>measures what it claims to</b>.
+      I test the tools that <b>explain and audit language models</b>, against answers that are already known.
     </p>
   </div>
 
@@ -99,429 +71,389 @@ const MM_K = 12;
       <span>BENGALURU · 2026</span>
     </div>
 
-    <!-- ================= CORRECTIONS ================= -->
-    <aside class="rd-corr" aria-label="Corrections and clarifications">
-      <div class="rd-corr-h">
-        <span class="rd-corr-t">Corrections <i>&amp;</i> Clarifications</span>
-        <span class="rd-corr-s">What the field’s checks reported, and what measurement found</span>
-      </div>
-      <ol class="rd-corr-list">
-        {corrections.map((c, i) => (
-          <li class={c.pending ? 'is-pending' : ''}>
-            <span class="rd-corr-n">{String(i + 1).padStart(2, '0')} · {c.desk}</span>
-            <p>{c.text}</p>
-          </li>
-        ))}
-      </ol>
-    </aside>
-
-    <!-- ================= STUDY 01 — LEAD ================= -->
-    {culprit && (
-      <article class="rd-lead" id="study-culprit">
-        <div class="rd-kicker">▶ STUDY No.{culprit.no} · {culprit.kicker}</div>
-        <h3 class="rd-headline">{culprit.headline}</h3>
-        <p class="rd-deck">{culprit.deck}</p>
-        <div class="rd-byline">
-          <span class="rd-stamp">{culprit.name}</span>
-          <span>{culprit.byline}</span>
-          <span class="rd-stamp rd-stamp--dev">{culprit.status}</span>
-        </div>
-        <p class="rd-paper">PAPER · <i>{culprit.title}</i></p>
-
-        {culprit.results && (
-          <section class="rd-console" data-culprit aria-label="Subset lattice console">
-            <div class="rd-c-head">
-              <span>▶ THE LINEUP · <span class="lime">EVERY SUBSET, QUERIED</span></span>
-              <span class="rd-c-q">
-                IN CONTEXT: <span class="lime" data-incount>0</span>/6 · MINIMAL SETS FOUND:
-                <span class="lime" data-found>0</span>/{culpritCase.minimal.length}
-              </span>
-            </div>
-
-            <div class="rd-c-task">
-              <p class="rd-c-question">
-                <b>Q:</b> {culpritCase.question}<br />
-                <span class="dim">
-                  GOLD: <b class="ok">{culpritCase.gold}</b> · FULL-CONTEXT ANSWER:
-                  <b class="bad">{culpritCase.wrong}</b> · {culpritCase.dataset} · {culpritCase.model}
-                </span>
-              </p>
-              <div class="rd-c-ans is-none" data-ansbox>
-                <span class="lab">MODEL ANSWER, FROM THIS CONTEXT</span>
-                <span class="val" data-ansval>—</span>
-                <span class="tag" data-anstag>NO CONTEXT</span>
-              </div>
-            </div>
-
-            <div class="rd-stage">
-              <div class="rd-lineup" data-lineup>
-                {culpritCase.passages.map((p) => (
-                  <button
-                    class={`rd-chunk${p.gold ? ' is-gold' : ''}`}
-                    type="button"
-                    data-chunk={p.id}
-                    aria-pressed="false"
-                    aria-label={`Passage ${p.id}: ${p.label}. Add to context`}
-                  >
-                    <span class="rd-cid">PASSAGE {p.id}{p.gold && <b class="rd-goldtag">GOLD</b>}</span>
-                    <span class="rd-ctext">{p.label}</span>
-                    <span class="rd-cact" aria-hidden="true"><span class="add">+ ADD</span><span class="rm">− REMOVE</span></span>
-                  </button>
-                ))}
-              </div>
-              <p class="rd-stage-cap">
-                BUILD A CONTEXT · FIND THE SMALLEST SETS THAT MAKE THE MODEL REPEAT “{culpritCase.wrong.toUpperCase()}”
-              </p>
-            </div>
-
-            <div class="rd-lattice-wrap">
-              <svg class="rd-lattice" viewBox={`0 0 ${LW} 362`} role="img" aria-label="Subset lattice: every queried subset of the six passages">
-                {rowY.map((y, k) => (
-                  <text class="rd-lt-row" x="6" y={y + 4}>SIZE {k}</text>
-                ))}
-                <text class="rd-lt-row" x="6" y={fullNode.y + 4}>SIZE 6</text>
-                <line class="rd-lt-gap" x1="70" y1="288" x2={LW - 10} y2="288" />
-                <text class="rd-lt-gapt" x={LW / 2} y="284" text-anchor="middle">SIZES 4–5 NOT QUERIED IN THIS RUN</text>
-                {edges.map((e) => (
-                  <line class="rd-lt-edge" data-edge={`${e.a}-${e.b}`} x1={e.A.x} y1={e.A.y} x2={e.B.x} y2={e.B.y} />
-                ))}
-                {[...nodes, fullNode].map((n) => (
-                  <g
-                    class={`rd-lt-node${suff.has(n.id) ? ' is-suff' : ''}${mins.has(n.id) ? ' is-minset' : ''}${n.size === 6 ? ' is-full' : ''}`}
-                    data-node={n.id}
-                  >
-                    <circle cx={n.x} cy={n.y} r={n.size === 6 ? 24 : n.size === 3 ? 17 : 19} />
-                    <text x={n.x} y={n.y + 3.5} text-anchor="middle">{n.key}</text>
-                  </g>
-                ))}
-              </svg>
-              <div class="rd-lt-key" aria-hidden="true">
-                <span><i class="k-suff"></i>REPEATS THE ERROR</span>
-                <span><i class="k-no"></i>DOES NOT</span>
-                <span><i class="k-min"></i>MINIMAL SUFFICIENT SET</span>
-                <span><i class="k-edge"></i>VIOLATION: ADDING A PASSAGE BREAKS IT</span>
-                <span><i class="k-cur"></i>YOUR CONTEXT</span>
-              </div>
-            </div>
-
-            <div class="rd-verdict">
-              <p class="rd-v-txt" data-verdict aria-live="polite"></p>
-              <div class="rd-v-btns">
-                <button class="rd-btn" type="button" data-full>Full context</button>
-                <button class="rd-btn" type="button" data-reveal>Fill the lattice</button>
-                <button class="rd-btn rd-btn--pri" type="button" data-reset>Reset</button>
-              </div>
-            </div>
-
-            <p class="rd-honest">
-              <b>Real data.</b> This is Figure 1 of the paper: one HotpotQA error by {culpritCase.model}, first
-              run, subsets up to three passages plus the full context. Passage texts are summarised, and
-              answers are shown only where the paper states them.
-            </p>
-          </section>
-        )}
-
-        <div class="rd-body">
-          <div class="rd-flow">
-            {culprit.body.map((p, i) => <p class={i === 0 ? 'has-dropcap' : ''} set:html={p} />)}
-          </div>
-          <aside class="rd-side">
-            {culprit.results && culprit.figures && (
-              <div class="rd-box">
-                <div class="rd-box-head">// THE FINDING</div>
-                {culprit.figures.map((f) => (
-                  <div class="rd-stat">
-                    <div class="rd-stat-v">{f.v}{f.note && <span class="ci">{f.note}</span>}</div>
-                    <div class="rd-stat-l" set:html={f.l} />
-                  </div>
-                ))}
-                {culprit.source && <div class="rd-srcline">{culprit.source}</div>}
-              </div>
-            )}
-          </aside>
-        </div>
-
-        {culprit.results && (
-          <div class="rd-jobs">
-            <div class="rd-jobs-h">
-              <span class="rd-jobs-t">Three jobs, three verdicts</span>
-              <span class="rd-jobs-s">Scoring a method on its top pick only tests the first job</span>
-            </div>
-            <div class="rd-jobs-row">
-              {attributionJobs.map((j, i) => (
-                <div class="rd-job">
-                  <div class="rd-job-top">
-                    <span class="rd-job-n">JOB {i + 1}</span>
-                    <span class={`rd-verd rd-verd--${j.verdict.toLowerCase()}`}>{j.verdict}</span>
-                  </div>
-                  <div class="rd-job-name">{j.job}</div>
-                  {[j.a, j.b].map((x, xi) => (
-                    <div class={`rd-jbar${xi === 1 ? ' is-base' : ''}`}>
-                      <div class="rd-jbar-t"><b>{x.v}%</b> {x.l}</div>
-                      <div class="rd-jbar-b"><i style={`width:${x.v}%`}></i></div>
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </article>
-    )}
-
-    <!-- ================= STUDIES 02 + 03 ================= -->
-    <div class="rd-row2">
-      {precise && (
-        <article class="rd-sub" id="study-precise">
-          <div class="rd-kicker">▶ STUDY No.{precise.no} · {precise.kicker}</div>
-          <h3 class="rd-sub-head">{precise.headline}</h3>
-          <p class="rd-sub-deck">{precise.deck}</p>
-          <div class="rd-byline rd-byline--tight">
-            <span class="rd-stamp">{precise.name}</span>
-            <span class="rd-stamp rd-stamp--dev">{precise.status}</span>
-          </div>
-          <p class="rd-paper">PAPER · <i>{precise.title}</i></p>
-
-          {precise.results && (
-            <section class="rd-bench" data-precise aria-label="Precision versus trueness bench">
-              <div class="rd-c-head">
-                <span>▶ THE BENCH · <span class="lime">SHRINK ONE NORM GAIN</span></span>
-                <span class="rd-c-q" data-pt-mode>STANDARDISED</span>
-              </div>
-              <div class="rd-pt">
-                <svg class="rd-board" viewBox="-110 -110 220 220" role="img" aria-label="Target: eight restarts of the fit against the true weights">
-                  {[100, 75, 50, 25].map((r) => <circle class="ring" r={r} />)}
-                  <circle class="bull" r="9" />
-                  <line class="cross" x1="-104" y1="0" x2="104" y2="0" />
-                  <line class="cross" x1="0" y1="-104" x2="0" y2="104" />
-                  <text class="bull-t" x="0" y="24" text-anchor="middle">TRUE WEIGHTS</text>
-                  {darts.map(([dx, dy]) => (
-                    <circle class="dart" r="5.5" data-dart data-dx={dx} data-dy={dy} cx="0" cy="0" />
-                  ))}
-                </svg>
-                <dl class="rd-checks">
-                  <div class="rd-check">
-                    <dt>Test accuracy</dt>
-                    <dd><span data-pt-acc>0.998</span><b class="pass" data-pt-acc-v>PASS</b></dd>
-                  </div>
-                  <div class="rd-check">
-                    <dt>Restart agreement</dt>
-                    <dd><span data-pt-agr>0.995</span><b class="pass" data-pt-agr-v>PASS</b></dd>
-                  </div>
-                  <div class="rd-check rd-check--bar">
-                    <dt>Share on one near-constant coordinate</dt>
-                    <dd><span data-pt-share>0.0%</span><span class="rd-sharebar"><i data-pt-sharebar></i></span></dd>
-                  </div>
-                  <div class="rd-check rd-check--truth">
-                    <dt>Alignment with the true weights</dt>
-                    <dd><span data-pt-aln>0.995</span><b class="pass" data-pt-aln-v>TRUE</b></dd>
-                  </div>
-                </dl>
-              </div>
-              <div class="rd-pt-ctl">
-                <label class="rd-pt-l" for="rd-gain">
-                  GAIN MULTIPLIER <b data-pt-c>c = 1</b>
-                </label>
-                <input id="rd-gain" class="rd-range" type="range" min="0" max="50" step="1" value="0" data-pt-range aria-describedby="rd-gain-cap" />
-                <div class="rd-pt-ticks" aria-hidden="true"><span>1</span><span>10⁻¹</span><span>10⁻²</span><span>10⁻³</span><span>10⁻⁴</span><span>10⁻⁵</span></div>
-                <button class="rd-btn rd-btn--ink" type="button" data-pt-std aria-pressed="true">Standardise coordinates: ON</button>
-              </div>
-              <p class="rd-verdict-s" data-pt-verdict aria-live="polite"></p>
-              <p class="rd-honest" id="rd-gain-cap">
-                <b>Illustrative.</b> The share follows the paper’s Proposition 1 (odds grow as 1/c²), pinned to its
-                gain intervention: half the direction is on the coordinate at c = 10⁻², at least 0.999 at
-                10⁻⁵, and below 0.006 at every dose without standardisation. A fit fails when alignment is
-                below 0.95.
-              </p>
-            </section>
-          )}
-
-          {precise.body.map((p) => <p class="rd-sub-p" set:html={p} />)}
-
-          {precise.results && precise.figures && (
-            <div class="rd-minis">
-              {precise.figures.map((f) => (
-                <div class="rd-mini">
-                  <div class="rd-mini-v">{f.v}</div>
-                  <div class="rd-mini-l" set:html={f.l} />
-                </div>
-              ))}
-            </div>
-          )}
-          {precise.source && <div class="rd-srcline rd-srcline--flat">{precise.source}</div>}
-        </article>
-      )}
-
-      {instrument && (
-        <article class="rd-sub" id="study-instrument">
-          <div class="rd-kicker">▶ STUDY No.{instrument.no} · {instrument.kicker}</div>
-          <h3 class="rd-sub-head">{instrument.headline}</h3>
-          <p class="rd-sub-deck">{instrument.deck}</p>
-          <div class="rd-byline rd-byline--tight">
-            <span class="rd-stamp">{instrument.name}</span>
-            <span class="rd-stamp rd-stamp--dev">{instrument.status}</span>
-          </div>
-          <p class="rd-paper">PAPER · <i>{instrument.title}</i></p>
-
-          {instrument.results && (
-            <section class="rd-bench" data-instrument aria-label="Concept-injection instrument audit">
-              <div class="rd-c-head">
-                <span>▶ THE AUDIT · <span class="lime">THREE ASSUMPTIONS</span></span>
-                <span class="rd-c-q">NO REGIME HELD ALL THREE</span>
-              </div>
-              <div class="rd-gauges">
-                {instrumentChecks.map((c) => (
-                  <div class="rd-gauge">
-                    <div class="rd-gauge-top">
-                      <span class="rd-gauge-k">{c.k}</span>
-                      <span class="rd-gauge-x">✗ BREAKS</span>
-                    </div>
-                    <div class="rd-gauge-q">{c.q}</div>
-                    <div class="rd-gauge-v">{c.v}</div>
-                    <div class="rd-gauge-f">{c.fail}</div>
-                  </div>
-                ))}
-              </div>
-
-              <div class="rd-heat-wrap">
-                <div class="rd-heat-h">
-                  <span>WHICH SENTENCE WAS INJECTED? · LLAMA-3.1-8B · 10 OPTIONS, CHANCE 10%</span>
-                  <div class="rd-seg" role="group" aria-label="Show accuracy for">
-                    <button type="button" class="is-on" data-heat-mode="real" aria-pressed="true">Concept vector</button>
-                    <button type="button" data-heat-mode="random" aria-pressed="false">Random, same norm</button>
-                    <button type="button" data-heat-mode="gap" aria-pressed="false">Difference</button>
-                  </div>
-                </div>
-                <div class="rd-heat" style={`--cols:${loc.strengths.length}`}>
-                  <span class="rd-heat-corner">LAYER ↓ · STRENGTH →</span>
-                  {loc.strengths.map((s) => <span class="rd-heat-col">α {s}</span>)}
-                  {loc.layers.map((layer) => (
-                    <>
-                      <span class="rd-heat-row">L{layer}</span>
-                      {locCells
-                        .filter((c) => c.layer === layer)
-                        .map((c) => (
-                          <span
-                            class={`rd-cell${c.primary ? ' is-primary' : ''}`}
-                            data-cell
-                            data-real={c.real}
-                            data-random={c.random}
-                            style={`--v:${c.real}`}
-                          >
-                            <b data-cell-v>{pct(c.real)}%</b>
-                            {c.primary && <em>FILED</em>}
-                          </span>
-                        ))}
-                    </>
-                  ))}
-                </div>
-                <p class="rd-verdict-s rd-verdict-s--light" data-heat-verdict aria-live="polite">
-                  The concept vector looks like it works: <b>97%</b> in the filed cell. Now switch to random vectors.
-                </p>
-              </div>
-              <p class="rd-honest">
-                <b>Real data.</b> Table 2 of the paper: 600 trials per cell and arm. “Random” is a direction of the
-                same norm carrying no concept.
-              </p>
-            </section>
-          )}
-
-          {instrument.body.map((p) => <p class="rd-sub-p" set:html={p} />)}
-          {instrument.source && <div class="rd-srcline rd-srcline--flat">{instrument.source}</div>}
-        </article>
-      )}
+    <!-- ================= THE DESK: one study at a time ================= -->
+    <div class="rd-tabs" role="tablist" aria-label="Studies">
+      {research.map((st, i) => (
+        <button
+          class={`rd-tab${i === 0 ? ' is-on' : ''}`}
+          type="button"
+          role="tab"
+          id={`rd-tab-${st.id}`}
+          aria-controls={`rd-panel-${st.id}`}
+          aria-selected={i === 0 ? 'true' : 'false'}
+          tabindex={i === 0 ? 0 : -1}
+          data-tab={i}
+        >
+          <span class="rd-tab-no">No.{st.no}</span>
+          <span class="rd-tab-name">{st.name}</span>
+          <span class="rd-tab-q">{st.headline}</span>
+          <span class="rd-tab-st">{st.status}</span>
+          <span class="rd-tab-bar" aria-hidden="true"></span>
+        </button>
+      ))}
     </div>
 
-    <!-- ================= STUDY 04 — WORK IN PROGRESS ================= -->
-    {mm && (
-      <article class="rd-band" id="study-missingmass">
-        <div class="rd-band-text">
-          <div class="rd-kicker rd-kicker--lime">▶ STUDY No.{mm.no} · {mm.kicker}</div>
-          <h3 class="rd-band-head">{mm.headline}</h3>
-          <p class="rd-band-deck">{mm.deck}</p>
-          <div class="rd-byline rd-byline--tight rd-byline--ink">
-            <span class="rd-stamp rd-stamp--lime">{mm.name}</span>
-            <span>{mm.byline}</span>
-            <span class="rd-stamp rd-stamp--cream">{mm.status}</span>
-            {mm.links?.github && (
-              <a class="rd-src rd-src--lime" href={mm.links.github} target="_blank" rel="noopener">SOURCE ↗</a>
-            )}
-          </div>
-          {mm.body.map((p) => <p class="rd-band-p" set:html={p} />)}
-          {mm.results && mm.figures && (
-            <div class="rd-minis rd-minis--ink">
-              {mm.figures.map((f) => (
-                <div class="rd-mini">
-                  <div class="rd-mini-v">{f.v}</div>
-                  <div class="rd-mini-l" set:html={f.l} />
+    <div class="rd-panels">
+      {research.map((st, i) => {
+        const c = corrections[i];
+        const cut = c ? c.text.indexOf('. ') : -1;
+        const claim = c ? (cut > 0 ? c.text.slice(0, cut + 1) : c.text) : '';
+        const found = c && cut > 0 ? c.text.slice(cut + 2) : '';
+        return (
+          <article
+            class={`rd-panel${i === 0 ? ' is-on' : ''}${st.id === 'missingmass' ? ' rd-panel--ink' : ''}`}
+            id={`rd-panel-${st.id}`}
+            role="tabpanel"
+            aria-labelledby={`rd-tab-${st.id}`}
+            hidden={i !== 0}
+          >
+            <div class="rd-p-top">
+              <div class="rd-p-q">
+                <div class="rd-kicker">▶ STUDY No.{st.no} · {st.kicker}</div>
+                <h3 class="rd-headline">{st.headline}</h3>
+                <p class="rd-deck">{st.deck}</p>
+              </div>
+              {c && (
+                <div class={`rd-vs${c.pending ? ' is-pending' : ''}`}>
+                  <div class="rd-vs-row rd-vs-claim"><span class="rd-vs-k">THE FIELD ASSUMED</span><p>{claim}</p></div>
+                  <div class="rd-vs-row rd-vs-found"><span class="rd-vs-k">{c.pending ? 'IN PROGRESS' : 'MEASURED'}</span><p>{found}</p></div>
                 </div>
-              ))}
+              )}
             </div>
-          )}
-          {mm.source && <div class="rd-srcline rd-srcline--ink">{mm.source}</div>}
-        </div>
 
-        {mm.results && (
-          <section class="rd-sim" data-mm aria-label="Capture–recapture simulator">
-            <div class="rd-c-head rd-c-head--lime">
-              <span>▶ THE SIMULATOR · <span class="ink">{MM_N} PLANTED FAILURE MODES</span></span>
-              <span class="rd-c-q">SOME ARE MUCH HARDER TO FIND</span>
-            </div>
-            <div class="rd-sim-body">
-              <div class="rd-sim-grid" style={`--n:${MM_N}`} aria-hidden="true">
-                <span class="rd-sim-lab">FOUND BY</span>
-                {Array.from({ length: MM_N }, (_, i) => <span class="rd-sim-freq" data-mm-freq={i}></span>)}
-                {Array.from({ length: MM_K }, (_, r) => (
-                  <>
-                    <span class="rd-sim-lab" data-mm-runlab={r}>RUN {r + 1}</span>
-                    {Array.from({ length: MM_N }, (_, i) => <span class="rd-sim-c" data-mm-c={`${r}-${i}`}></span>)}
-                  </>
+            {st.results && st.figures && (
+              <div class="rd-figs">
+                {st.figures.map((f) => (
+                  <div class="rd-fig">
+                    <div class="rd-fig-v">{f.v}{f.note && <span class="ci">{f.note}</span>}</div>
+                    <div class="rd-fig-l" set:html={f.l} />
+                  </div>
                 ))}
-                <span class="rd-sim-lab">FINDABILITY</span>
-                {Array.from({ length: MM_N }, (_, i) => <span class="rd-sim-p" data-mm-p={i}><i></i></span>)}
               </div>
+            )}
 
-              <div class="rd-sim-read">
-                <div class="rd-sim-stat">
-                  <span class="k">RUNS</span><span class="v" data-mm-k>0</span>
+            {st.id === 'culprit' && culprit.results && (
+              <section class="cl" data-culprit aria-label="Find the culprit: which passages make the model repeat its error">
+                <div class="cl-case">
+                  <div class="cl-q"><span class="cl-k">THE QUESTION · {culpritCase.dataset}</span><p>{culpritCase.question}</p></div>
+                  <div class="cl-truth"><span class="cl-k">RIGHT ANSWER</span><b>{culpritCase.gold}</b></div>
+                  <div class="cl-crime"><span class="cl-k">{culpritCase.model} SAID, FROM ALL SIX</span><b>{culpritCase.wrong}</b></div>
                 </div>
-                <div class="rd-sim-stat">
-                  <span class="k">FAILURE MODES FOUND</span><span class="v" data-mm-s>0</span>
+
+                <div class="cl-main">
+                  <div class="cl-left">
+                    <div class="cl-step"><b>1</b> Hand the model some passages. Which ones make it say “{culpritCase.wrong}”?</div>
+                    <div class="cl-suspects">
+                      {culpritCase.passages.map((p) => (
+                        <button class={`cl-sus${p.gold ? ' is-gold' : ''}`} type="button" data-chunk={p.id} aria-pressed="false" aria-label={`Passage ${p.id}: ${p.label}`}>
+                          <span class="cl-sus-l">{p.id}</span>
+                          <span class="cl-sus-t">{p.label}</span>
+                          {p.gold && <span class="cl-sus-g">GOLD</span>}
+                        </button>
+                      ))}
+                    </div>
+                    <div class="cl-out is-none" data-ansbox>
+                      <span class="cl-k">THE MODEL ANSWERS <span class="cl-ctx">FROM <b data-incount>0</b> PASSAGES</span></span>
+                      <b class="cl-out-v" data-ansval>—</b>
+                      <span class="cl-out-tag" data-anstag>SHOW IT SOME PASSAGES</span>
+                    </div>
+                    <p class="cl-say" data-verdict aria-live="polite"></p>
+                  </div>
+
+                  <div class="cl-right">
+                    <div class="cl-step"><b>2</b> Every single passage and every pair. Tap one to test it.</div>
+                    <div class="cl-grid" role="grid" aria-label="Singles on the diagonal, pairs above it">
+                      <span class="cl-gh"></span>
+                      {culpritCase.passages.map((p) => <span class="cl-gh">{p.id}</span>)}
+                      {culpritCase.passages.map((r, ri) => (
+                        <>
+                          <span class="cl-gh">{r.id}</span>
+                          {culpritCase.passages.map((c, ci) =>
+                            ci < ri ? (
+                              <span class="cl-cell is-void" aria-hidden="true"></span>
+                            ) : (
+                              <button
+                                class={`cl-cell${ci === ri ? ' is-single' : ''}`}
+                                type="button"
+                                data-node={ci === ri ? r.id : r.id + c.id}
+                                aria-label={ci === ri ? `Passage ${r.id} alone` : `Passages ${r.id} and ${c.id}`}
+                              >
+                                <span>{ci === ri ? r.id : r.id + c.id}</span>
+                              </button>
+                            )
+                          )}
+                        </>
+                      ))}
+                    </div>
+                    <div class="cl-key" aria-hidden="true">
+                      <span><i class="k-err"></i>repeats the error</span>
+                      <span><i class="k-no"></i>doesn’t</span>
+                      <span><i class="k-q"></i>not tested yet</span>
+                    </div>
+                  </div>
                 </div>
-                <div class="rd-sim-stat">
-                  <span class="k">FOUND BY ONE RUN ONLY</span><span class="v" data-mm-q1>0</span>
+
+                <div class="cl-files">
+                  <div class="cl-files-h"><span>CASE FILES · <b data-found>0</b>/{culpritCase.minimal.length} CULPRIT SETS FOUND</span><span class="cl-files-s">the smallest sets that repeat the error</span></div>
+                  <div class="cl-files-row">
+                    {culpritCase.minimal.map((m, i) => (
+                      <div class="cl-file" data-file={m}>
+                        <span class="cl-file-n">SET {i + 1}</span>
+                        <span class="cl-file-v">{m.split('').map((ch) => <i class={ch === 'B' ? 'is-b' : ''}>{ch}</i>)}</span>
+                        <span class="cl-file-q">? + ?</span>
+                      </div>
+                    ))}
+                    <div class="cl-file cl-file--twist" data-twists>
+                      <span class="cl-file-n">PLOT TWISTS</span>
+                      <ul>
+                        {culpritCase.violations.map(([base, sup]) => {
+                          const add = sup.split('').filter((ch) => !base.includes(ch))[0];
+                          const ans = culpritCase.answers[sup];
+                          return (
+                            <li data-twist={sup}>
+                              <b>{base.split('').join('+')}</b> + {add} → {ans ? (ans === culpritCase.gold ? <em class="ok">{ans} ✓</em> : <em>{ans}</em>) : <em>stops</em>}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  </div>
                 </div>
-                <div class="rd-sim-meter">
-                  <div class="k">COVERAGE · ESTIMATED <b data-mm-chat>—</b> · TRUE <b data-mm-ctrue>—</b></div>
-                  <div class="rd-meter"><i class="est" data-mm-cbar></i><i class="tru" data-mm-tbar></i></div>
+
+                <div class="rd-verdict cl-ctl">
+                  <p class="rd-v-txt">Three sets, all built on <b>B</b>, none of them B alone. Adding a passage can also undo the error.</p>
+                  <div class="rd-v-btns">
+                    <button class="rd-btn" type="button" data-full>All six</button>
+                    <button class="rd-btn" type="button" data-reveal>Show me</button>
+                    <button class="rd-btn rd-btn--pri" type="button" data-reset>Reset</button>
+                  </div>
                 </div>
-                <div class="rd-sim-meter">
-                  <div class="k">HOW MANY EXIST · LOWER BOUND <b data-mm-chao>—</b> · TRUE <b data-mm-ntrue>{MM_N}</b></div>
-                  <div class="rd-meter"><i class="est" data-mm-nbar></i><i class="tru" style="left:100%"></i></div>
+
+                <p class="rd-honest">
+                  <b>Real data.</b> Figure 1 of the paper: one HotpotQA error by {culpritCase.model}, every subset up to three
+                  passages plus the full context. Passage texts are summarised; answers appear only where the paper states them.
+                </p>
+              </section>
+            )}
+            {st.id === 'culprit' && culprit.results && (
+              <div class="rd-jobs">
+                <div class="rd-jobs-h">
+                  <span class="rd-jobs-t">Three jobs, three verdicts</span>
+                  <span class="rd-jobs-s">Scoring a method on its top pick only tests the first job</span>
                 </div>
-                <div class="rd-sim-meter">
-                  <div class="k">NEW FINDS FROM <span data-mm-m>K</span> MORE RUNS · PREDICTED <b data-mm-dhat>—</b> · EXPECTED <b data-mm-dtrue>—</b></div>
+                <div class="rd-jobs-row">
+                  {attributionJobs.map((j, i) => (
+                    <div class="rd-job">
+                      <div class="rd-job-top">
+                        <span class="rd-job-n">JOB {i + 1}</span>
+                        <span class={`rd-verd rd-verd--${j.verdict.toLowerCase()}`}>{j.verdict}</span>
+                      </div>
+                      <div class="rd-job-name">{j.job}</div>
+                      {[j.a, j.b].map((x, xi) => (
+                        <div class={`rd-jbar${xi === 1 ? ' is-base' : ''}`}>
+                          <div class="rd-jbar-t"><b>{x.v}%</b> {x.l}</div>
+                          <div class="rd-jbar-b"><i style={`width:${x.v}%`}></i></div>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
                 </div>
               </div>
+            )}
+            {st.id === 'precise' && precise.results && (
+              <section class="rd-bench" data-precise aria-label="Precision versus trueness bench">
+                <div class="rd-c-head">
+                  <span>▶ THE BENCH · <span class="lime">SHRINK ONE NORM GAIN</span></span>
+                  <span class="rd-c-q" data-pt-mode>STANDARDISED</span>
+                </div>
+                <div class="rd-pt">
+                  <svg class="rd-board" viewBox="-110 -110 220 220" role="img" aria-label="Target: eight restarts of the fit against the true weights">
+                    {[100, 75, 50, 25].map((r) => <circle class="ring" r={r} />)}
+                    <circle class="bull" r="9" />
+                    <line class="cross" x1="-104" y1="0" x2="104" y2="0" />
+                    <line class="cross" x1="0" y1="-104" x2="0" y2="104" />
+                    <text class="bull-t" x="0" y="24" text-anchor="middle">TRUE WEIGHTS</text>
+                    {darts.map(([dx, dy]) => (
+                      <circle class="dart" r="5.5" data-dart data-dx={dx} data-dy={dy} cx="0" cy="0" />
+                    ))}
+                  </svg>
+                  <dl class="rd-checks">
+                    <div class="rd-check">
+                      <dt>Test accuracy</dt>
+                      <dd><span data-pt-acc>0.998</span><b class="pass" data-pt-acc-v>PASS</b></dd>
+                    </div>
+                    <div class="rd-check">
+                      <dt>Restart agreement</dt>
+                      <dd><span data-pt-agr>0.995</span><b class="pass" data-pt-agr-v>PASS</b></dd>
+                    </div>
+                    <div class="rd-check rd-check--bar">
+                      <dt>Share on one near-constant coordinate</dt>
+                      <dd><span data-pt-share>0.0%</span><span class="rd-sharebar"><i data-pt-sharebar></i></span></dd>
+                    </div>
+                    <div class="rd-check rd-check--truth">
+                      <dt>Alignment with the true weights</dt>
+                      <dd><span data-pt-aln>0.995</span><b class="pass" data-pt-aln-v>TRUE</b></dd>
+                    </div>
+                  </dl>
+                </div>
+                <div class="rd-pt-ctl">
+                  <label class="rd-pt-l" for="rd-gain">
+                    GAIN MULTIPLIER <b data-pt-c>c = 1</b>
+                  </label>
+                  <input id="rd-gain" class="rd-range" type="range" min="0" max="50" step="1" value="0" data-pt-range aria-describedby="rd-gain-cap" />
+                  <div class="rd-pt-ticks" aria-hidden="true"><span>1</span><span>10⁻¹</span><span>10⁻²</span><span>10⁻³</span><span>10⁻⁴</span><span>10⁻⁵</span></div>
+                  <button class="rd-btn rd-btn--ink" type="button" data-pt-std aria-pressed="true">Standardise coordinates: ON</button>
+                </div>
+                <p class="rd-verdict-s" data-pt-verdict aria-live="polite"></p>
+                <p class="rd-honest" id="rd-gain-cap">
+                  <b>Illustrative.</b> The share follows the paper’s Proposition 1 (odds grow as 1/c²), pinned to its
+                  gain intervention: half the direction is on the coordinate at c = 10⁻², at least 0.999 at
+                  10⁻⁵, and below 0.006 at every dose without standardisation. A fit fails when alignment is
+                  below 0.95.
+                </p>
+              </section>
+            )}
+            {st.id === 'instrument' && instrument.results && (
+              <section class="rd-bench" data-instrument aria-label="Concept-injection instrument audit">
+                <div class="rd-c-head">
+                  <span>▶ THE AUDIT · <span class="lime">THREE ASSUMPTIONS</span></span>
+                  <span class="rd-c-q">NO REGIME HELD ALL THREE</span>
+                </div>
+                <div class="rd-gauges">
+                  {instrumentChecks.map((c) => (
+                    <div class="rd-gauge">
+                      <div class="rd-gauge-top">
+                        <span class="rd-gauge-k">{c.k}</span>
+                        <span class="rd-gauge-x">✗ BREAKS</span>
+                      </div>
+                      <div class="rd-gauge-q">{c.q}</div>
+                      <div class="rd-gauge-v">{c.v}</div>
+                      <div class="rd-gauge-f">{c.fail}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div class="rd-heat-wrap">
+                  <div class="rd-heat-h">
+                    <span>WHICH SENTENCE WAS INJECTED? · LLAMA-3.1-8B · 10 OPTIONS, CHANCE 10%</span>
+                    <div class="rd-seg" role="group" aria-label="Show accuracy for">
+                      <button type="button" class="is-on" data-heat-mode="real" aria-pressed="true">Concept vector</button>
+                      <button type="button" data-heat-mode="random" aria-pressed="false">Random, same norm</button>
+                      <button type="button" data-heat-mode="gap" aria-pressed="false">Difference</button>
+                    </div>
+                  </div>
+                  <div class="rd-heat" style={`--cols:${loc.strengths.length}`}>
+                    <span class="rd-heat-corner">LAYER ↓ · STRENGTH →</span>
+                    {loc.strengths.map((s) => <span class="rd-heat-col">α {s}</span>)}
+                    {loc.layers.map((layer) => (
+                      <>
+                        <span class="rd-heat-row">L{layer}</span>
+                        {locCells
+                          .filter((c) => c.layer === layer)
+                          .map((c) => (
+                            <span
+                              class={`rd-cell${c.primary ? ' is-primary' : ''}`}
+                              data-cell
+                              data-real={c.real}
+                              data-random={c.random}
+                              style={`--v:${c.real}`}
+                            >
+                              <b data-cell-v>{pct(c.real)}%</b>
+                              {c.primary && <em>FILED</em>}
+                            </span>
+                          ))}
+                      </>
+                    ))}
+                  </div>
+                  <p class="rd-verdict-s rd-verdict-s--light" data-heat-verdict aria-live="polite">
+                    The concept vector looks like it works: <b>97%</b> in the filed cell. Now switch to random vectors.
+                  </p>
+                </div>
+                <p class="rd-honest">
+                  <b>Real data.</b> Table 2 of the paper: 600 trials per cell and arm. “Random” is a direction of the
+                  same norm carrying no concept.
+                </p>
+              </section>
+            )}
+            {st.id === 'missingmass' && mm.results && (
+              <section class="rd-sim" data-mm aria-label="Capture–recapture simulator">
+                <div class="rd-c-head rd-c-head--lime">
+                  <span>▶ THE SIMULATOR · <span class="ink">{MM_N} PLANTED FAILURE MODES</span></span>
+                  <span class="rd-c-q">SOME ARE MUCH HARDER TO FIND</span>
+                </div>
+                <div class="rd-sim-body">
+                  <div class="rd-sim-grid" style={`--n:${MM_N}`} aria-hidden="true">
+                    <span class="rd-sim-lab">FOUND BY</span>
+                    {Array.from({ length: MM_N }, (_, i) => <span class="rd-sim-freq" data-mm-freq={i}></span>)}
+                    {Array.from({ length: MM_K }, (_, r) => (
+                      <>
+                        <span class="rd-sim-lab" data-mm-runlab={r}>RUN {r + 1}</span>
+                        {Array.from({ length: MM_N }, (_, i) => <span class="rd-sim-c" data-mm-c={`${r}-${i}`}></span>)}
+                      </>
+                    ))}
+                    <span class="rd-sim-lab">FINDABILITY</span>
+                    {Array.from({ length: MM_N }, (_, i) => <span class="rd-sim-p" data-mm-p={i}><i></i></span>)}
+                  </div>
+
+                  <div class="rd-sim-read">
+                    <div class="rd-sim-stat">
+                      <span class="k">RUNS</span><span class="v" data-mm-k>0</span>
+                    </div>
+                    <div class="rd-sim-stat">
+                      <span class="k">FAILURE MODES FOUND</span><span class="v" data-mm-s>0</span>
+                    </div>
+                    <div class="rd-sim-stat">
+                      <span class="k">FOUND BY ONE RUN ONLY</span><span class="v" data-mm-q1>0</span>
+                    </div>
+                    <div class="rd-sim-meter">
+                      <div class="k">COVERAGE · ESTIMATED <b data-mm-chat>—</b> · TRUE <b data-mm-ctrue>—</b></div>
+                      <div class="rd-meter"><i class="est" data-mm-cbar></i><i class="tru" data-mm-tbar></i></div>
+                    </div>
+                    <div class="rd-sim-meter">
+                      <div class="k">HOW MANY EXIST · LOWER BOUND <b data-mm-chao>—</b> · TRUE <b data-mm-ntrue>{MM_N}</b></div>
+                      <div class="rd-meter"><i class="est" data-mm-nbar></i><i class="tru" style="left:100%"></i></div>
+                    </div>
+                    <div class="rd-sim-meter">
+                      <div class="k">NEW FINDS FROM <span data-mm-m>K</span> MORE RUNS · PREDICTED <b data-mm-dhat>—</b> · EXPECTED <b data-mm-dtrue>—</b></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="rd-verdict rd-verdict--lime">
+                  <p class="rd-v-txt" data-mm-verdict aria-live="polite">Run the audit. Each run finds each failure mode with its own probability.</p>
+                  <div class="rd-v-btns">
+                    <button class="rd-btn rd-btn--lime" type="button" data-mm-run>Run an audit</button>
+                    <button class="rd-btn" type="button" data-mm-run5>+5 runs</button>
+                    <button class="rd-btn" type="button" data-mm-reveal aria-pressed="false">Show what was missed</button>
+                    <button class="rd-btn" type="button" data-mm-new>New model</button>
+                  </div>
+                </div>
+                <p class="rd-honest rd-honest--ink">
+                  <b>Simulated in your browser.</b> These are toy numbers, not the study’s results. It uses the same
+                  estimators as the repo’s library: Chao–Jost coverage, bias-corrected Chao2 as a lower bound, and
+                  the Chao et al. extrapolation for new finds.
+                </p>
+              </section>
+            )}
+
+            <div class="rd-p-foot">
+              <span class="rd-stamp">{st.name}</span>
+              <span class="rd-stamp rd-stamp--dev">{st.status}</span>
+              <span class="rd-p-paper">PAPER · <i>{st.title}</i></span>
+              {st.links?.github && <a class="rd-src" href={st.links.github} target="_blank" rel="noopener">SOURCE ↗</a>}
             </div>
-            <div class="rd-verdict rd-verdict--lime">
-              <p class="rd-v-txt" data-mm-verdict aria-live="polite">Run the audit. Each run finds each failure mode with its own probability.</p>
-              <div class="rd-v-btns">
-                <button class="rd-btn rd-btn--lime" type="button" data-mm-run>Run an audit</button>
-                <button class="rd-btn" type="button" data-mm-run5>+5 runs</button>
-                <button class="rd-btn" type="button" data-mm-reveal aria-pressed="false">Show what was missed</button>
-                <button class="rd-btn" type="button" data-mm-new>New model</button>
+            {st.source && <div class="rd-srcline rd-srcline--flat">{st.source}</div>}
+
+            <details class="rd-more">
+              <summary><span class="rd-more-o">Read the long version</span><span class="rd-more-c">Fold it back up</span> <span aria-hidden="true">↓</span></summary>
+              <div class="rd-more-body">
+                {st.body.map((para) => <p set:html={para} />)}
+                <p class="rd-more-by">{st.byline}</p>
               </div>
-            </div>
-            <p class="rd-honest rd-honest--ink">
-              <b>Simulated in your browser.</b> These are toy numbers, not the study’s results. It uses the same
-              estimators as the repo’s library: Chao–Jost coverage, bias-corrected Chao2 as a lower bound, and
-              the Chao et al. extrapolation for new finds.
-            </p>
-          </section>
-        )}
-      </article>
-    )}
+            </details>
+          </article>
+        );
+      })}
+    </div>
 
     <!-- ================= ALSO ON THE RECORD ================= -->
     {also.length > 0 && (
@@ -622,35 +554,12 @@ const MM_K = 12;
   .rd-folio-c { color: var(--bred); font-weight: 700; }
 
   /* ============================================================ CORRECTIONS */
-  .rd-corr {
-    border: 2px solid var(--bink);
-    background: var(--bcream2);
-    margin-bottom: 26px;
-  }
-  .rd-corr-h {
-    display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 16px;
-    padding: 8px 12px; border-bottom: 2px solid var(--bink); background: var(--bink); color: var(--bcream);
-  }
-  .rd-corr-t { font-family: var(--fd); font-size: 1.25rem; text-transform: uppercase; letter-spacing: 0.03em; }
-  .rd-corr-t i { font-family: var(--fi); font-style: italic; text-transform: none; color: var(--blime); }
-  .rd-corr-s { font-family: var(--fm); font-size: 8.5px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(247, 245, 241, 0.6); }
-  .rd-corr-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); }
-  .rd-corr-list li { padding: 11px 12px 13px; }
-  .rd-corr-list li + li { border-left: 1px solid rgba(20, 20, 20, 0.25); }
-  .rd-corr-n {
-    display: block; font-family: var(--fm); font-size: 8.5px; font-weight: 700;
-    letter-spacing: 0.16em; text-transform: uppercase; color: var(--bred); margin-bottom: 5px;
-  }
-  .rd-corr-list p { margin: 0; font-size: 0.98rem; line-height: 1.38; }
-  .rd-corr-list li.is-pending p { font-style: italic; color: #4a4640; }
-  .rd-corr-list li.is-pending .rd-corr-n { color: var(--bink); }
 
   /* ---- article furniture ---- */
   .rd-kicker {
     font-family: var(--fm); font-size: 9px; font-weight: 700;
     letter-spacing: 0.2em; text-transform: uppercase; color: var(--bred); margin-bottom: 9px;
   }
-  .rd-kicker--lime { color: var(--blime); }
   .rd-headline {
     font-family: var(--fd); font-weight: 500;
     font-size: clamp(1.8rem, 5vw, 3.8rem); line-height: 0.9;
@@ -660,33 +569,20 @@ const MM_K = 12;
     font-family: var(--fi); font-style: italic;
     font-size: clamp(1rem, 1.6vw, 1.25rem); line-height: 1.4; margin-top: 12px; max-width: 66ch;
   }
-  .rd-byline {
-    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-    margin-top: 13px; padding-bottom: 14px; border-bottom: 1px solid var(--bink);
-    font-family: var(--fm); font-size: 9.5px; font-weight: 700;
-    letter-spacing: 0.1em; text-transform: uppercase; color: var(--bgray);
-  }
-  .rd-byline--tight { border-bottom: none; padding-bottom: 0; }
-  .rd-byline--ink { color: rgba(247, 245, 241, 0.6); }
   .rd-stamp {
     background: var(--bred); color: var(--bcream); border: 2px solid var(--bink);
     box-shadow: 2px 2px 0 var(--bink); padding: 3px 7px; letter-spacing: 0.14em;
+    font-family: var(--fm); font-size: 9.5px; font-weight: 700; text-transform: uppercase;
   }
   .rd-stamp--dev { background: var(--bink); color: var(--blime); }
   .rd-stamp--lime { background: var(--blime); color: var(--bink); border-color: var(--blime); box-shadow: none; }
   .rd-stamp--cream { background: transparent; color: var(--bcream); border-color: var(--bcream); box-shadow: none; }
-  .rd-src { color: var(--bred); border-bottom: 1px solid currentColor; }
+  .rd-src { color: var(--bred); border-bottom: 1px solid currentColor; font-family: var(--fm); font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-decoration: none; }
   .rd-src:hover { color: var(--bink); }
   .rd-src--lime { color: var(--blime); }
   .rd-src--lime:hover { color: var(--bcream); }
-  .rd-paper {
-    margin: 10px 0 0; font-family: var(--fm); font-size: 9px; letter-spacing: 0.1em;
-    color: var(--bgray); line-height: 1.6;
-  }
-  .rd-paper i { font-family: var(--fi); font-size: 1.32em; letter-spacing: 0; color: var(--bink); }
 
-  /* ============================================================ CONSOLE (shared) */
-  .rd-console, .rd-bench {
+  /* ============================================================ CONSOLE (shared) */ .rd-bench {
     border: 3px solid var(--bink); box-shadow: 8px 8px 0 var(--bink);
     background: var(--bink); margin: 18px 0 0;
   }
@@ -701,78 +597,7 @@ const MM_K = 12;
   .rd-c-head--lime .ink { color: var(--bink); }
   .rd-c-head--lime .rd-c-q { color: rgba(20, 20, 20, 0.6); }
 
-  .rd-c-task {
-    background: var(--bcream2); padding: 12px; border-bottom: 3px solid var(--bink);
-    display: grid; grid-template-columns: 1fr minmax(220px, auto); gap: 12px; align-items: center;
-  }
-  .rd-c-question { font-family: var(--fm); font-size: 10.5px; line-height: 1.65; letter-spacing: 0.02em; margin: 0; }
-  .rd-c-question .dim { color: var(--bgray); }
-  .rd-c-question .ok { color: var(--bok); }
-  .rd-c-question .bad { color: var(--bred); }
-  .rd-c-ans { text-align: right; font-family: var(--fm); display: block; }
-  .rd-c-ans .lab { display: block; font-size: 7.5px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--bgray); }
-  .rd-c-ans .val { display: block; font-family: var(--fd); font-size: clamp(1.5rem, 2.6vw, 2.2rem); line-height: 1.05; margin-top: 2px; }
-  .rd-c-ans .tag { display: block; font-size: 8px; font-weight: 700; letter-spacing: 0.14em; margin-top: 3px; }
-  .rd-c-ans.is-wrong .val, .rd-c-ans.is-wrong .tag { color: var(--bred); }
-  .rd-c-ans.is-right .val, .rd-c-ans.is-right .tag { color: var(--bok); }
-  .rd-c-ans.is-other .val, .rd-c-ans.is-other .tag { color: var(--bink); }
-  .rd-c-ans.is-none .val, .rd-c-ans.is-none .tag { color: var(--bgray); }
-
-  .rd-stage { position: relative; background: var(--bcream); padding: 18px 12px 12px; border-bottom: 3px solid var(--bink); }
-  .rd-lineup { position: relative; display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
-
-  .rd-chunk {
-    position: relative; text-align: left; cursor: pointer; background: var(--bcream2);
-    border: 2.5px solid var(--bink); box-shadow: 4px 4px 0 var(--bink); padding: 9px;
-    font: inherit; color: inherit; display: flex; flex-direction: column; gap: 6px; min-height: 104px;
-    transition: transform 0.13s ease, box-shadow 0.13s ease, background 0.13s ease;
-  }
-  .rd-chunk:hover { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--bink); }
-  .rd-chunk:focus-visible { outline: 3px solid var(--bred); outline-offset: 2px; }
-  .rd-cid { font-family: var(--fm); font-size: 8px; font-weight: 700; letter-spacing: 0.14em; color: var(--bred); display: flex; gap: 6px; align-items: center; }
-  .rd-goldtag { background: var(--bok); color: #fff; padding: 1px 4px; font-size: 6.5px; letter-spacing: 0.14em; }
-  .rd-ctext { font-family: var(--fi); font-size: 0.95rem; line-height: 1.3; }
-  .rd-cact { margin-top: auto; font-family: var(--fm); font-size: 7.5px; font-weight: 700; letter-spacing: 0.14em; color: var(--bgray); }
-  .rd-cact .rm { display: none; }
-  .rd-chunk.is-in { background: var(--bink); color: var(--bcream); transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--bred); }
-  .rd-chunk.is-in .rd-cid { color: var(--blime); }
-  .rd-chunk.is-in .rd-cact { color: var(--blime); }
-  .rd-chunk.is-in .rd-cact .add { display: none; }
-  .rd-chunk.is-in .rd-cact .rm { display: inline; }
-
-  .rd-stage-cap {
-    position: relative; margin: 12px 0 0;
-    font-family: var(--fm); font-size: 7.5px; font-weight: 700;
-    letter-spacing: 0.12em; text-transform: uppercase; color: var(--bgray);
-  }
-
   /* ---- the lattice ---- */
-  .rd-lattice-wrap { background: var(--bcream); border-bottom: 3px solid var(--bink); padding: 10px 12px 12px; }
-  .rd-lattice { display: block; width: 100%; height: auto; }
-  .rd-lt-row { font-family: var(--fm); font-size: 10px; font-weight: 700; letter-spacing: 0.12em; fill: var(--bgray); }
-  .rd-lt-gap { stroke: var(--bgray); stroke-width: 1; stroke-dasharray: 3 5; }
-  .rd-lt-gapt { font-family: var(--fm); font-size: 9px; font-weight: 700; letter-spacing: 0.14em; fill: var(--bgray); }
-  .rd-lt-edge { stroke: var(--bred); stroke-width: 2.5; opacity: 0; transition: opacity 0.2s ease; }
-  .rd-lt-edge.is-on { opacity: 1; }
-  .rd-lt-node circle { fill: var(--bcream); stroke: rgba(20, 20, 20, 0.28); stroke-width: 1.5; stroke-dasharray: 2 3; transition: fill 0.15s ease, stroke 0.15s ease; }
-  .rd-lt-node text { font-family: var(--fm); font-size: 10px; font-weight: 700; fill: rgba(20, 20, 20, 0.35); }
-  .rd-lt-node.is-full text { font-size: 9.5px; }
-  .rd-lt-node.is-seen circle { stroke: var(--bink); stroke-dasharray: none; fill: #fff; }
-  .rd-lt-node.is-seen text { fill: var(--bink); }
-  .rd-lt-node.is-seen.is-suff circle { fill: var(--bred); stroke: var(--bink); }
-  .rd-lt-node.is-seen.is-suff text { fill: #fff; }
-  .rd-lt-node.is-seen.is-minset circle { stroke-width: 5; }
-  .rd-lt-node.is-cur circle { stroke: var(--blime); stroke-width: 7; stroke-dasharray: none; paint-order: stroke; }
-  .rd-lt-node.is-cur.is-seen.is-minset circle { stroke: var(--blime); }
-
-  .rd-lt-key { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 6px; font-family: var(--fm); font-size: 7.5px; font-weight: 700; letter-spacing: 0.12em; color: var(--bgray); }
-  .rd-lt-key span { display: inline-flex; align-items: center; gap: 6px; }
-  .rd-lt-key i { display: inline-block; width: 11px; height: 11px; border-radius: 50%; border: 1.5px solid var(--bink); }
-  .rd-lt-key .k-suff { background: var(--bred); }
-  .rd-lt-key .k-no { background: #fff; }
-  .rd-lt-key .k-min { background: var(--bred); border-width: 3.5px; }
-  .rd-lt-key .k-edge { width: 18px; height: 0; border-radius: 0; border: none; border-top: 2.5px solid var(--bred); }
-  .rd-lt-key .k-cur { background: var(--bcream); border: 3.5px solid var(--blime); }
 
   .rd-verdict { background: var(--bink); color: var(--bcream); padding: 12px; display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; }
   .rd-v-txt { font-family: var(--fm); font-size: 10px; line-height: 1.65; letter-spacing: 0.03em; margin: 0; min-height: 3.3em; }
@@ -803,24 +628,6 @@ const MM_K = 12;
   .rd-honest--ink b { color: var(--blime); }
 
   /* ---- lead body + sidebar ---- */
-  .rd-body { display: grid; grid-template-columns: 1fr minmax(260px, 330px); gap: 0 clamp(20px, 2.6vw, 40px); padding-top: 22px; }
-  .rd-flow { padding-right: clamp(16px, 2vw, 26px); border-right: 1px solid var(--bink); }
-  .rd-flow p { font-size: 1.04rem; line-height: 1.72; text-align: justify; hyphens: auto; margin: 0 0 0.9em; }
-  .rd-flow p.has-dropcap::first-letter {
-    font-family: var(--fd); font-size: 3.4em; line-height: 0.75; float: left; margin: 5px 8px -2px 0;
-  }
-  .rd-side { padding-left: clamp(14px, 1.8vw, 22px); }
-  .rd-box { border: 2px solid var(--bink); box-shadow: 5px 5px 0 var(--bink); background: var(--bcream2); }
-  .rd-box-head {
-    background: var(--bink); color: var(--bcream); font-family: var(--fm); font-size: 9px; font-weight: 700;
-    letter-spacing: 0.18em; text-transform: uppercase; padding: 6px 10px;
-  }
-  .rd-stat { padding: 12px 10px; border-bottom: 1px solid rgba(20, 20, 20, 0.18); }
-  .rd-stat:last-of-type { border-bottom: none; }
-  .rd-stat-v { font-family: var(--fd); font-size: 2.1rem; line-height: 1; color: var(--bred); }
-  .rd-stat-v .ci { font-family: var(--fm); font-size: 0.3em; color: var(--bgray); letter-spacing: 0.04em; margin-left: 6px; }
-  .rd-stat-l { font-family: var(--fm); font-size: 8.5px; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1.55; margin-top: 6px; }
-  .rd-stat-l b { color: var(--bink); font-weight: 700; }
   .rd-srcline {
     font-family: var(--fm); font-size: 7.5px; letter-spacing: 0.1em; text-transform: uppercase;
     color: var(--bgray); padding: 7px 10px; border-top: 1px dashed rgba(20, 20, 20, 0.3); line-height: 1.5;
@@ -855,15 +662,6 @@ const MM_K = 12;
   .rd-jbar.is-base .rd-jbar-b i { background: repeating-linear-gradient(45deg, var(--bink) 0 2px, var(--bcream) 2px 5px); }
 
   /* ============================================================ SECONDARY STUDIES */
-  .rd-row2 {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 0 clamp(20px, 2.6vw, 40px);
-    padding-top: 24px; margin-top: 26px; border-top: 3px solid var(--bink);
-  }
-  .rd-sub { min-width: 0; }
-  .rd-sub + .rd-sub { border-left: 1px solid var(--bink); padding-left: clamp(18px, 2.2vw, 32px); }
-  .rd-sub-head { font-family: var(--fd); font-weight: 500; font-size: clamp(1.5rem, 2.8vw, 2.4rem); line-height: 0.95; text-transform: uppercase; margin: 8px 0 0; }
-  .rd-sub-deck { font-family: var(--fi); font-style: italic; font-size: 1.08rem; line-height: 1.42; margin: 9px 0 0; }
-  .rd-sub-p { font-size: 1rem; line-height: 1.68; margin: 12px 0 0; }
 
   /* ---- the precision / trueness bench ---- */
   .rd-pt { background: var(--bcream); display: grid; grid-template-columns: minmax(150px, 42%) 1fr; gap: 14px; padding: 14px 12px; align-items: center; border-bottom: 3px solid var(--bink); }
@@ -896,14 +694,6 @@ const MM_K = 12;
   .rd-verdict-s .warn { color: var(--bred2); font-weight: 700; }
   .rd-verdict-s--light { background: transparent; color: var(--bink); padding: 10px 0 0; min-height: 0; }
   .rd-verdict-s--light b { color: var(--bred); }
-
-  .rd-minis { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-top: 14px; border: 2px solid var(--bink); background: var(--bcream2); }
-  .rd-mini { padding: 10px; border-bottom: 1px solid rgba(20, 20, 20, 0.2); }
-  .rd-mini:nth-child(odd) { border-right: 1px solid rgba(20, 20, 20, 0.2); }
-  .rd-mini:nth-last-child(-n + 2) { border-bottom: none; }
-  .rd-mini-v { font-family: var(--fd); font-size: 1.75rem; line-height: 1; color: var(--bred); }
-  .rd-mini-l { font-family: var(--fm); font-size: 8px; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1.5; margin-top: 5px; }
-  .rd-mini-l b { font-weight: 700; }
 
   /* ---- the instrument audit ---- */
   .rd-gauges { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--bcream); border-bottom: 3px solid var(--bink); }
@@ -940,21 +730,6 @@ const MM_K = 12;
   .rd-cell em { position: absolute; top: -9px; right: -6px; font-family: var(--fm); font-style: normal; font-size: 6.5px; font-weight: 700; letter-spacing: 0.12em; background: var(--bink); color: var(--blime); padding: 2px 4px; }
 
   /* ============================================================ WORK-IN-PROGRESS BAND */
-  .rd-band {
-    margin-top: 28px; background: var(--bink); color: var(--bcream);
-    border: 3px solid var(--bink); box-shadow: 8px 8px 0 var(--bred);
-    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.12fr); gap: clamp(18px, 2.6vw, 36px);
-    padding: clamp(16px, 2.4vw, 30px);
-  }
-  .rd-band-head { font-family: var(--fd); font-weight: 500; font-size: clamp(1.9rem, 4vw, 3.4rem); line-height: 0.9; text-transform: uppercase; margin: 0; color: var(--bcream); }
-  .rd-band-deck { font-family: var(--fi); font-style: italic; font-size: clamp(1rem, 1.5vw, 1.2rem); line-height: 1.42; margin: 12px 0 0; }
-  .rd-band-p { font-size: 1rem; line-height: 1.68; margin: 12px 0 0; color: rgba(247, 245, 241, 0.88); }
-  .rd-band-p :global(em) { color: var(--blime); }
-  .rd-minis--ink { background: #1f1f1f; border-color: rgba(247, 245, 241, 0.4); }
-  .rd-minis--ink .rd-mini { border-color: rgba(247, 245, 241, 0.2); }
-  .rd-minis--ink .rd-mini-v { color: var(--blime); }
-  .rd-minis--ink .rd-mini-l { color: rgba(247, 245, 241, 0.75); }
-  .rd-minis--ink .rd-mini-l b { color: var(--bcream); }
 
   .rd-sim { border: 3px solid var(--blime); background: var(--bink); align-self: start; }
   .rd-sim-body { padding: 12px; display: grid; gap: 14px; }
@@ -995,30 +770,14 @@ const MM_K = 12;
 
   /* ---- responsive ---- */
   @media (max-width: 1180px) {
-    .rd-corr-list { grid-template-columns: 1fr 1fr; }
-    .rd-corr-list li:nth-child(3) { border-left: none; }
-    .rd-corr-list li:nth-child(n + 3) { border-top: 1px solid rgba(20, 20, 20, 0.25); }
-    .rd-row2 { grid-template-columns: 1fr; }
-    .rd-sub + .rd-sub { border-left: none; padding-left: 0; border-top: 3px solid var(--bink); padding-top: 22px; margin-top: 26px; }
-    .rd-band { grid-template-columns: 1fr; }
   }
   @media (max-width: 980px) {
-    .rd-lineup { grid-template-columns: repeat(3, 1fr); }
   }
   @media (max-width: 900px) {
-    .rd-body { grid-template-columns: 1fr; }
-    .rd-flow { border-right: none; padding-right: 0; }
-    .rd-side { padding-left: 0; padding-top: 16px; }
-    .rd-c-task { grid-template-columns: 1fr; }
-    .rd-c-ans { text-align: left; }
     .rd-jobs-row { grid-template-columns: 1fr; }
     .rd-job + .rd-job { border-left: none; border-top: 1px solid rgba(20, 20, 20, 0.25); }
   }
   @media (max-width: 620px) {
-    .rd-corr-list { grid-template-columns: 1fr; }
-    .rd-corr-list li + li { border-left: none; border-top: 1px solid rgba(20, 20, 20, 0.25); }
-    .rd-lineup { grid-template-columns: 1fr 1fr; }
-    .rd-chunk { min-height: 0; }
     .rd-verdict { grid-template-columns: 1fr; }
     .rd-sheet { box-shadow: 8px 8px 0 var(--bink); border-width: 4px; }
     .rd-pt { grid-template-columns: 1fr; }
@@ -1028,193 +787,417 @@ const MM_K = 12;
     .rd-gauges { grid-template-columns: 1fr; }
     .rd-gauge + .rd-gauge { border-left: none; border-top: 2px solid var(--bink); }
     .rd-gauge-q { min-height: 0; }
-    .rd-minis { grid-template-columns: 1fr; }
-    .rd-mini:nth-child(odd) { border-right: none; }
-    .rd-mini:nth-last-child(2) { border-bottom: 1px solid rgba(20, 20, 20, 0.2); }
     .rd-sim-read { grid-template-columns: 1fr 1fr; }
     .rd-sim-stat:first-child { grid-column: 1 / -1; }
-    .rd-lt-key { font-size: 7px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .rd-board .dart, .rd-cell, .rd-sim-c, .rd-meter .est, .rd-meter .tru, .rd-sim-p { transition: none; }
+  }
+
+  /* ============================================================ THE DESK: tabs + panels */
+  .rd-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border: 3px solid var(--bink);
+    margin-bottom: clamp(18px, 2.4vw, 28px);
+  }
+  .rd-tab {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 14px 16px;
+    border: 0;
+    border-right: 2px solid var(--bink);
+    background: var(--bcream);
+    color: var(--bink);
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+    transition: background 0.25s ease, color 0.25s ease;
+  }
+  .rd-tab:last-child { border-right: 0; }
+  .rd-tab:hover { background: var(--bcream2); }
+  .rd-tab:focus-visible { outline: 3px solid var(--bred); outline-offset: -6px; }
+  .rd-tab-no { font-family: var(--fm); font-size: 10px; font-weight: 700; letter-spacing: 0.16em; color: var(--bred); }
+  .rd-tab-name { font-family: var(--fd); font-size: clamp(1.15rem, 1.9vw, 1.7rem); line-height: 0.92; }
+  .rd-tab-q { font-family: var(--fi); font-style: italic; font-size: 14px; line-height: 1.25; color: #4f4b44; }
+  .rd-tab-st { margin-top: auto; padding-top: 4px; font-family: var(--fm); font-size: 8.5px; font-weight: 700; letter-spacing: 0.12em; color: var(--bgray); }
+  .rd-tab-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: var(--blime); transform: scaleX(0); transform-origin: left; transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.2, 1); }
+  .rd-tab.is-on { background: var(--bink); color: var(--bcream); }
+  .rd-tab.is-on .rd-tab-no { color: var(--blime); }
+  .rd-tab.is-on .rd-tab-q { color: rgba(247, 245, 241, 0.75); }
+  .rd-tab.is-on .rd-tab-bar { transform: scaleX(1); }
+
+  .rd-panel[hidden] { display: none; }
+  .rd-panel.is-entering { animation: rd-in 0.45s cubic-bezier(0.2, 0.9, 0.2, 1); }
+  @keyframes rd-in { from { opacity: 0; transform: translateY(14px); } }
+
+  .rd-p-top {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    gap: clamp(16px, 3vw, 44px);
+    align-items: start;
+    margin-bottom: clamp(16px, 2vw, 24px);
+  }
+  .rd-panel .rd-headline { font-size: clamp(2rem, 4.6vw, 4.2rem); line-height: 0.9; margin: 10px 0 12px; }
+  .rd-panel .rd-deck { font-size: clamp(1.05rem, 1.5vw, 1.3rem); max-width: 46ch; }
+
+  /* the correction, set as a claim struck by a measurement */
+  .rd-vs { border: 3px solid var(--bink); box-shadow: 6px 6px 0 var(--bred); background: var(--bcream); }
+  .rd-vs-row { padding: 12px 14px; }
+  .rd-vs-row + .rd-vs-row { border-top: 2px solid var(--bink); }
+  .rd-vs-k { display: inline-block; font-family: var(--fm); font-size: 9px; font-weight: 700; letter-spacing: 0.16em; padding: 3px 6px; margin-bottom: 7px; }
+  .rd-vs-claim .rd-vs-k { background: var(--bcream2); color: var(--bgray); border: 1px solid var(--bgray); }
+  .rd-vs-claim p { font-size: 1rem; line-height: 1.4; color: #6b665d; text-decoration: line-through; text-decoration-color: var(--bred); text-decoration-thickness: 2px; }
+  .rd-vs-found { background: var(--bink); color: var(--bcream); }
+  .rd-vs-found .rd-vs-k { background: var(--blime); color: var(--bink); }
+  .rd-vs-found p { font-size: 1.02rem; line-height: 1.4; }
+  .rd-vs.is-pending .rd-vs-claim p { text-decoration: none; }
+  .rd-vs.is-pending .rd-vs-found .rd-vs-k { background: var(--bcream); }
+
+  .rd-figs {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border-top: 3px solid var(--bink);
+    border-bottom: 3px solid var(--bink);
+    margin-bottom: clamp(16px, 2vw, 24px);
+  }
+  .rd-fig { padding: 12px 14px 14px; transition: background 0.2s ease; }
+  .rd-fig + .rd-fig { border-left: 1px solid rgba(20, 20, 20, 0.25); }
+  .rd-fig-v { font-family: var(--fd); font-size: clamp(1.9rem, 3.4vw, 3rem); line-height: 0.95; color: var(--bred); }
+  .rd-fig-v .ci { font-family: var(--fm); font-size: 9px; color: var(--bgray); margin-left: 6px; letter-spacing: 0.06em; }
+  .rd-fig-l { font-family: var(--fm); font-size: 10px; line-height: 1.5; letter-spacing: 0.02em; margin-top: 6px; color: #4f4b44; }
+  .rd-fig-l :global(b) { color: var(--bink); }
+  .rd-fig:hover { background: var(--bink); }
+  .rd-fig:hover .rd-fig-v { color: var(--blime); }
+  .rd-fig:hover .rd-fig-l, .rd-fig:hover .rd-fig-l :global(b) { color: var(--bcream); }
+
+  .rd-panel .rd-jobs { margin-top: clamp(16px, 2vw, 24px); }
+  .rd-p-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 18px; padding-top: 12px; border-top: 1px solid rgba(20, 20, 20, 0.3); }
+  .rd-p-paper { font-family: var(--fm); font-size: 10px; letter-spacing: 0.04em; color: #4f4b44; flex: 1; min-width: 220px; }
+  .rd-p-paper i { font-family: var(--fi); font-size: 14px; letter-spacing: 0; color: var(--bink); }
+
+  .rd-more { margin-top: 14px; border: 2px solid var(--bink); background: var(--bcream2); }
+  .rd-more summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; padding: 10px 14px; font-family: var(--fm); font-size: 10px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; }
+  .rd-more summary::-webkit-details-marker { display: none; }
+  .rd-more summary:hover { background: var(--bink); color: var(--bcream); }
+  .rd-more-c, .rd-more[open] .rd-more-o { display: none; }
+  .rd-more[open] .rd-more-c { display: inline; }
+  .rd-more-body { padding: 4px 18px 18px; columns: 2 340px; column-gap: 34px; column-rule: 1px solid rgba(20, 20, 20, 0.2); }
+  .rd-more-body p { font-size: 1rem; line-height: 1.62; margin-top: 12px; break-inside: avoid-column; }
+  .rd-more-body p :global(em) { color: var(--bred); }
+  .rd-more-by { font-family: var(--fm); font-size: 10px !important; letter-spacing: 0.1em; text-transform: uppercase; color: var(--bgray); }
+
+  @media (max-width: 1080px) {
+    .rd-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .rd-tab:nth-child(2) { border-right: 0; }
+    .rd-tab:nth-child(-n + 2) { border-bottom: 2px solid var(--bink); }
+    .rd-p-top { grid-template-columns: 1fr; }
+    .rd-figs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .rd-fig:nth-child(3) { border-left: 0; }
+    .rd-fig:nth-child(n + 3) { border-top: 1px solid rgba(20, 20, 20, 0.25); }
+  }
+  @media (max-width: 620px) {
+    .rd-tab-q { display: none; }
+    .rd-figs { grid-template-columns: 1fr; }
+    .rd-fig + .rd-fig { border-left: 0; border-top: 1px solid rgba(20, 20, 20, 0.25); }
   }
   @media (prefers-reduced-motion: reduce) {
-    .rd-chunk, .rd-lt-edge, .rd-lt-node circle, .rd-board .dart, .rd-cell, .rd-sim-c, .rd-meter .est, .rd-meter .tru, .rd-sim-p { transition: none; }
+    .rd-panel.is-entering { animation: none; }
+  }
+
+  /* ============================================================ 01 · THE LINEUP */
+  .cl { border: 3px solid var(--bink); box-shadow: 8px 8px 0 var(--bink); background: var(--bcream); }
+  .cl-k { display: block; font-family: var(--fm); font-size: 9px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 6px; opacity: 0.75; }
+  .cl-case { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr); background: var(--bink); color: var(--bcream); }
+  .cl-case > div { padding: 14px 16px; }
+  .cl-case > div + div { border-left: 1px solid rgba(247, 245, 241, 0.2); }
+  .cl-q p { font-family: var(--fi); font-size: clamp(1.05rem, 1.5vw, 1.3rem); line-height: 1.3; }
+  .cl-case b { font-family: var(--fd); font-size: clamp(1.4rem, 2.4vw, 2.1rem); line-height: 0.95; display: block; }
+  .cl-truth b { color: var(--blime); }
+  .cl-crime { background: var(--bred); }
+  .cl-crime b { color: var(--bcream); }
+
+  .cl-main { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); }
+  .cl-left, .cl-right { padding: 16px; min-width: 0; }
+  .cl-right { border-left: 2px solid var(--bink); background: var(--bcream2); }
+  .cl-step { font-family: var(--fm); font-size: 11px; font-weight: 600; letter-spacing: 0.02em; line-height: 1.5; margin-bottom: 12px; display: flex; gap: 10px; align-items: baseline; }
+  .cl-step b { flex: none; display: grid; place-items: center; width: 22px; height: 22px; background: var(--bink); color: var(--blime); font-size: 11px; }
+
+  .cl-suspects { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .cl-sus {
+    position: relative; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; align-items: center;
+    padding: 10px 10px 10px 8px; text-align: left; cursor: pointer; font: inherit; color: var(--bink);
+    background: var(--bcream); border: 2px solid var(--bink); box-shadow: 3px 3px 0 var(--bink);
+    transition: transform 0.18s cubic-bezier(0.2, 0.9, 0.2, 1), box-shadow 0.18s, background 0.18s, color 0.18s;
+  }
+  .cl-sus:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0 var(--bink); }
+  .cl-sus-l { grid-row: span 2; font-family: var(--fd); font-size: 2.3rem; line-height: 0.85; width: 1.1em; text-align: center; }
+  .cl-sus-t { font-family: var(--fi); font-size: 0.98rem; line-height: 1.2; }
+  .cl-sus-g { justify-self: start; font-family: var(--fm); font-size: 8px; font-weight: 700; letter-spacing: 0.14em; background: var(--bok); color: #fff; padding: 2px 5px; }
+  .cl-sus.is-in { background: var(--bink); color: var(--bcream); transform: translate(-3px, -3px); box-shadow: 6px 6px 0 var(--blime); }
+  .cl-sus.is-in .cl-sus-l { color: var(--blime); }
+
+  .cl-out {
+    margin-top: 16px; padding: 14px 16px; border: 3px solid var(--bink);
+    display: grid; gap: 4px; min-height: 118px; align-content: center;
+    transition: background 0.25s ease, color 0.25s ease;
+  }
+  .cl-ctx { float: right; opacity: 0.8; }
+  .cl-out-v { font-family: var(--fd); font-size: clamp(2rem, 4vw, 3.4rem); line-height: 0.95; overflow-wrap: anywhere; }
+  .cl-out-tag { font-family: var(--fm); font-size: 10px; font-weight: 700; letter-spacing: 0.16em; }
+  .cl-out.is-none { background: var(--bcream2); color: var(--bink); }
+  .cl-out.is-none .cl-out-v { color: var(--bgray); }
+  .cl-out.is-wrong { background: var(--bred); color: var(--bcream); }
+  .cl-out.is-right { background: var(--bok); color: #fff; }
+  .cl-out.is-other { background: var(--bink); color: var(--bcream); }
+  .cl-say { font-family: var(--fi); font-size: 1.05rem; line-height: 1.4; margin-top: 12px; min-height: 2.8em; }
+  .cl-say :global(b) { font-family: var(--fd); font-weight: 400; letter-spacing: 0.01em; }
+
+  .cl-grid { display: grid; grid-template-columns: 22px repeat(6, minmax(0, 1fr)); gap: 5px; max-width: 400px; margin: 0 auto; }
+  .cl-gh { display: grid; place-items: center; font-family: var(--fm); font-size: 11px; font-weight: 700; color: var(--bgray); }
+  .cl-cell {
+    aspect-ratio: 1; display: grid; place-items: center; padding: 0; cursor: pointer; font: inherit;
+    border: 2px dashed rgba(20, 20, 20, 0.35); background: transparent; color: var(--bgray);
+    transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.18s ease;
+  }
+  .cl-cell span { font-family: var(--fm); font-size: clamp(9px, 0.9vw, 12px); font-weight: 700; letter-spacing: 0.04em; }
+  .cl-cell:hover { transform: scale(1.08); border-color: var(--bink); color: var(--bink); }
+  .cl-cell.is-void { border: 0; cursor: default; background: repeating-linear-gradient(45deg, rgba(20, 20, 20, 0.06) 0 2px, transparent 2px 6px); }
+  .cl-cell.is-known { border: 2px solid var(--bink); background: var(--bcream); color: var(--bink); }
+  .cl-cell.is-err { background: var(--bred); color: var(--bcream); border-color: var(--bred); }
+  .cl-cell.is-min { box-shadow: inset 0 0 0 3px var(--bink), 0 0 0 2px var(--bred); }
+  .cl-cell.is-cur { outline: 3px solid var(--blime); outline-offset: 2px; }
+  .cl-cell.is-single.is-known:not(.is-err) { background: var(--bcream); }
+  .cl-key { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 12px; font-family: var(--fm); font-size: 9px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #5e5a52; }
+  .cl-key i { display: inline-block; width: 11px; height: 11px; margin-right: 5px; vertical-align: -1px; }
+  .k-err { background: var(--bred); }
+  .k-no { background: var(--bcream); border: 2px solid var(--bink); }
+  .k-q { border: 2px dashed rgba(20, 20, 20, 0.4); }
+
+  .cl-files { border-top: 2px solid var(--bink); padding: 14px 16px 16px; }
+  .cl-files-h { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px 12px; font-family: var(--fm); font-size: 10px; font-weight: 700; letter-spacing: 0.14em; margin-bottom: 12px; }
+  .cl-files-h b { color: var(--bred); }
+  .cl-files-s { font-weight: 500; color: var(--bgray); text-transform: uppercase; }
+  .cl-files-row { display: grid; grid-template-columns: repeat(3, minmax(0, 0.7fr)) minmax(0, 1.5fr); gap: 10px; }
+  .cl-file { border: 2px dashed rgba(20, 20, 20, 0.4); padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; min-height: 92px; transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease; }
+  .cl-file-n { font-family: var(--fm); font-size: 9px; font-weight: 700; letter-spacing: 0.16em; color: var(--bgray); }
+  .cl-file-v { display: none; gap: 6px; }
+  .cl-file-v i { font-style: normal; font-family: var(--fd); font-size: 2.2rem; line-height: 0.9; width: 1.15em; height: 1.15em; display: grid; place-items: center; background: var(--bcream); color: var(--bink); border: 2px solid var(--bink); }
+  .cl-file-v i.is-b { background: var(--bink); color: var(--blime); }
+  .cl-file-q { font-family: var(--fd); font-size: 2.2rem; line-height: 0.9; color: rgba(20, 20, 20, 0.2); }
+  .cl-file.is-found { border: 2px solid var(--bink); background: var(--bred); }
+  .cl-file.is-found .cl-file-n { color: var(--bcream); }
+  .cl-file.is-found .cl-file-v { display: flex; animation: cl-stamp 0.4s cubic-bezier(0.2, 1.4, 0.3, 1); }
+  .cl-file.is-found .cl-file-q { display: none; }
+  @keyframes cl-stamp { from { transform: scale(1.4) rotate(-6deg); opacity: 0; } }
+  .cl-file--twist ul { list-style: none; display: grid; gap: 4px; }
+  .cl-file--twist li { font-family: var(--fm); font-size: 11px; line-height: 1.35; opacity: 0.18; filter: blur(2px); transition: opacity 0.3s ease, filter 0.3s ease; }
+  .cl-file--twist li.is-seen { opacity: 1; filter: none; }
+  .cl-file--twist em { font-style: normal; font-weight: 700; color: var(--bred); }
+  .cl-file--twist em.ok { color: var(--bok); }
+  .cl.is-solved .cl-files-h b { color: var(--bok); }
+  .cl-ctl { border-top: 2px solid var(--bink); }
+
+  @media (max-width: 1080px) {
+    .cl-main { grid-template-columns: 1fr; }
+    .cl-right { border-left: 0; border-top: 2px solid var(--bink); }
+    .cl-files-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .cl-file--twist { grid-column: 1 / -1; }
+  }
+  @media (max-width: 620px) {
+    .cl-case { grid-template-columns: 1fr 1fr; }
+    .cl-q { grid-column: 1 / -1; }
+    .cl-case > .cl-truth { border-left: 0; }
+    .cl-case > div + div { border-top: 1px solid rgba(247, 245, 241, 0.2); }
+    .cl-suspects { grid-template-columns: 1fr 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cl-file.is-found .cl-file-v { animation: none; }
+    .cl-sus, .cl-cell, .cl-out, .cl-file, .cl-file--twist li { transition: none; }
   }
 </style>
 
 <script>
+  // THE DESK: one study at a time. Tabs follow the ARIA pattern (arrow keys move
+  // between them, the panel follows) and the URL hash can open one directly.
+  (function () {
+    try {
+      const tabs = Array.from(document.querySelectorAll<HTMLButtonElement>('#research .rd-tab'));
+      const panels = Array.from(document.querySelectorAll<HTMLElement>('#research .rd-panel'));
+      if (!tabs.length) return;
+      function show(i: number, focus: boolean) {
+        tabs.forEach((t, j) => {
+          const on = j === i;
+          t.classList.toggle('is-on', on);
+          t.setAttribute('aria-selected', on ? 'true' : 'false');
+          t.tabIndex = on ? 0 : -1;
+        });
+        panels.forEach((p, j) => {
+          const on = j === i;
+          if (on && p.hidden) { p.hidden = false; p.classList.remove('is-entering'); void p.offsetWidth; p.classList.add('is-entering'); }
+          else if (!on) p.hidden = true;
+        });
+        if (focus) tabs[i].focus();
+        // the desk changed height: let the pinned acts re-measure
+        window.dispatchEvent(new Event('resize'));
+      }
+      tabs.forEach((t, i) => {
+        t.addEventListener('click', () => show(i, false));
+        t.addEventListener('keydown', (e) => {
+          const k = e.key;
+          let n = -1;
+          if (k === 'ArrowRight' || k === 'ArrowDown') n = (i + 1) % tabs.length;
+          else if (k === 'ArrowLeft' || k === 'ArrowUp') n = (i - 1 + tabs.length) % tabs.length;
+          else if (k === 'Home') n = 0;
+          else if (k === 'End') n = tabs.length - 1;
+          if (n >= 0) { e.preventDefault(); show(n, true); }
+        });
+      });
+      const m = location.hash.match(/^#study-(\w+)/);
+      if (m) { const i = panels.findIndex((p) => p.id === 'rd-panel-' + m[1]); if (i > 0) show(i, false); }
+      document.querySelectorAll('#research .rd-more').forEach((d) => d.addEventListener('toggle', () => window.dispatchEvent(new Event('resize'))));
+    } catch (e) { /* tabs failed: the first study stays open */ }
+  })();
+
   // The Research Desk's four instruments. Event-driven only: no rAF, no canvas, no timers.
 
-  /* ===================== 01 · the subset lattice ===================== */
+  /* ===================== 01 · the lineup ===================== */
+  // Pick passages (or tap a cell of the pair grid) and the model answers from that
+  // context. Cells and case files fill in as you test; "Show me" fills everything.
   (function () {
     'use strict';
     try {
-      var root = document.querySelector('[data-culprit]');
-      var dataEl = document.getElementById('rd-culprit-data');
+      const root = document.querySelector<HTMLElement>('[data-culprit]');
+      const dataEl = document.getElementById('rd-culprit-data');
       if (!root || !dataEl) return;
-      var D = JSON.parse(dataEl.textContent || '{}');
-      var ALL = D.passages.map(function (p: { id: string }) { return p.id; }).join('');
-      var suff: Record<string, boolean> = {};
-      D.sufficient.forEach(function (k: string) { suff[k] = true; });
-      var mins: string[] = D.minimal;
-      var viol: string[][] = D.violations;
+      const D = JSON.parse(dataEl.textContent || '{}');
+      const ALL: string = D.passages.map((p: { id: string }) => p.id).join('');
+      const suff = new Set<string>(D.sufficient);
+      const mins: string[] = D.minimal;
+      const viol: string[][] = D.violations;
+      const $ = <T extends Element = HTMLElement>(sel: string) => root.querySelector(sel) as T;
+      const chunks = Array.from(root.querySelectorAll<HTMLElement>('[data-chunk]'));
+      const cells = new Map<string, HTMLElement>();
+      root.querySelectorAll<HTMLElement>('[data-node]').forEach((c) => cells.set(c.dataset.node || '', c));
+      const files = new Map<string, HTMLElement>();
+      root.querySelectorAll<HTMLElement>('[data-file]').forEach((f) => files.set(f.dataset.file || '', f));
+      const twists = new Map<string, HTMLElement>();
+      root.querySelectorAll<HTMLElement>('[data-twist]').forEach((t) => twists.set(t.dataset.twist || '', t));
+      const ansBox = $('[data-ansbox]'), ansVal = $('[data-ansval]'), ansTag = $('[data-anstag]');
+      const verdict = $('[data-verdict]'), inCount = $('[data-incount]'), foundEl = $('[data-found]');
+      const REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-      var chunks = Array.prototype.slice.call(root.querySelectorAll('[data-chunk]')) as HTMLElement[];
-      var nodes: Record<string, Element> = {};
-      Array.prototype.forEach.call(root.querySelectorAll('[data-node]'), function (n: Element) {
-        nodes[n.getAttribute('data-node') || ''] = n;
-      });
-      var edges: Record<string, Element> = {};
-      Array.prototype.forEach.call(root.querySelectorAll('[data-edge]'), function (e: Element) {
-        edges[e.getAttribute('data-edge') || ''] = e;
-      });
-      var ansBox = root.querySelector('[data-ansbox]') as HTMLElement;
-      var ansVal = root.querySelector('[data-ansval]') as HTMLElement;
-      var ansTag = root.querySelector('[data-anstag]') as HTMLElement;
-      var verdict = root.querySelector('[data-verdict]') as HTMLElement;
-      var inCount = root.querySelector('[data-incount]') as HTMLElement;
-      var foundEl = root.querySelector('[data-found]') as HTMLElement;
-      var revealBtn = root.querySelector('[data-reveal]') as HTMLElement;
+      let selected = new Set<string>();
+      const seen = new Set<string>();
+      const found = new Set<string>();
+      let revealed = false;
 
-      var selected: Record<string, boolean> = {};
-      var seen: Record<string, boolean> = {};
-      var found: Record<string, boolean> = {};
-      var revealed = false;
-      var prevKey = '';
-
-      function keyOf(): string {
-        return ALL.split('').filter(function (c) { return selected[c]; }).join('');
-      }
-      function fmt(k: string): string { return '{' + k.split('').join(', ') + '}'; }
-      function queried(k: string): boolean { return k.length <= D.bound || k === ALL; }
-      function nFound(): number { return mins.filter(function (m) { return found[m]; }).length; }
-      function subsetOf(a: string, b: string): boolean {
-        return a.split('').every(function (c) { return b.indexOf(c) >= 0; });
-      }
+      const keyOf = () => ALL.split('').filter((c) => selected.has(c)).join('');
+      const fmt = (k: string) => k.split('').join(' + ');
+      const queried = (k: string) => k.length <= D.bound || k === ALL;
 
       function paint() {
-        Object.keys(nodes).forEach(function (k) {
-          var n = nodes[k];
-          n.classList.toggle('is-seen', revealed || !!seen[k] || (k === '' && !!seen['']));
+        cells.forEach((c, k) => {
+          const known = revealed || seen.has(k);
+          c.classList.toggle('is-known', known);
+          c.classList.toggle('is-err', known && suff.has(k));
+          c.classList.toggle('is-min', known && mins.indexOf(k) >= 0);
+          c.classList.toggle('is-cur', k === keyOf());
         });
-        viol.forEach(function (v) {
-          var e = edges[v[0] + '-' + v[1]];
-          if (e) e.classList.toggle('is-on', revealed || (!!seen[v[0]] && !!seen[v[1]]));
-        });
+        files.forEach((f, k) => f.classList.toggle('is-found', revealed || found.has(k)));
+        twists.forEach((t, k) => t.classList.toggle('is-seen', revealed || seen.has(k)));
+        const n = revealed ? mins.length : found.size;
+        foundEl.textContent = String(n);
+        root.classList.toggle('is-solved', n === mins.length);
       }
 
+      let flip = 0;
       function setAns(val: string, tag: string, cls: string) {
-        ansVal.textContent = val;
+        ansBox.className = 'cl-out ' + cls;
         ansTag.textContent = tag;
-        ansBox.className = 'rd-c-ans ' + cls;
+        if (REDUCE) { ansVal.textContent = val; return; }
+        // a beat of "thinking" before the answer lands
+        const G = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789';
+        const id = ++flip, t0 = performance.now();
+        const run = (now: number) => {
+          if (id !== flip) return;
+          const k = Math.min(1, Math.max(0, (now - t0) / 320)), rev = Math.floor(k * val.length);
+          let out = '';
+          for (let i = 0; i < val.length; i++) out += i < rev || val[i] === ' ' ? val[i] : G[(Math.random() * G.length) | 0];
+          ansVal.textContent = out;
+          if (k < 1) requestAnimationFrame(run);
+        };
+        requestAnimationFrame(run);
       }
 
       function update() {
-        var k = keyOf();
-        var size = k.length;
-        if (queried(k)) seen[k] = true;
-
-        Object.keys(nodes).forEach(function (nk) { nodes[nk].classList.toggle('is-cur', nk === k); });
-        chunks.forEach(function (c) {
-          var on = !!selected[c.dataset.chunk || ''];
+        const k = keyOf(), size = k.length;
+        if (queried(k) && size) seen.add(k);
+        chunks.forEach((c) => {
+          const on = selected.has(c.dataset.chunk || '');
           c.classList.toggle('is-in', on);
           c.setAttribute('aria-pressed', on ? 'true' : 'false');
         });
         inCount.textContent = String(size);
-
-        var msg = '';
-        var wasNew = false;
-        if (!queried(k)) {
-          setAns('?', 'NOT QUERIED IN THIS RUN', 'is-none');
-          msg = 'This run stopped at three passages, so sets of four or five were <b>never queried</b>. The paper’s main runs query all 63 subsets of every error.';
-        } else if (size === 0) {
-          setAns('—', 'NO CONTEXT', 'is-none');
-          msg = 'Add passages to the context. Find the <b>smallest sets</b> that make the model repeat “' + D.wrong + '”. There are three.';
-        } else if (suff[k]) {
+        let msg = '';
+        if (!size) {
+          setAns('—', 'SHOW IT SOME PASSAGES', 'is-none');
+          msg = 'Start with one passage. Then try two.';
+        } else if (!queried(k)) {
+          setAns('?', 'NOT ASKED IN THIS RUN', 'is-none');
+          msg = 'This run stopped at three passages, so sets of four or five were never asked. (The paper’s main runs ask all 63.)';
+        } else if (suff.has(k)) {
           setAns(D.wrong, '✗ REPEATS THE ERROR', 'is-wrong');
-          if (k === ALL) {
-            msg = 'The full context: the model’s original wrong answer. Now take it apart. Which passage is <b>the culprit</b>?';
-          } else if (mins.indexOf(k) >= 0) {
-            wasNew = !found[k];
-            found[k] = true;
-            msg = '<b>' + fmt(k) + '</b> repeats the error, and no smaller set does: a <b>minimal sufficient set</b>. Found ' + nFound() + ' of ' + mins.length + '.';
-            if (nFound() === mins.length) {
-              msg = 'All three: <b>{A, B}, {B, C}, {B, E}</b>. B is in every one but can’t do it alone, and A, C or E can each complete it. ' +
-                '<span class="warn">A ranking that names one culprit can’t describe this.</span> In the study, 59% of errors have more than one minimal set.';
-            }
+          if (k === ALL) msg = 'All six: the original mistake. Now take it apart.';
+          else if (mins.indexOf(k) >= 0) {
+            found.add(k);
+            msg = found.size === mins.length
+              ? '<b>All three found.</b> B is in every one, but B alone isn’t enough. There’s no single culprit to name.'
+              : '<b>' + fmt(k) + '</b> is a culprit set: it repeats the error and nothing smaller does. ' + found.size + ' of ' + mins.length + '.';
           } else {
-            var inner = mins.filter(function (m) { return subsetOf(m, k); });
-            msg = 'Repeats the error, but it contains a smaller set that already does: <b>' + inner.map(fmt).join(', ') + '</b>. Not minimal.';
+            const inner = mins.filter((m) => m.split('').every((c) => k.indexOf(c) >= 0));
+            msg = 'Repeats it, but only because <b>' + inner.map(fmt).join(', ') + '</b> is inside. Look for smaller.';
           }
         } else {
-          var known = D.answers[k];
-          var broke = viol.filter(function (v) { return v[1] === k; });
-          if (known && known === D.gold) setAns(known, '✓ CORRECT', 'is-right');
-          else if (known) setAns(known, '✗ A DIFFERENT WRONG ANSWER', 'is-other');
-          else setAns('≠ ' + D.wrong, 'DOES NOT REPEAT THE ERROR', 'is-none');
-
-          if (broke.length) {
-            var base = broke[0][0];
-            var added = k.split('').filter(function (c) { return base.indexOf(c) < 0; })[0];
-            if (known && known === D.gold) {
-              msg = '<b>' + fmt(base) + '</b> repeated the error. Add ' + added + ', the gold article, and the model gets it right: “' + known + '”. Removing evidence of the error isn’t the only way to fix it.';
-            } else if (known) {
-              msg = '<b>' + fmt(base) + '</b> repeated the error. Add ' + added + ', another cyclone article, and the answer becomes “' + known + '”. ' +
-                '<span class="warn">Adding a passage broke a sufficient set.</span> 63% of errors have a violation like this.';
-            } else {
-              msg = '<b>' + fmt(base) + '</b> repeated the error, and adding ' + added + ' stops it. Support is <b>not monotone</b>, which is the one condition under which leave-one-out is exact.';
-            }
+          const known = D.answers[k];
+          if (known && known === D.gold) setAns(known, '✓ RIGHT ANSWER', 'is-right');
+          else if (known) setAns(known, '✗ A DIFFERENT MISTAKE', 'is-other');
+          else setAns('something else', 'DOESN’T REPEAT IT', 'is-none');
+          const broke = viol.filter((v) => v[1] === k)[0];
+          if (broke) {
+            const added = k.split('').filter((c) => broke[0].indexOf(c) < 0)[0];
+            msg = '<b>Plot twist.</b> ' + fmt(broke[0]) + ' repeated the error; adding ' + added + ' ' +
+              (known === D.gold ? 'fixes it.' : known ? 'turns it into a different mistake.' : 'makes it stop.') +
+              ' More context can undo an error, which is why “remove the culprit” fails.';
           } else if (size === 1) {
-            msg = 'No single passage repeats this error, not even the film’s own article. That holds for <b>49%</b> of the 603 errors in the study. Try pairs.';
-          } else {
-            msg = fmt(k) + ' doesn’t repeat the error. Keep looking.';
-          }
-        }
-        if (revealed && !wasNew && msg.indexOf('Found') < 0 && size === 0) {
-          msg = 'The lattice up to three passages: <b>filled</b> nodes repeat the error, <b>ringed</b> ones are minimal, red edges are violations.';
+            msg = k === 'B'
+              ? 'Not even the film’s own article does it alone. True for <b>49%</b> of the 603 errors studied.'
+              : 'One passage alone doesn’t do it. Try pairs.';
+          } else msg = 'Not this one. Keep looking.';
         }
         verdict.innerHTML = msg;
-        foundEl.textContent = String(nFound());
-        prevKey = k;
         paint();
       }
 
-      chunks.forEach(function (c) {
-        c.addEventListener('click', function () {
-          var id = c.dataset.chunk || '';
-          selected[id] = !selected[id];
-          update();
-        });
-      });
-      // clicking a lattice node loads that subset
-      Object.keys(nodes).forEach(function (k) {
-        var n = nodes[k] as HTMLElement & SVGElement;
-        n.style.cursor = 'pointer';
-        n.addEventListener('click', function () {
-          selected = {};
-          k.split('').forEach(function (c) { selected[c] = true; });
-          update();
-        });
-      });
-      var fullBtn = root.querySelector('[data-full]');
-      if (fullBtn) fullBtn.addEventListener('click', function () {
-        selected = {};
-        ALL.split('').forEach(function (c) { selected[c] = true; });
+      chunks.forEach((c) => c.addEventListener('click', () => {
+        const id = c.dataset.chunk || '';
+        if (selected.has(id)) selected.delete(id); else selected.add(id);
         update();
-      });
-      if (revealBtn) revealBtn.addEventListener('click', function () {
-        revealed = !revealed;
-        revealBtn.textContent = revealed ? 'Hide the lattice' : 'Fill the lattice';
+      }));
+      cells.forEach((c, k) => c.addEventListener('click', () => { selected = new Set(k.split('')); update(); }));
+      $('[data-full]')?.addEventListener('click', () => { selected = new Set(ALL.split('')); update(); });
+      $('[data-reveal]')?.addEventListener('click', () => {
+        revealed = true;
+        verdict.innerHTML = '<b>The whole picture.</b> Three culprit sets, all built on B; no single passage repeats the error; and adding a passage can undo it.';
         paint();
-        if (revealed) verdict.innerHTML = 'The lattice up to three passages: <b>filled</b> nodes repeat the error, <b>ringed</b> ones are minimal, red edges are violations, where adding one passage stops the error.';
       });
-      var resetBtn = root.querySelector('[data-reset]');
-      if (resetBtn) resetBtn.addEventListener('click', function () {
-        selected = {}; seen = {}; found = {}; revealed = false;
-        if (revealBtn) revealBtn.textContent = 'Fill the lattice';
+      $('[data-reset]')?.addEventListener('click', () => {
+        selected = new Set(); seen.clear(); found.clear(); revealed = false;
         update();
       });
-      void prevKey;
       update();
-    } catch (e) { /* console enhancement failed silently: markup stays readable */ }
+    } catch (e) { /* lineup enhancement failed: the markup stays readable */ }
   })();
 
   /* ===================== 02 · precision vs trueness ===================== */

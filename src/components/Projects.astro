@@ -58,7 +58,7 @@ import Folio from './Folio.astro';
         status: 'live', host: 'orbit-virid-gamma.vercel.app',
         github: 'https://github.com/santoshcheethiralame-dot/ORBIT',
         tagline: 'A local-first focus engine that plans your day around your energy, deadlines, and exam readiness.',
-        blurb: 'The thumbnail is the scheduler’s actual model: retention decaying subject by subject down an Ebbinghaus curve, each review snapping a bar back up before it crosses the line. Fully offline PWA, shipped at v3.2.',
+        blurb: 'Plans your study around forgetting curves. Fully offline PWA, v3.2.',
         stack: ['React 19', 'TypeScript', 'Dexie.js / IndexedDB', 'PWA'],
         stats: [{ pre: '<', target: 5, suf: 'ms', lab: 'Latency' }, { target: 100, suf: '%', lab: 'Local-first' }],
         overview: 'ORBIT asks when you will have the energy to do a task well, not just when it is due. A three-tier engine scores subject readiness with Ebbinghaus forgetting curves, scales urgency by exam proximity, and back-schedules deadlines with infeasibility warnings — wrapped in a fully offline, installable PWA with SM-2 spaced repetition and an AI exam simulator.',
@@ -76,7 +76,7 @@ import Folio from './Folio.astro';
         status: 'live', host: 'numero00-glassbox.hf.space',
         github: 'https://github.com/santoshcheethiralame-dot/GlassBox',
         tagline: 'Read what a transformer represents, edit a concept mid-forward-pass, and trace a hallucination to its cause — on GPT-2 and Gemma.',
-        blurb: 'Past attention: sparse autoencoders decode the residual stream into 24K+ features you can search, steer, and ablate live — flipping a confabulation back to the truth.',
+        blurb: 'Search, steer and ablate 24K+ SAE features live, and flip a confabulation back to the truth.',
         stack: ['FastAPI', 'SAE Lens', 'Neuronpedia', 'TransformerLens', 'React'],
         stats: [{ target: 24, suf: 'K+', lab: 'SAE features' }, { target: 5, suf: '', lab: 'Acts' }],
         overview: 'GLASSBOX runs five acts — OBSERVE, DECODE, INTERVENE, CAUSAL, EXPERIMENT — over GPT-2 and a GPU-gated Gemma-2-2B. Sparse autoencoders (SAE Lens) decode the residual stream into 24K+ Neuronpedia-labeled features; you ablate or steer one mid-forward-pass and watch the next token move, attribute an output to its context two ways (fast attribution patching vs. verified activation patching), and in the hallucination lab flip a confabulation back to grounded with a single feature.',
@@ -94,7 +94,7 @@ import Folio from './Folio.astro';
         status: 'live', host: 'santoshcheethiralame-dot.github.io/GRADIENT',
         github: 'https://github.com/santoshcheethiralame-dot/GRADIENT',
         tagline: 'A from-scratch nano-GPT — forward, backprop, AND Adam in WGSL — that trains entirely on your GPU. Paste text, watch it learn.',
-        blurb: 'Not just an MLP anymore: a full char transformer where the attention backward is hand-derived in ~5 WGSL kernels, gradient-checked against PyTorch to ~1e-7.',
+        blurb: 'A char transformer trained on your GPU, its backward pass hand-written in WGSL.',
         stack: ['WebGPU / WGSL', 'TypeScript', 'Web Workers', 'BPE'],
         stats: [{ target: 51, suf: '/51', lab: 'CPU-oracle checks' }, { pre: '~', target: 1000, suf: ' tok/s', lab: 'GPU throughput' }],
         overview: 'Forward, hand-derived backprop, and Adam all run as WGSL compute shaders — for a full nano-GPT char transformer, not just an MLP. The attention backward is ~5 kernels (incl. the softmax VJP) plus layer-norm backward, all gradient-checked; params and Adam moments stay GPU-resident across steps. It scales with multi-head attention and stacked blocks on a learned BPE vocab — paste any text and it learns it live, with a CPU-vs-GPU race and a backward-pass gradient-flow view.',
@@ -111,7 +111,7 @@ import Folio from './Folio.astro';
         status: 'built', host: null,
         github: 'https://github.com/santoshcheethiralame-dot/PES1UG24CS127-pes-vcs',
         tagline: 'Git, rebuilt from scratch in C — content-addressable storage, trees, staging, and commit history.',
-        blurb: 'The thumbnail is the core idea: a blob collapsing into its SHA-256, the digest resolving digit by digit, then the first two characters peeled off as the shard the object is filed under.',
+        blurb: 'Git, rebuilt in C: every object filed under its SHA-256.',
         stack: ['C', 'OpenSSL (SHA-256)', 'Makefile', 'Ubuntu'],
         stats: [{ pre: 'SHA-', target: 256, suf: '', lab: 'Object IDs' }, { target: 100, suf: '%', lab: 'From scratch' }],
         overview: 'PES-VCS is Git rebuilt to understand it — a .pes/ store mirroring .git/: SHA-256 content-addressable objects sharded by their first two hex characters, tree objects for directory snapshots, a staging index, and commit objects with parent pointers for history. Exposes init, add, status, commit, and log.',
@@ -127,7 +127,7 @@ import Folio from './Folio.astro';
         status: 'built', host: null,
         github: 'https://github.com/santoshcheethiralame-dot/TESSERA',
         tagline: 'A distributed, sharded, replicated KV store from scratch in pure Rust — LSM + Raft + a deterministic simulator that fuzzes cluster failures by the thousand.',
-        blurb: 'The thumbnail is the cluster: a leader replicating to its followers — until it dies, an election runs, and the new leader takes over. Every failure replays exactly from its seed.',
+        blurb: 'A Raft cluster where every failure replays exactly from its seed.',
         stack: ['Rust (std only)', 'LSM-tree', 'Raft', 'Deterministic sim'],
         stats: [{ pre: '~', target: 83, suf: 'k/s', lab: 'Pipelined writes' }, { target: 1000, suf: '/0', lab: 'Schedules/violations' }],
         overview: 'Consensus and storage are pure state machines — they consume events and return intents, never touching the clock or network — so the same unchanged code runs over real TCP or inside a seeded simulated world where partitions, crashes, and message chaos are fuzzed by the thousand. A from-scratch LSM engine (WAL, MVCC, SSTables, compaction) under Raft with snapshots, leases, and joint consensus; sharded behind a coordinator; checked by a Wing–Gong linearizability oracle.',
@@ -144,7 +144,7 @@ import Folio from './Folio.astro';
         status: 'live', host: 'terracrest.vercel.app',
         github: 'https://github.com/santoshcheethiralame-dot/TERRACREST',
         tagline: 'An invitation-only platform for high-value Bengaluru land — server-sealed parcels, NDA-gated reveals, and a live three-zone GDV studio.',
-        blurb: 'The Feasibility Studio in miniature — sweep the massing and the Bear/Base/Bull net development value recomputes live, while the survey numbers stay sealed behind the NDA gate.',
+        blurb: 'Sweep the massing; the Bear/Base/Bull value recomputes live.',
         stack: ['React', 'TypeScript', 'FastAPI', 'Postgres'],
         stats: [{ target: 3, suf: '-zone', lab: 'GDV engine' }, { target: 4, suf: '', lab: 'Role dashboards' }],
         overview: 'Two signatures: a masking moat — coordinates, owners, and survey numbers withheld by the API until a witnessed NDA is logged, enforced server-side — and a Feasibility Studio, a parametric GDV engine where towers, FSI, efficiency, and price drive a Bear/Base/Bull net development value live, with an architect’s stamped figure returning beside the estimate. Role dashboards, an Operations Centre, a watermarked-PDF vault, a deal room, and an append-only audit trail complete the desk.',
@@ -161,7 +161,7 @@ import Folio from './Folio.astro';
         status: 'live', host: 'attest-one.vercel.app',
         github: 'https://github.com/santoshcheethiralame-dot/ATTEST',
         tagline: 'Proof a human understood this — any written assignment becomes a short, adaptive oral defense.',
-        blurb: 'The thumbnail is the defense itself: a voice waveform cycling probe → cannot defend → teach → re-ask. The examiner stops examining and starts teaching, then re-checks until the gap closes.',
+        blurb: 'A voice examiner that stops examining and starts teaching when you’re stuck.',
         stack: ['Next.js', 'TypeScript', 'GPT-5.6', 'Realtime / WebRTC'],
         stats: [{ target: 0, suf: '', lab: 'Keys to try it' }, { pre: '~$', target: 0.3, decimals: 2, lab: 'Per voice defense' }],
         overview: "Detectors ask “did a human make this?” — a question that no longer has a reliable answer, and asking it turns teachers into police who accuse honest students. Attest asks whether a human can stand behind the work, then makes them able to: an examiner reads the essay and the full history of how it was written, finds the seam where genuine understanding gives way to faking, and probes it in conversation. When it finds a gap it stops examining and starts teaching, Socratically, until the student can defend the point — then re-asks.",
@@ -178,7 +178,7 @@ import Folio from './Folio.astro';
         status: 'built', host: null,
         github: 'https://github.com/santoshcheethiralame-dot/UNTANGLE',
         tagline: 'Graph-native detection of coordinated mule-account fraud rings in UPI-style payment data.',
-        blurb: 'The thumbnail is the graph: ordinary accounts scattered in grey until message passing lights the laundering ring — the coordinated cycle no per-transaction rule can see.',
+        blurb: 'Message passing lights up the laundering ring no per-transaction rule can see.',
         stack: ['Python', 'PyTorch Geometric', 'GraphSAGE / GAT', 'Gradient boosting'],
         stats: [{ target: 0.987, decimals: 3, lab: 'PR-AUC · 0.637 without graph' }, { target: 91, suf: '%', lab: 'Ring members recovered' }],
         overview: "Fraud isn’t a transaction, it’s a network — no single hop in a laundering ring looks abnormal, which is the entire design of the crime. The hard part here is the benchmark, not the model: the generator is built adversarially against its own thesis, so half of every ring is rented — real accounts, years old, full KYC, statistically identical to ordinary customers on every profile feature — and the graph is salted with legitimate look-alikes (payroll fan-outs, settlement merchants, chit funds) that reproduce a laundering signature exactly.",
@@ -195,7 +195,7 @@ import Folio from './Folio.astro';
         status: 'live', host: 'showme-sandy.vercel.app',
         github: 'https://github.com/santoshcheethiralame-dot/ShowMe',
         tagline: 'Ask any question and GPT-5.6 draws you a custom animation, live — real running code built for your exact confusion.',
-        blurb: 'The thumbnail is one of its answers: ask why the sky is blue and it draws you this — sunlight striking an air molecule, the short wavelengths bursting outward while the long ones carry straight through. Moving, labelled, built for the question.',
+        blurb: 'Ask why the sky is blue and it draws you the answer, moving and labelled.',
         stack: ['Next.js 16', 'TypeScript', 'GPT-5.6 (Responses API)', 'HTML5 Canvas'],
         stats: [{ target: 0, suf: '', lab: 'Deps in the output' }, { target: 1, suf: '', lab: 'Sandboxed HTML doc' }],
         overview: "Everyone learning about a pendulum gets the same static textbook diagram, but nobody has the same confusion — a fixed picture can’t answer your question, and a 3Blue1Brown-style custom animation that could takes weeks. ShowMe makes one in seconds: a single engineered instruction to GPT-5.6 returns one self-contained HTML document (inline canvas + vanilla JS, no libraries, no external requests) that animates the real mechanism, streamed token by token so you watch the code being written. While it draws, it asks what you think — committing to a guess first improves retention, so the loading time itself teaches.",
@@ -213,7 +213,7 @@ import Folio from './Folio.astro';
         status: 'built', host: null,
         github: 'https://github.com/santoshcheethiralame-dot/CORRIDOR',
         tagline: 'An ambulance green-corridor that talks to each vehicle directly — early, directional, different for every car — instead of one broadcast siren everyone reacts to at once.',
-        blurb: 'The thumbnail is the thesis: a siren makes every car react at once and clump around the ambulance; a corridor addresses each car — hold, ease left, take the bus bay — and a clean lane opens ahead.',
+        blurb: 'A siren makes every car react at once. Corridor tells each car what to do.',
         stack: ['Node.js (0 deps)', 'Web Audio modem', 'DeviceMotion', 'Canvas'],
         stats: [{ pre: '−', target: 34.1, decimals: 1, suf: '%', lab: 'Ambulance transit time' }, { target: 100, suf: '', lab: 'Seeded runs per arm' }],
         overview: "A siren is a broadcast with no addressing: everyone in earshot gets the identical signal at the identical instant and each decides independently, so they all move into the same gaps at once and traffic clumps around the ambulance instead of parting. A corridor is the opposite object — early, directional, and different for every vehicle. An assignment engine decides each car’s move and three independent rings deliver it (network, a phone-to-phone mesh, and an acoustic modem that rides the siren itself), each surviving the one above it failing. Zero dependencies: npm install fetches nothing.",
@@ -230,7 +230,7 @@ import Folio from './Folio.astro';
         status: 'live', host: 'batchscan.vercel.app',
         github: 'https://github.com/santoshcheethiralame-dot/BATCH',
         tagline: 'Scan a barcode and see what is actually in a product, what the label is arranged to hide, and what the evidence says — every claim carrying its source.',
-        blurb: 'The thumbnail is the product: a barcode scans, a 0–100 score resolves, and its three sub-scores — nutrition, processing, additives — open underneath, each honest both ways.',
+        blurb: 'A 0–100 food score you can open: nutrition, processing, additives, sourced.',
         stack: ['Next.js', 'TypeScript', 'Open Food Facts', 'Gemini (photo)'],
         stats: [{ target: 0, suf: '–100', lab: 'Score, every part openable' }, { target: 122, suf: '', lab: 'Tests · no key needed' }],
         overview: "A packaged-food score you cannot interrogate is a score you should not trust. Batch builds a 0–100 score from three individually openable sub-scores — nutrition (official Nutri-Score or a labelled approximation), NOVA processing, and every declared additive scored on its regulatory position rather than folklore — and shows the source for every claim, always. It recovers INS numbers Indian packs bury inside function names, adds sugar back together when it is split across names, checks front-of-pack claims against their legal definitions, and where no database has the barcode, transcribes the pack from a photo, inventing nothing. Calibrated over alarming: MSG is scored low because the trials failed to reproduce the scare.",
@@ -247,7 +247,7 @@ import Folio from './Folio.astro';
         status: 'built', host: null,
         github: 'https://github.com/santoshcheethiralame-dot/HighWater',
         tagline: 'A Jepsen-style durability experiment on Couchbase — the first to show a “majority”-acknowledged write can be acknowledged and then lost.',
-        blurb: 'The thumbnail is the finding: durable writes stream in and ack, then the majority is killed mid-flush and the acknowledged ones vanish — 56 lost, not linearizable. persistToMajority loses none.',
+        blurb: 'Kill the majority mid-flush: 56 acknowledged writes vanish. persistToMajority loses none.',
         stack: ['Go', 'gocbcore (patched)', 'DCP tap', 'Porcupine'],
         stats: [{ target: 56, suf: '', lab: 'Acked writes lost at “majority”' }, { target: 0, suf: '', lab: 'Lost at persistToMajority' }],
         overview: "`majority` durability promises a majority of nodes hold your write in memory — it says nothing about disk. Kill that majority before the flush completes and the write is gone; the docs say so, but nobody had shown it, and Couchbase is one of the very few major distributed databases with no published Jepsen analysis. Rather than treat the database as a black box, highwater taps the DCP stream to watch a durable write arrive as a prepare followed by a commit or an abort — separating “never prepared” from “prepared then aborted,” which a client cannot. It drives the cluster into the ambiguous window, kills the majority before the disk flush, and checks the result two independent ways that agree.",
@@ -264,7 +264,7 @@ import Folio from './Folio.astro';
         status: 'built', host: null,
         github: 'https://github.com/santoshcheethiralame-dot/LIFT',
         tagline: 'A revenue-recovery agent that reports what it caused — measured against a control arm left completely alone, its own cost charged to the same ledger.',
-        blurb: 'The thumbnail is the whole argument: a treatment bar rises past control, then the money that was arriving anyway is subtracted away, leaving only the lift the agent actually caused.',
+        blurb: 'Subtract the money that was coming anyway. What’s left is the lift the agent caused.',
         stack: ['TypeScript', 'Node.js (0 deps)', 'Counterfactual estimator'],
         stats: [{ pre: '+', target: 24.4, decimals: 1, suf: 'pp', lab: 'Mean causal lift' }, { target: 30, suf: '', lab: 'Independent batches' }],
         overview: "Every dunning tool reports how much it recovered; none subtract the money that was arriving anyway. Businesses with no automation already recover 20–31%, so a large share of every recovery figure in this market is money that was coming regardless. LIFT holds out a control arm left completely untouched, measures recovery against it, then charges the cost of acting and the billing that walked to the same ledger — so the headline is net caused revenue, not gross invoiced. A near-unbiased estimator reports +24.4pp where the oracle truth is +24.9pp; the distribution over 30 batches is the claim, and a single seed is the thing you can watch run.",
@@ -1297,31 +1297,31 @@ import Folio from './Folio.astro';
     /* ============================================================ SCROLL UI */
     var titleWrap = document.getElementById('li-titleWrap');
     var lastScroll = window.scrollY, vel = 0, squash = 0;
+    var moved = true;
     window.addEventListener('scroll', function () {
-      var y = window.scrollY; vel = y - lastScroll; lastScroll = y;
+      var y = window.scrollY; vel = y - lastScroll; lastScroll = y; moved = true;
+      startUi();
     }, { passive: true });
 
-    // Reads first, then writes, and only what changed. The hatch offset lives on
-    // each card head (only its ::before reads it) instead of <html> or the section,
-    // where every write restyled everything beneath; and interleaving each card's
+    // Reads first, then writes, and only what changed: interleaving each card's
     // rect read with the previous card's --g write forced a fresh layout per card,
     // every frame.
-    var heads = Array.prototype.slice.call(document.querySelectorAll('#projects .li-card-head'));
-    var HATCH = 9 / Math.SQRT1_2; // the hatch's vertical period, ~12.73px
-    var lastHatch = '', lastTitle = '';
+    var lastTitle = '';
     var lastG = {};
+    // runs while the page scrolls (and the title settles), then sleeps until the
+    // next scroll: nothing here changes while the page is still
     function uiFrame() {
       if (!sectionLive()) { uiOn = false; return; }
+      if (!moved && Math.abs(squash) < 0.05 && Math.abs(vel) < 0.05) { uiOn = false; return; }
+      var measure = moved; moved = false;
       var vh = window.innerHeight, vc = vh * 0.5;
       var gs = [];
-      PROJECTS.forEach(function (p) {
+      if (measure) PROJECTS.forEach(function (p) {
         var card = cardByKey[p.key]; if (card.style.display === 'none') return;
         var rc = card.getBoundingClientRect(), cc = rc.top + rc.height * 0.5;
         var d = Math.min(1, Math.abs(cc - vc) / (vh * 0.7));
         gs.push([p.key, card, (1 - d).toFixed(3)]);
       });
-      var hatch = (lastScroll * 0.45 % HATCH).toFixed(2) + 'px';
-      if (hatch !== lastHatch) { lastHatch = hatch; heads.forEach(function (h) { h.style.setProperty('--li-hatch', hatch); }); }
       gs.forEach(function (g) {
         if (lastG[g[0]] === g[2]) return;
         lastG[g[0]] = g[2];

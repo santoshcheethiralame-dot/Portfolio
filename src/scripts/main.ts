@@ -471,11 +471,22 @@ export function initAnimations() {
   let pvTarget = 0;
   let pvRaf = 0;
   let pvLast = '';
+  // Only headlines on screen take the write: an off-screen one still restyled (and
+  // its text-shadow, which inherits, restyled every span inside it) each frame.
   const pvHosts = $$('.li-title, .edition .masthead-title, .experience .exp-title, #stack .ld-head');
+  const pvLive = new Set<HTMLElement>();
+  if ('IntersectionObserver' in window) {
+    const pio = new IntersectionObserver((es) => es.forEach((en) => {
+      const el = en.target as HTMLElement;
+      if (en.isIntersecting) pvLive.add(el);
+      else { pvLive.delete(el); el.style.setProperty('--press-vel', '0'); }
+    }));
+    pvHosts.forEach((el) => pio.observe(el));
+  } else pvHosts.forEach((el) => pvLive.add(el));
   const setPv = (v: string) => {
     if (v === pvLast) return;
     pvLast = v;
-    pvHosts.forEach((el) => el.style.setProperty('--press-vel', v));
+    pvLive.forEach((el) => el.style.setProperty('--press-vel', v));
   };
   const pvTick = () => {
     pv += (pvTarget - pv) * 0.16;

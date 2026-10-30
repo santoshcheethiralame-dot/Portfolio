@@ -2272,7 +2272,8 @@ html.cover-on #contact:has(#lt-call.is-open) {
   border: 2.5px solid var(--li-black);
   box-shadow: 6px 6px 0 var(--li-red), 12px 12px 0 var(--li-black);
   transition: transform 150ms var(--li-ease), box-shadow 150ms var(--li-ease), opacity 200ms ease;
-  will-change: transform;
+  /* no standing will-change: thirteen card-sized layers held all the time cost
+     every engine memory and commit time; the hover transition promotes briefly */
 }
 
 .li-card:hover {
@@ -2290,18 +2291,11 @@ html.cover-on #contact:has(#lt-call.is-open) {
   cursor: pointer;
 }
 
-/* the hatch drifts with scroll. It is a translated layer, not an animated
-   background-position, so the drift composites instead of repainting every
-   visible card head on every scroll frame. The layer overhangs by one period of
-   the hatch (9px / cos 45deg) and main.ts keeps the offset inside it. */
-.li-card-head::before {
-  content: '';
-  position: absolute;
-  inset: -13px 0 0 0;
+/* the hatch is printed, not animated: it used to drift with scroll, which
+   either repainted every visible card head per frame (as a moving background)
+   or held thirteen more layers (as a moving pseudo-element) */
+.li-card-head {
   background-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.055) 0 1px, transparent 1px 9px);
-  transform: translateY(var(--li-hatch, 0px));
-  will-change: transform;
-  pointer-events: none;
 }
 
 .li-card-head canvas.li-demo {
